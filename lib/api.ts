@@ -453,7 +453,6 @@ export interface ComparablesResponse {
   method_mix: MethodShare[];
   suburb_method_mix: MethodShare[];
   method_gap_pts: number | null;
-  value_if_auction: number | null;
   value_if_negotiation: number | null;
   method_gap_is_thin: boolean;
   comps_with_cv: number;

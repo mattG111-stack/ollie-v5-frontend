@@ -8,7 +8,7 @@ import { useT } from "@/lib/i18n";
  * them all is unusable — instead the user types and picks from live suggestions
  * (the /suggest endpoint, suburbs only). The picked value is the EXACT suburb
  * name, which the list API filters on exactly (PropertyForSale.suburb == value).
- * Reused across the deal-finder filter bars and the auctions lane. */
+ * Reused across the deal-finder filter bars. */
 
 type Suggestion = { kind: string; label: string; sub?: string | null; id?: number | null };
 
