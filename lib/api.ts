@@ -115,9 +115,6 @@ export interface ForSaleRow {
   fair_value: number | null;       // independent CV-bounded hedonic fair value
   margin: number | null;           // (fair_value/asking - 1); positive = potential deal
   is_premium: boolean | null;      // ultra-prime: priced off listing, no model valuation
-  is_auction: boolean | null;      // no-price listing valued off agreeing signals (Auctions lane)
-  auction_ceiling: number | null;  // walk-away price: 0.95 × area_value (server-computed)
-  auction_headroom: number | null; // estimate − ceiling (server-computed)
   buy_price: number | null;        // acquisition buy price (0.95 × MIN(asking, area value))
   area_value: number | null;       // comp-derived area value
   comp_tier: number | null;        // 1-6 cascade tier; null = v4 fallback
@@ -456,7 +453,6 @@ export interface ComparablesResponse {
   method_mix: MethodShare[];
   suburb_method_mix: MethodShare[];
   method_gap_pts: number | null;
-  value_if_auction: number | null;
   value_if_negotiation: number | null;
   method_gap_is_thin: boolean;
   comps_with_cv: number;

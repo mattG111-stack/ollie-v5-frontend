@@ -30,10 +30,9 @@ const overview: Nav[] = [
 
 const finders: Nav[] = [
   { href: "/underpriced", label: "nav.underpriced", dot: "#C9CED6" },
-  // NOTE: the no-price "Auctions" lane is disabled in the UI until its matching
-  // backend is deployed (the current backend rejects that lane's request with a
-  // 422). Its nav entry, route and component are removed. Restore from git once
-  // the backend that serves it ships.
+  // NOTE: the no-price "Auctions" lane was removed along with the backend's
+  // is_auction feature — the auction fields, lane, and this nav entry no
+  // longer exist.
   // Cashflow positive is hidden, not deleted: nothing in Auckland clears at a
   // 30% deposit and 6.75% interest, so the page is always empty. The route
   // still works. Re-list it once it ranks by break-even deposit instead of
