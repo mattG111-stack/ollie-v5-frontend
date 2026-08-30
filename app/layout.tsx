@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import { Space_Grotesk } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from "@/lib/auth";
+import { I18nProvider } from "@/lib/i18n";
+import PreviewBanner from "@/components/PreviewBanner";
+import ReferralCapture from "@/components/ReferralCapture";
+
+// Wordmark font (brand): Space Grotesk 700, used only by the logo wordmark.
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["700"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "Apex Property",
+  description: "Comp-priced Auckland property listings with deal-finding tools.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={spaceGrotesk.variable}>
+      <body className="min-h-screen font-sans">
+        <ReferralCapture />
+        {/* Above everything, on every page — see the component. */}
+        <PreviewBanner />
+        <I18nProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </I18nProvider>
+      </body>
+    </html>
+  );
+}
