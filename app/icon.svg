@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!--
+    Browser tab icon: the white house from the Apex mark, on the brand's black.
+
+    The tile is not decoration. Chrome's tab strip is near-white in light mode, so
+    a white house on transparency would vanish there; on black it reads on both
+    light and dark, and it matches the lockup's own ground.
+
+    The house is the exact geometry from components/ApexLogo.tsx, scaled into the
+    tile with a transform rather than re-typed, so the two can never drift apart.
+  -->
+  <rect width="64" height="64" rx="13" fill="#16181A"/>
+  <g transform="translate(8 12) scale(0.4068)">
+    <mask id="apex-fav" maskUnits="userSpaceOnUse" x="0" y="0" width="118" height="100">
+      <!-- roof + body -->
+      <path d="M59 4 L118 52 L100 52 L100 100 L18 100 L18 52 L0 52 Z" fill="#fff"/>
+      <!-- chimney, right-hand side of the roof -->
+      <rect x="83" y="16" width="13" height="26" fill="#fff"/>
+      <!-- doorway knocked out, so the red below shows through cleanly -->
+      <rect x="43" y="62" width="24" height="38" fill="#000"/>
+    </mask>
+    <rect width="118" height="100" fill="#FFFFFF" mask="url(#apex-fav)"/>
+    <rect x="43" y="62" width="24" height="38" fill="#E4002B"/>
+  </g>
+</svg>
