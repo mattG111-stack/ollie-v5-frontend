@@ -443,8 +443,8 @@ function Inner() {
             looked up. The denominator is how many were WANTED, and the whole
             batch is the footnote. */}
         <Stat
-          label="CoreLogic enriched"
-          value={`${s.pv_checked}/${s.pv_wanted || s.forsale_rows}`}
+          label="CoreLogic checked"
+          value={s.pv_checked.toLocaleString()}
           sub={
             s.pv_wanted
               ? `${s.pv_wanted.toLocaleString()} of ${s.forsale_rows.toLocaleString()} listings were missing something a lookup can fill`

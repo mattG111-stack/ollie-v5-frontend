@@ -437,6 +437,17 @@ function Inner({ id }: { id: string }) {
       >
         {/* Left column: the numbers, then the action you take on them. */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+        {!!p.related_listings?.length && <Card>
+          <CardTitle>Other records for this address</CardTitle>
+          <p style={{ marginTop: 12 }}>We have more than one listing record for this address. Prices or details may differ. Confirm the current listing before relying on the deal estimate.</p>
+          <ul style={{ marginTop: 12 }}>
+            {p.related_listings.map(r => <li key={r.id} style={{ marginTop: 8 }}>
+              <Link href={`/property/${r.id}`}>Compare record #{r.id}</Link>
+              {" · Asking: "}{r.asking_price == null ? "not recorded" : fmtMoney(r.asking_price)}
+              {" · Floor: "}{r.floor_area_m2 == null ? "not recorded" : `${r.floor_area_m2} m²`}
+            </li>)}
+          </ul>
+        </Card>}
         <Card>
           <CardTitle>{t("prop.pricingAnalysis")}</CardTitle>
           <div style={{ marginTop: 16 }}>
@@ -526,7 +537,7 @@ function Inner({ id }: { id: string }) {
                     : t("prop.noComps"),
               })}
               {p.range_low != null && p.range_high != null
-                ? t("prop.likelyRange", { lo: fmtMoneyShort(p.range_low), hi: fmtMoneyShort(p.range_high) })
+                ? ` — ${t("prop.likelyRange")}: ${fmtMoneyShort(p.range_low)}–${fmtMoneyShort(p.range_high)}`
                 : ""}
               .
             </Note>

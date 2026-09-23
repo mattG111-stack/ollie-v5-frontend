@@ -106,6 +106,8 @@ export default function DealFinder({
   const [zoning, setZoning] = useState(filter.zoning ?? "");
   const [shown, setShown] = useState(PAGE);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   const qs = useMemo(() => {
@@ -132,7 +134,12 @@ export default function DealFinder({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
+    setError(null);
+    setRows([]);
+    setHero(null);
+    setSummary(null);
     setShown(PAGE);
     const listQ = new URLSearchParams({ ...qs, page: "1", page_size: "200" });
     const sumQ = new URLSearchParams(qs);
@@ -141,13 +148,15 @@ export default function DealFinder({
       api<Summary>(`/api/properties/summary?${sumQ}`),
     ])
       .then(([list, sum]) => {
+        if (cancelled) return;
         setRows(list.rows);
         setSummary(sum);
         setHero(list.rows.find((r) => r.id === sum.top_id) ?? list.rows[0] ?? null);
       })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [qs]);
+      .catch(() => { if (!cancelled) setError("We could not load these listings. Please try again."); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [qs, retry]);
 
   // Preview lets you judge a listing where you can actually see it — the photo,
   // the valuation next to the asking price, the margin. Finding one wrong here
@@ -161,6 +170,12 @@ export default function DealFinder({
   // and the list is long.
   const [gone, setGone] = useState<Set<number>>(new Set());
   const drop = (id: number) => setGone((g) => new Set(g).add(id));
+
+  const recordKey = (r: ForSaleRow) => r.address?.trim() && r.suburb?.trim()
+    ? `${r.address.trim().toLowerCase()}|${r.suburb.trim().toLowerCase()}` : `id:${r.id}`;
+  const sameAddress = new Map<string, number>();
+  rows.forEach(r => sameAddress.set(recordKey(r), (sameAddress.get(recordKey(r)) ?? 0) + 1));
+  const hasDuplicates = [...sameAddress.values()].some(n => n > 1);
 
   const rest = rows.filter((r) => r.id !== hero?.id && !gone.has(r.id));
 
@@ -496,13 +511,17 @@ export default function DealFinder({
         </div>
       </div>
 
+      {error && <div role="alert" style={{ marginTop: 18 }}>{error} <button onClick={() => setRetry(n => n + 1)}>Try again</button></div>}
+
+      {hasDuplicates && <p role="note" style={{ marginTop: 18 }}>Some results contain multiple records for the same address. Counts are listing records, not unique homes. Open a property to compare its records before relying on a price.</p>}
+
       {/* ── Deal cards ── */}
       <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 10 }}>
         {rest.slice(0, shown).map((r, i) => (
           <DealCard key={r.id} r={r} rank={i + 2} metric={metric} metricMax={metricMax} mounted={mounted}
                     preview={preview} onGone={drop} />
         ))}
-        {!loading && rest.length === 0 && (
+        {!loading && !error && !hero && rest.length === 0 && (
           <div style={{ color: C.label, fontSize: 15, padding: "30px 0" }}>
             {t("deal.noMatch")}
           </div>
