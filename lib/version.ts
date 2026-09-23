@@ -28,7 +28,7 @@
  * releases, they were rebuilds during the build-out; 1.0 is the first version
  * of the product proper. Do not "fix" the sequence back to 10.0.
  */
-export const APP_VERSION = "1.87-review.2";
+export const APP_VERSION = "1.87-review.3";
 
 /** The day this build was cut. The number says which build; this says how old. */
-export const BUILT_AT = "2026-09-22";
+export const BUILT_AT = "2026-09-23";

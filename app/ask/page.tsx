@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
+import AssistantAnswer from "@/components/AssistantAnswer";
 import OllieHunt from "@/components/OllieHunt";
 import OllieOrb, { OrbState } from "@/components/OllieOrb";
 import {
   AskProgress, AskStarted, AssistantKeyStatus, AssistantQuota, Preferences, api,
 } from "@/lib/api";
-import { C, D, MONO } from "@/components/apex";
+import { C, D } from "@/components/apex";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -55,16 +56,10 @@ function Inner() {
   // discovered when the box refuses them.
   const [quota, setQuota] = useState<AssistantQuota | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
-  const typerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  useEffect(() => () => { if (typerRef.current) clearInterval(typerRef.current); }, []);
   // Which of Ollie's four faces to show. Driven by what is actually happening,
   // never guessed: he listens while the box has focus, works while a question
   // is in flight, and delivers for a moment when the answer lands.
   const [orb, setOrb] = useState<OrbState>("idle");
-  // How much of the newest answer has been revealed. Ollie stays in "speaking"
-  // for exactly as long as this is running, so the orb and the words are the
-  // same event rather than an animation that happens to overlap some text.
-  const [typed, setTyped] = useState<number | null>(null);
   // How far along the question in flight is. Null when nothing is being asked.
   // Ollie takes as long as he needs now, and a wait with no end in sight and
   // nothing moving is indistinguishable from a hang — so the corner counts.
@@ -159,9 +154,13 @@ function Inner() {
     setBusy(true);
     setOrb("thinking");
     setProgress({ pct: 2, phase: "Catching up" });
-    follow(parked.id).finally(() => {
+    follow(parked.id).catch((error) => {
+      if (!aliveRef.current) return;
+      setMsgs((m) => [...m, { role: "assistant", content: error?.detail || "Unable to recover this answer. Please ask again.", error: true }]);
+    }).finally(() => {
       if (!aliveRef.current) return;
       setBusy(false);
+      setOrb("idle");
       setProgress(null);
     });
     // Once, on the way in. `follow` is stable enough for this and re-running it
@@ -203,11 +202,6 @@ function Inner() {
     }
     return out.reverse();
   })();
-  /** Which answer the typewriter is currently revealing — the newest one. */
-  const newestAnswer = msgs.length && msgs[msgs.length - 1].role === "assistant"
-    ? msgs[msgs.length - 1]
-    : null;
-
   // Bring the top of the conversation into view, not the bottom of it.
   useEffect(() => {
     if (msgs.length) endRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -264,6 +258,7 @@ function Inner() {
       forget();
     } finally {
       setBusy(false);
+      setOrb("idle");
       setProgress(null);
     }
   }
@@ -281,14 +276,26 @@ function Inner() {
    * the life of the tab, setting state on something that is no longer mounted.
    */
   async function follow(ask_id: number) {
+    let missedPolls = 0;
     for (;;) {
       await new Promise((r) => setTimeout(r, 900));
       if (!aliveRef.current) return;          // the page is gone; so is this loop
       // A poll that fails is a dropped packet or a redeploy, not an answer.
       // Keep waiting — the work is on the server and is unaffected by it.
-      const s = await api<AskProgress>(`/api/assistant/ask/${ask_id}`).catch(() => null);
+      const s = await api<AskProgress>(`/api/assistant/ask/${ask_id}`).catch((error) => {
+        if ([401, 403, 404, 410].includes(error?.status)) {
+          forget();
+          throw error;
+        }
+        return null;
+      });
       if (!aliveRef.current) return;
-      if (!s) continue;
+      if (!s) {
+        missedPolls += 1;
+        if (missedPolls >= 3) setProgress({ pct: 0, phase: "Connection interrupted — reconnecting" });
+        continue;
+      }
+      missedPolls = 0;
       setProgress({ pct: s.progress_pct, phase: s.phase });
       if (s.status === "running") continue;
 
@@ -305,50 +312,10 @@ function Inner() {
         ...m,
         { role: "assistant", content: answer, queries: s.queries, tools: s.tools_used },
       ]);
-      typeOut(answer.length);
+      setOrb("idle");
       api<AssistantQuota>("/api/assistant/quota").then(setQuota).catch(() => null);
       return;
     }
-  }
-
-  /**
-   * Reveal the answer a few characters at a time, and hold Ollie in "speaking"
-   * until the last one lands.
-   *
-   * Not decoration: a long answer arriving as one block gives no sense that
-   * anything was said, and a fixed 2.6-second flourish had the orb finish
-   * delivering while three paragraphs were still sitting there unread. Tied to
-   * the length, the two are one event.
-   */
-  function typeOut(len: number) {
-    if (typerRef.current) clearInterval(typerRef.current);
-    const still =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (still || len <= 0) {
-      setTyped(null);
-      setOrb("speaking");
-      setTimeout(() => setOrb("idle"), 1400);
-      return;
-    }
-    setOrb("speaking");
-    setTyped(0);
-    // Fast enough not to be a wait — a long answer still finishes in a couple
-    // of seconds — and stepped rather than per-character so it stays cheap.
-    const step = Math.max(3, Math.ceil(len / 90));
-    typerRef.current = setInterval(() => {
-      setTyped((n) => {
-        const next = (n ?? 0) + step;
-        if (next >= len) {
-          if (typerRef.current) clearInterval(typerRef.current);
-          typerRef.current = null;
-          setTyped(null);
-          setOrb("idle");
-          return null;
-        }
-        return next;
-      });
-    }, 22);
   }
 
   // keyStatus describes the user's OWN key only. With an account-wide key set,
@@ -631,7 +598,6 @@ function Inner() {
                   {x.a && (
                     <Bubble
                       msg={x.a}
-                      typing={x.a === newestAnswer ? typed : null}
                     />
                   )}
                 </div>
@@ -642,6 +608,7 @@ function Inner() {
           {msgs.length > 0 && (
             <button
               type="button"
+              disabled={busy}
               onClick={() => { setMsgs([]); setOrb("idle"); }}
               style={{
                 marginTop: 22, background: "none", border: "none", cursor: "pointer",
@@ -659,7 +626,7 @@ function Inner() {
   );
 }
 
-function Bubble({ msg, typing }: { msg: Msg; typing?: number | null }) {
+function Bubble({ msg }: { msg: Msg }) {
   const mine = msg.role === "user";
 
   if (mine) {
@@ -679,10 +646,6 @@ function Bubble({ msg, typing }: { msg: Msg; typing?: number | null }) {
     );
   }
 
-  // Only as much as has been spoken. A caret sits on the edge while it runs.
-  const shown = typing == null ? msg.content : msg.content.slice(0, typing);
-  const running = typing != null && typing < msg.content.length;
-
   return (
     <div
       style={{
@@ -692,98 +655,40 @@ function Bubble({ msg, typing }: { msg: Msg; typing?: number | null }) {
         padding: "16px 19px",
       }}
     >
-      <style>{`@keyframes ollieCaret{0%,45%{opacity:1}55%,100%{opacity:0}}`}</style>
-      <div
-        style={{
-          fontSize: 15.5, lineHeight: 1.65, whiteSpace: "pre-wrap",
-          color: msg.error ? "#FF9A6E" : D.ink,
-        }}
-      >
-        {shown}
-        {running && (
-          <span
-            style={{
-              display: "inline-block", width: 8, height: 17, marginLeft: 2,
-              transform: "translateY(3px)", background: D.accent,
-              animation: "ollieCaret 1s steps(1) infinite",
-            }}
-          />
-        )}
+      <div style={{ fontSize: 15.5, lineHeight: 1.65, color: msg.error ? "#FF9A6E" : D.ink }}>
+        {msg.error ? <p role="alert">{msg.content}</p> : <AssistantAnswer content={msg.content} />}
       </div>
     </div>
   );
 }
 
 
-/**
- * The counter in the corner. 0-100%, while Ollie works.
- *
- * There is no deadline on an answer any more, which is the right trade — a
- * question that needs four minutes should take four minutes rather than be cut
- * off at fifty-five seconds and answered part-way. But an open-ended wait with
- * nothing moving is indistinguishable from a hang, and the honest fix for that
- * is to show the work rather than to cap it.
- *
- * The number is REAL. It comes from the server and rises as steps genuinely
- * complete — a pass of thinking, a lookup run, the answer being written — and
- * it reaches 100 only when the answer exists. It is not a bar timed to look
- * busy, so it can sit still, and the phase underneath says what it is sitting
- * on.
- *
- * Bottom-right, small, and out of the way: it is reassurance, not the subject
- * of the page. Ollie is.
- */
-function Counting({ pct, phase, fixed }: {
+/** Show elapsed time and the reported stage, not an estimated completion percentage. */
+function Counting({ phase, fixed }: {
   pct: number; phase: string | null; fixed?: boolean;
 }) {
-  const R = 13;
-  const CIRC = 2 * Math.PI * R;
-  const safe = Math.max(0, Math.min(100, Math.round(pct)));
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const timer = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, []);
   return (
-    <div
-      aria-live="polite"
-      aria-label={`${safe}% — ${phase || "working"}`}
-      style={{
-        // Fixed in the page corner on a phone, where there is nowhere else for
-        // it. On a desktop it is placed under Ollie instead and simply flows.
-        ...(fixed
-          ? { position: "fixed" as const, right: 18, bottom: 18, zIndex: 40 }
-          : null),
-        display: "flex", alignItems: "center", gap: 10,
-        padding: "8px 13px 8px 9px", borderRadius: 999,
-        background: "rgba(22,25,31,.82)",
-        backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-        border: `1px solid ${D.line}`,
-        pointerEvents: "none",
-      }}
-    >
-      <svg width={32} height={32} viewBox="0 0 32 32" style={{ display: "block" }}>
-        <circle cx="16" cy="16" r={R} fill="none" stroke={D.line} strokeWidth="2.5" />
-        <circle
-          cx="16" cy="16" r={R} fill="none" stroke={D.accent} strokeWidth="2.5"
-          strokeLinecap="round" strokeDasharray={CIRC}
-          strokeDashoffset={CIRC * (1 - safe / 100)}
-          transform="rotate(-90 16 16)"
-          // Eased so a jump from one milestone to the next sweeps rather than
-          // snaps. The NUMBER is never smoothed — only the ring.
-          style={{ transition: "stroke-dashoffset .6s ease" }}
-        />
-      </svg>
-      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        <span
-          style={{
-            fontFamily: MONO, fontSize: 13, fontWeight: 700, color: D.ink,
-            lineHeight: 1, fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {safe}%
-        </span>
-        {phase && (
-          <span style={{ fontSize: 10.5, color: D.faint, lineHeight: 1.2 }}>
-            {phase}
-          </span>
-        )}
+    <div style={{
+      ...(fixed ? { position: "fixed" as const, right: 18, bottom: 18, zIndex: 40 } : null),
+      maxWidth: "min(340px, calc(100vw - 36px))", padding: "12px 16px", borderRadius: 16,
+      background: D.panelSolid, border: `1px solid ${D.line}`, color: D.ink,
+      boxShadow: "0 4px 20px rgba(0,0,0,.15)",
+    }}>
+      <div aria-live="polite" style={{ fontSize: 13, fontWeight: 600 }}>
+        {phase || "Working on your question"}
       </div>
+      <div style={{ fontSize: 12, marginTop: 4, color: D.dim }}>
+        {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")} elapsed
+      </div>
+      {seconds >= 30 && <p style={{ fontSize: 12, marginTop: 6, color: D.dim }}>
+        This is taking a little longer. You can leave this page and return to pick up the answer.
+      </p>}
     </div>
   );
 }
