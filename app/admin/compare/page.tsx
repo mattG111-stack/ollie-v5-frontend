@@ -105,7 +105,7 @@ function Inner() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
             <Kpi label={t("adm.rowsAdded")} value={(data.rows_added ?? 0).toLocaleString()} tone="good" />
             <Kpi label={t("adm.rowsRemoved")} value={(data.rows_removed ?? 0).toLocaleString()} tone="bad" />
-            <Kpi label={t("adm.stillOnMarket")} value={(data.rows_in_both ?? 0).toLocaleString()} />
+            <Kpi label={t("adm.stillOnMarket")} value={data.rows_in_paired == null ? "—" : data.rows_in_paired.toLocaleString()} />
             <Kpi
               label={t("adm.medianAskingChange")}
               value={

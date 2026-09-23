@@ -255,6 +255,7 @@ export interface Me {
 }
 
 export interface ForSaleRow {
+  related_listings?: Array<{ id: number; asking_price: number | null; floor_area_m2: number | null; days_on_market: number | null }>;
   id: number;
   address: string | null;
   suburb: string | null;
@@ -780,7 +781,7 @@ export interface BatchCompare {
   batch_b: number;
   rows_added: number;
   rows_removed: number;
-  rows_in_both: number;
+  rows_in_paired: number;
   median_asking_change_pct: number | null;
   median_market_value_change_pct: number | null;
   biggest_price_drop: BatchMover[];

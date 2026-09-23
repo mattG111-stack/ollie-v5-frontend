@@ -63,7 +63,7 @@ export default function HeadlineDeals() {
           eyebrow={t("hd.marginAll")}
           value={fmtMoneyShort(h.underpriced_margin_total)}
           hint={t("hd.marginHint", { n: (h.underpriced ?? 0).toLocaleString() })}
-          href="/properties?underpriced=true"
+          href="/underpriced"
           muted
         />
       </div>
