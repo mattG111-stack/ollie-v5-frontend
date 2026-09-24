@@ -47,8 +47,8 @@ export default function OllieDecision({ rows, answer, onAsk, disabled = false }:
   const values = facts.flatMap(r => [r.property.asking_price, r.property.fair_value]).filter(positive);
   const maximum = Math.max(1, ...values);
   return <section aria-label="Shortlist decision guide" style={{margin:"16px 0",borderRadius:14,background:"#101d2a",padding:16}}>
-    <h3 style={{margin:"0 0 6px",fontSize:20}}>What stands out</h3>
-    <p style={{margin:"0 0 16px",fontSize:13,color:"#b4c6d8",lineHeight:1.5}}>Compare this shortlist, then choose what to investigate. Highlights describe recorded differences, not an overall recommendation.</p>
+    <h3 style={{margin:"0 0 6px",fontSize:20}}>{facts.length > 1 ? "What stands out" : "Check this property"}</h3>
+    <p style={{margin:"0 0 16px",fontSize:13,color:"#b4c6d8",lineHeight:1.5}}>{facts.length > 1 ? "Compare this shortlist, then choose what to investigate. Highlights describe recorded differences, not an overall recommendation." : "Check the recorded asking price against the Apex estimate, then review the supporting evidence."}</p>
     <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,marginBottom:14}}><span style={{color:"#9adeff"}}>● Asking price</span><span style={{color:"#debeff"}}>● Apex estimate</span></div>
     {facts.map(({id,property:p,badges,checks}) => <article key={id} style={{padding:"16px 0",borderTop:"1px solid #344c63"}}>
       <a href={`/property/${id}`} style={{color:"#eef6ff",fontSize:16,fontWeight:700}}>{p.address || `Property ${id}`}</a>

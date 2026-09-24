@@ -6,7 +6,7 @@ const tmp=new URL('../.ollie-history-test.mjs',import.meta.url);
 const src=await readFile(new URL('../lib/ollie-history.ts',import.meta.url),'utf8');
 await writeFile(tmp,ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText);
 try {
- const {savedHistory,readRecentContext,writeRecentContext,LIMITED_HISTORY_NOTICE}=await import(tmp.href);
+ const {savedHistory,readRecentContext,writeRecentContext,recentQuestionLabel,LIMITED_HISTORY_NOTICE}=await import(tmp.href);
  const turns=[{role:'user',content:'Glen Eden, under $800,000; fixed asking only; 3+ bedrooms'}, {role:'assistant',content:'Three candidate properties'}, {role:'user',content:'Keep those filters, require 400m² land'}];
  assert.deepEqual(savedHistory(JSON.parse(JSON.stringify(turns))),turns);
  assert.deepEqual(savedHistory([]),[]);
@@ -44,9 +44,16 @@ try {
  context.remember(30,'Long','Long',[{role:'user',content:'x'.repeat(5000)}]);
  assert.equal(readRecentContext('apex:ask:101',30).history[0].content.length,4000);
  assert.equal(readRecentContext('apex:ask:101',30).notice,LIMITED_HISTORY_NOTICE);
+ const generated='Investigate only Apex property ID 42, selected from the latest shortlist (IDs 42).';
+ writeRecentContext('apex:ask:101',42,{question:'Investigate Example Road',modelContent:generated,history:turns,notice:''});
+ assert.equal(recentQuestionLabel('apex:ask:101',42,generated),'Investigate Example Road');
+ assert.equal(recentQuestionLabel('apex:ask:102',42,generated),'Investigate property #42');
+ assert.equal(recentQuestionLabel(null,42,generated),'Investigate property #42');
+ assert.equal(recentQuestionLabel('apex:ask:101',42,generated+' changed'),'Investigate property #42');
+ assert.equal(recentQuestionLabel('apex:ask:101',42,'My original question'),'My original question');
  const reopenSource=page.slice(page.indexOf('  async function reopen('),page.indexOf('  const [keyStatus'));
  const observed={};
- Object.assign(context,{busy:false,readRecentContext,MISSING_HISTORY_NOTICE:'Missing context',setBusy:()=>{},setOrb:()=>{},setRecent:()=>{},setRecentError:()=>{},setMsgs:v=>observed.messages=v,setContextNotice:v=>observed.notice=v,setProgress:()=>{},follow:async id=>{observed.followed=id;}});
+ Object.assign(context,{busy:false,readRecentContext,recentQuestionLabel,MISSING_HISTORY_NOTICE:'Missing context',setBusy:()=>{},setOrb:()=>{},setRecent:()=>{},setRecentError:()=>{},setMsgs:v=>observed.messages=v,setContextNotice:v=>observed.notice=v,setProgress:()=>{},follow:async id=>{observed.followed=id;}});
  vm.runInContext(ts.transpileModule(reopenSource,{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText,context);
  await context.reopen({ask_id:21,question:'Server question'});
  assert.equal(observed.followed,21);

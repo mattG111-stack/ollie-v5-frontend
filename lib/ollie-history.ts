@@ -27,6 +27,15 @@ export function readRecentContext(accountKey: string | null, id: number): Recent
   } catch { return null; }
 }
 
+/** Display labels never replace the actual question sent to Ollie. */
+export function recentQuestionLabel(accountKey: string | null, id: number, question: string): string {
+  const investigation = question.match(/^Investigate only Apex property ID ([1-9]\d*)\b/);
+  if (!investigation) return question;
+  const saved = readRecentContext(accountKey, id);
+  if (saved?.modelContent === question && saved.question !== question) return saved.question;
+  return `Investigate property #${investigation[1]}`;
+}
+
 export function writeRecentContext(accountKey: string | null, id: number, context: RecentContext) {
   if (!accountKey || !Number.isSafeInteger(id) || id <= 0) return;
   const valid = validContext(context);
