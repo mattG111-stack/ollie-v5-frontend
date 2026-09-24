@@ -14,6 +14,12 @@ export function toNearestThousand(v: number): number {
   return Math.abs(v) >= ROUND_ABOVE ? Math.round(v / 1000) * 1000 : v;
 }
 
+/** Full recorded amount for detail/evidence views; compact overview formatting is separate. */
+export function fmtMoneyExact(v: number | null | undefined): string {
+  if (v == null || !Number.isFinite(v)) return "—";
+  return new Intl.NumberFormat("en-NZ", {style:"currency", currency:"NZD", maximumSignificantDigits:21}).format(v);
+}
+
 export function fmtMoney(v: number | null | undefined): string {
   if (v == null || !Number.isFinite(v)) return "—";
   return nzd.format(toNearestThousand(v));
@@ -46,9 +52,10 @@ export function askingText(
   listingType: string | null | undefined,
   t: (key: string, vars?: Record<string, string | number>) => string,
   short = false,
+  exact = false,
 ): string {
   if (asking != null && Number.isFinite(asking)) {
-    const money = short ? fmtMoneyShort(asking) : fmtMoney(asking);
+    const money = short ? fmtMoneyShort(asking) : exact ? fmtMoneyExact(asking) : fmtMoney(asking);
     // "Enquiries over $699,000" is what the advertisement says, and the two
     // words are the whole difference between a price and a floor. Printing
     // "$699,000" alone turns a starting figure into an asking price — which is

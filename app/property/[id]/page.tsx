@@ -16,7 +16,7 @@ import BuyersAgent from "@/components/BuyersAgent";
 import ValueAdd from "@/components/ValueAdd";
 import { C, Card, CardTitle, Eyebrow, HeroChip, MONO, Note, Row, SpecTile } from "@/components/apex";
 import { ComparableSale, ComparablesResponse, ForSaleRow, HistoryResponse, api } from "@/lib/api";
-import { askingText, fmtArea, fmtDayDate, fmtEpoch, fmtMoney, fmtMoneyShort, fmtPct } from "@/lib/format";
+import { askingText, fmtArea, fmtDayDate, fmtEpoch, fmtMoneyExact as fmtMoney, fmtMoneyShort, fmtPct } from "@/lib/format";
 import { translatePropertyType } from "@/lib/translations";
 import { hiRes } from "@/lib/img";
 import { useT } from "@/lib/i18n";
@@ -228,7 +228,7 @@ function Inner({ id }: { id: string }) {
                 <HeroChip>
                   {p.asking_price != null
                     ? t("prop.askingChip", { v: fmtMoney(p.asking_price) })
-                    : askingText(p.asking_price, p.listing_type, t)}
+                    : askingText(p.asking_price, p.listing_type, t, false, true)}
                 </HeroChip>
                 <HeroChip>{t("prop.cvChip", { v: fmtMoney(p.cv_numeric) })}</HeroChip>
                 {p.confidence && (
@@ -460,7 +460,7 @@ function Inner({ id }: { id: string }) {
                 // so the number above can never read as one being asked today.
                 p.prior_asking_price ? (
                   <span style={{ display: "inline-block", textAlign: "right" }}>
-                    <span>{askingText(p.asking_price, p.listing_type, t)}</span>
+                    <span>{askingText(p.asking_price, p.listing_type, t, false, true)}</span>
                     <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.label, marginTop: 2 }}>
                       {t("prop.wasListedAt", {
                         v: fmtMoney(p.prior_asking_price),
@@ -473,7 +473,7 @@ function Inner({ id }: { id: string }) {
                     </span>
                   </span>
                 ) : (
-                  askingText(p.asking_price, p.listing_type, t)
+                  askingText(p.asking_price, p.listing_type, t, false, true)
                 )
               }
             />
