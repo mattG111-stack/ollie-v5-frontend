@@ -22,6 +22,12 @@ export function starters(prefs: Preferences | null) {
 }
 
 export function followUps(answer: string) {
+  const rentalReply = "Ollie covers buying, selling, property values and sales analytics. Rental data is coming soon. For now, ask me about properties for sale, recent sales or market trends.";
+  if (answer.trim().replace(/\s+/g, " ") === rentalReply) return [
+    { title: "Find properties for sale", question: "Switch to buying a property. Ask me for my preferred area, budget and minimum bedrooms before searching properties for sale." },
+    { title: "Explore recent sales", question: "Switch to recent property sales. Ask which suburb and property type I want to explore, then show recorded sales with dates and sample sizes." },
+    { title: "Check a property", question: "Switch to assessing a property for purchase. Ask for its full address and suburb, then check the recorded asking price, estimated value and sold evidence." },
+  ];
   const ids = [...new Set([...answer.matchAll(/\]\(\/property\/(\d+)\)/g)].map(m => m[1]))];
   const scope = ids.length ? `Use only the properties from the latest answer (IDs ${ids.join(", ")}); recheck current records. Keep the existing area, budget and property filters.` : "Use the subject and filters of your latest answer. Recheck the underlying records.";
   const actions = [
