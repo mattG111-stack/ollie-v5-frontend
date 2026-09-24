@@ -68,6 +68,10 @@ export default function HeadlineDeals() {
         />
       </div>
 
+      <p style={{ fontSize: 12, color: C.faint, lineHeight: 1.5, marginTop: 12 }}>
+        {t("hd.estimateNote")}
+      </p>
+
       {b && (
         <Link
           href={`/property/${b.id}`}
@@ -179,7 +183,7 @@ export default function HeadlineDeals() {
             image_url: d.image_url,
             amount: d.margin_dollars,
             amountLabel: t("hd.belowValuation"),
-            sub: `${fmtMoneyShort(d.asking_price)} asking${d.margin == null ? "" : ` · ${(d.margin * 100).toFixed(1)}%`}`,
+            sub: `${fmtMoneyShort(d.asking_price)} asking${d.margin == null ? "" : ` · ${t("hd.margin", { pct: `${(d.margin * 100).toFixed(1)}%` })}`}`,
           }))}
         />
         <TopList
