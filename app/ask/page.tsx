@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AssistantAnswer from "@/components/AssistantAnswer";
+import OllieActions from "@/components/OllieActions";
 import OllieHunt from "@/components/OllieHunt";
 import OllieOrb, { OrbState } from "@/components/OllieOrb";
 import {
@@ -28,15 +29,6 @@ interface Msg {
   tools?: string[];
   error?: boolean;
 }
-
-const SUGGESTIONS = [
-  "What are the 5 biggest margins on the market right now?",
-  "Which suburb has the most subdividable land?",
-  "What's a bedroom worth in Manukau compared with the North Shore?",
-  "Average asking price by district for 4-bedroom houses?",
-  "Which suburbs sell fastest?",
-  "Show me 3-bed houses under $900k with land over 600m²",
-];
 
 export default function AskPage() {
   return (
@@ -567,23 +559,7 @@ function Inner() {
               better than a paragraph explaining him would. */}
           {msgs.length === 0 && !noKey && (
             <div style={{ width: "100%", maxWidth: split ? "none" : 720 }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 9,
-                            justifyContent: split ? "flex-start" : "center" }}>
-                {SUGGESTIONS.map((sug) => (
-                  <button
-                    key={sug}
-                    onClick={() => send(sug)}
-                    style={{
-                      textAlign: "left", padding: "11px 15px", borderRadius: 13,
-                      border: `1px solid ${D.line}`, background: D.panel,
-                      fontSize: 13.5, cursor: "pointer", color: D.dim,
-                      fontFamily: "inherit", lineHeight: 1.4,
-                    }}
-                  >
-                    {sug}
-                  </button>
-                ))}
-              </div>
+              <OllieActions prefs={prefs} disabled={busy || quota?.remaining === 0} onAsk={send} />
             </div>
           )}
 
@@ -596,9 +572,10 @@ function Inner() {
                                       opacity: i === 0 ? 1 : 0.72 }}>
                   {x.q && <Bubble msg={x.q} />}
                   {x.a && (
-                    <Bubble
-                      msg={x.a}
-                    />
+                    <>
+                      <Bubble msg={x.a} />
+                      {i === 0 && !x.a.error && !noKey && <OllieActions answer={x.a.content} disabled={busy || quota?.remaining === 0} onAsk={send} />}
+                    </>
                   )}
                 </div>
               ))}
