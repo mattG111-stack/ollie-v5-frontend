@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AssistantAnswer from "@/components/AssistantAnswer";
 import OllieActions from "@/components/OllieActions";
-import { savedHistory, readRecentContext, writeRecentContext, MISSING_HISTORY_NOTICE, LIMITED_HISTORY_NOTICE } from "@/lib/ollie-history";
+import { savedHistory, recentQuestionLabel, readRecentContext, writeRecentContext, MISSING_HISTORY_NOTICE, LIMITED_HISTORY_NOTICE } from "@/lib/ollie-history";
 import OllieEvidence from "@/components/OllieEvidence";
 import OllieHunt from "@/components/OllieHunt";
 import OllieOrb, { OrbState } from "@/components/OllieOrb";
@@ -67,7 +67,7 @@ function Inner() {
     const saved = readRecentContext(pendingKey, row.ask_id);
     const prior = saved?.history ?? [];
     const notice = saved ? saved.notice : MISSING_HISTORY_NOTICE;
-    setMsgs([...prior, { role: "user", content: saved?.question ?? row.question, modelContent: saved?.modelContent ?? row.question }]);
+    setMsgs([...prior, { role: "user", content: recentQuestionLabel(pendingKey, row.ask_id, row.question), modelContent: saved?.modelContent ?? row.question }]);
     setContextNotice(notice);
     remember(row.ask_id, saved?.question ?? row.question, saved?.modelContent ?? row.question, saved?.history, notice);
     try { await follow(row.ask_id); }
@@ -604,7 +604,7 @@ function Inner() {
             {recent?.length === 0 && <p>No previous questions yet.</p>}
             {recent && <ul>{recent.map(row => <li key={row.ask_id}>
               <button type="button" disabled={busy} onClick={() => reopen(row)} style={{ textAlign: "left", marginBottom: 8, width: "100%", color: D.ink, background: D.panel, border: `1px solid ${D.line}`, borderRadius: 10, padding: 12, cursor: "pointer" }}>
-                {row.question} · {row.status === "running" ? "In progress" : row.status === "failed" ? "Failed" : "Answered"}
+                {recentQuestionLabel(pendingKey, row.ask_id, row.question)} · {row.status === "running" ? "In progress" : row.status === "failed" ? "Failed" : "Answered"}
               </button>
             </li>)}</ul>}
           </section>
