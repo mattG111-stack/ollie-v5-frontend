@@ -37,7 +37,9 @@ function AnswerChart({ raw }: { raw: string }) {
   const { data, unit } = chart;
   const format = (n: number, compact = false) => {
     const value = new Intl.NumberFormat("en-NZ", { minimumFractionDigits: 0,
-      maximumFractionDigits: compact ? 1 : unit === "NZD" ? 0 : 2,
+      // The data table and tooltips promise exact figures. Keep the supplied
+      // precision there; only axis/bar labels use compact rounding.
+      ...(compact ? { maximumFractionDigits: 1 } : { maximumSignificantDigits: 21 }),
       ...(compact ? { notation: "compact" as const } : {}),
       ...(unit === "NZD" ? { style: "currency", currency: "NZD", currencyDisplay: "narrowSymbol" } : {}),
     }).format(n);

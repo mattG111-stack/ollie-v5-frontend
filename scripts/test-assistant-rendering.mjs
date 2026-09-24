@@ -32,6 +32,11 @@ try {
   assert.match(graph, /View chart data \(2 points\)/);
   assert.match(graph, /\$569,000/);
   assert.doesNotMatch(graph, /language-apex-chart|&quot;type&quot;/);
+  const fractional=render('```apex-chart\n'+JSON.stringify({...chart,data:[{label:'Recorded amount',value:569000.75}]})+'\n```');
+  assert.match(fractional, /Recorded amount: \$569,000\.75/);
+  assert.match(fractional, /<td>\$569,000\.75<\/td>/);
+  const precise=render('```apex-chart\n'+JSON.stringify({...chart,unit:'percent',data:[{label:'Observed change',value:-0.00456789}]})+'\n```');
+  assert.match(precise, /<td>-0\.00456789%<\/td>/);
   assert.match(render('```apex-chart\n{broken}\n```'), /could not be displayed/);
   for (const bad of [
     {...chart,type:'script'}, {...chart,unit:'usd'}, {...chart,data:[]},
