@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AssistantAnswer from "@/components/AssistantAnswer";
 import OllieActions from "@/components/OllieActions";
+import OllieEvidence from "@/components/OllieEvidence";
 import OllieHunt from "@/components/OllieHunt";
 import OllieOrb, { OrbState } from "@/components/OllieOrb";
 import {
@@ -575,6 +576,7 @@ function Inner() {
                   {x.a && (
                     <>
                       <Bubble msg={x.a} />
+                      {i === 0 && !x.a.error && <OllieEvidence answer={x.a.content} />}
                       {i === 0 && !x.a.error && !noKey && <OllieActions answer={x.a.content} disabled={busy || quota?.remaining === 0} onAsk={send} />}
                     </>
                   )}
