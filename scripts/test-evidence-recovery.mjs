@@ -22,7 +22,7 @@ try {
   assert.match(failed,/0 of 2 linked records loaded/);
   assert.match(failed,/Retry property evidence/);
   assert.doesNotMatch(failed,/Loaded directly/);
-  const property={address:'Synthetic Road',asking_price:600000,fair_value:700000};
+  const property={address:'Synthetic Road',asking_price:600000,fair_value:700000,land_area_m2:600.5,floor_area_m2:123};
   const partial=render([[{id:1,property},{id:2}],false,'01:30',0]);
   assert.match(partial,/1 of 2 linked records loaded/);
   assert.match(partial,/Retry property evidence/);
@@ -30,6 +30,13 @@ try {
   const success=render([[{id:1,property},{id:2,property}],false,'01:30',0]);
   assert.match(success,/2 of 2 linked records loaded/);
   assert.doesNotMatch(success,/Retry property evidence/);
+  assert.match(success,/Land area<\/dt><dd[^>]*>600.5 m²/);
+  assert.match(success,/Floor area<\/dt><dd[^>]*>123 m²/);
+  for(const value of [null,undefined,0,-1,Infinity,NaN]) {
+    const missing=render([[{id:1,property:{...property,land_area_m2:value,floor_area_m2:value}}],false,'01:30',0]);
+    assert.match(missing,/Land area<\/dt><dd[^>]*>Not recorded/);
+    assert.match(missing,/Floor area<\/dt><dd[^>]*>Not recorded/);
+  }
   const loading=render([[],true,'',0]);
   assert.match(loading,/Loading property evidence/);
   assert.doesNotMatch(loading,/records loaded|Retry property evidence/);
