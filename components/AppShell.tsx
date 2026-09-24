@@ -83,7 +83,7 @@ export function useIsMobile(maxWidth = 900) {
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { me, loading, signOut } = useAuth();
+  const { me, loading, error: authError, refresh, signOut } = useAuth();
   const { t } = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -134,7 +134,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isPromoter = me?.role === "promoter";
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || authError) return;
     if (!me) router.replace("/sign-in");
     else if (isPromoter) {
       if (!pathname.startsWith("/promoter")) router.replace("/promoter");
@@ -142,11 +142,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     // Authenticated but hasn't finished onboarding / has no live subscription —
     // send them to the paywall instead of flashing the app then bouncing on 402.
     else if (!me.has_access) router.replace("/onboarding");
-  }, [loading, me, router, isPromoter, pathname]);
+  }, [loading, authError, me, router, isPromoter, pathname]);
 
   // Close the drawer on navigation and whenever we grow back to desktop.
   useEffect(() => { setNavOpen(false); }, [pathname]);
   useEffect(() => { if (!isMobile) setNavOpen(false); }, [isMobile]);
+
+  if (!loading && authError) {
+    return (
+      <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, color: C.label }}>
+        <div role="alert" style={{ maxWidth: 400, textAlign: "center" }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700 }}>Connection interrupted</h1>
+          <p style={{ margin: "12px 0" }}>{authError}</p>
+          <button type="button" onClick={() => void refresh()} className="bg-blue text-white rounded-lg px-5 py-2">Try again</button>
+          <button type="button" onClick={signOut} className="block mx-auto mt-4 text-sm underline">Back to sign in</button>
+        </div>
+      </main>
+    );
+  }
 
   if (loading || !me || (!me.has_access && !isPromoter)) {
     return (
