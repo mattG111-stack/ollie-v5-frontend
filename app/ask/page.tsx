@@ -25,6 +25,7 @@ import { useT } from "@/lib/i18n";
 interface Msg {
   role: "user" | "assistant";
   content: string;
+  modelContent?: string;
   queries?: string[];
   tools?: string[];
   error?: boolean;
@@ -127,8 +128,8 @@ function Inner() {
    * Every read and write is wrapped, because a browser set to block site data
    * throws on access rather than returning nothing.
    */
-  function remember(id: number, question: string) {
-    try { sessionStorage.setItem("apex:ask", JSON.stringify({ id, question })); } catch {}
+  function remember(id: number, question: string, modelContent?: string) {
+    try { sessionStorage.setItem("apex:ask", JSON.stringify({ id, question, modelContent })); } catch {}
   }
   function forget() {
     try { sessionStorage.removeItem("apex:ask"); } catch {}
@@ -136,13 +137,13 @@ function Inner() {
 
   // Pick a question back up on the way in.
   useEffect(() => {
-    let parked: { id: number; question: string } | null = null;
+    let parked: { id: number; question: string; modelContent?: string } | null = null;
     try {
       const raw = sessionStorage.getItem("apex:ask");
       if (raw) parked = JSON.parse(raw);
     } catch { parked = null; }
     if (!parked?.id || typeof parked.question !== "string") return;
-    setMsgs([{ role: "user", content: parked.question }]);
+    setMsgs([{ role: "user", content: parked.question, modelContent: typeof parked.modelContent === "string" ? parked.modelContent : undefined }]);
     setBusy(true);
     setOrb("thinking");
     setProgress({ pct: 2, phase: "Catching up" });
@@ -216,12 +217,12 @@ function Inner() {
    * attempt ceiling on purpose — a cap here would be the timeout coming back
    * in through a different door.
    */
-  async function send(question: string) {
+  async function send(question: string, label?: string) {
     const q = question.trim();
     if (!q || busy) return;
     setInput("");
-    const history = msgs.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.content }));
-    setMsgs((m) => [...m, { role: "user", content: q }]);
+    const history = msgs.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
+    setMsgs((m) => [...m, { role: "user", content: label || q, modelContent: q }]);
     setBusy(true);
     setOrb("thinking");
     // 2%, not 0: the question is genuinely on its way, and a counter that reads
@@ -235,7 +236,7 @@ function Inner() {
       });
       // Park it, so leaving the page and coming back does not lose the answer
       // to a question that is still being worked on. Cleared when it lands.
-      remember(ask_id, q);
+      remember(ask_id, label || q, q);
       await follow(ask_id);
     } catch (e: any) {
       // 428 means no key configured — refresh status so the banner appears.
