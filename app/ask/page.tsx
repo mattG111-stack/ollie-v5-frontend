@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AssistantAnswer from "@/components/AssistantAnswer";
 import OllieActions from "@/components/OllieActions";
-import { savedHistory, MISSING_HISTORY_NOTICE, LIMITED_HISTORY_NOTICE } from "@/lib/ollie-history";
+import { savedHistory, readRecentContext, writeRecentContext, MISSING_HISTORY_NOTICE, LIMITED_HISTORY_NOTICE } from "@/lib/ollie-history";
 import OllieEvidence from "@/components/OllieEvidence";
 import OllieHunt from "@/components/OllieHunt";
 import OllieOrb, { OrbState } from "@/components/OllieOrb";
@@ -64,9 +64,12 @@ function Inner() {
   async function reopen(row: RecentAsk) {
     if (busy) return;
     setBusy(true); setOrb("thinking"); setRecent(null); setRecentError("");
-    setMsgs([{ role: "user", content: row.question }]);
-    setContextNotice(MISSING_HISTORY_NOTICE);
-    remember(row.ask_id, row.question, row.question);
+    const saved = readRecentContext(pendingKey, row.ask_id);
+    const prior = saved?.history ?? [];
+    const notice = saved ? saved.notice : MISSING_HISTORY_NOTICE;
+    setMsgs([...prior, { role: "user", content: saved?.question ?? row.question, modelContent: saved?.modelContent ?? row.question }]);
+    setContextNotice(notice);
+    remember(row.ask_id, saved?.question ?? row.question, saved?.modelContent ?? row.question, saved?.history, notice);
     try { await follow(row.ask_id); }
     catch (e: any) { setMsgs(m => [...m, {role: "assistant", content: e?.detail || "Could not reopen this answer.", error: true}]); }
     finally { setBusy(false); setOrb("idle"); setProgress(null); }
@@ -157,7 +160,10 @@ function Inner() {
    */
   function remember(id: number, question: string, modelContent?: string, history?: { role: "user" | "assistant"; content: string }[], notice?: string) {
     if (!pendingKey) return;
-    try { sessionStorage.setItem(pendingKey, JSON.stringify({ id, question, modelContent, history: history?.map(t => ({ ...t, content: t.content.slice(0, 4000) })), notice })); } catch {}
+    const clipped = history?.slice(-20).map(t => ({ ...t, content: t.content.slice(0, 4000) }));
+    const boundedNotice = history?.some(t => t.content.length > 4000) || (history?.length ?? 0) > 20 ? LIMITED_HISTORY_NOTICE : notice;
+    try { sessionStorage.setItem(pendingKey, JSON.stringify({ id, question, modelContent, history: clipped, notice: boundedNotice })); } catch {}
+    if (clipped) writeRecentContext(pendingKey, id, { question, modelContent: modelContent ?? question, history: clipped, notice: boundedNotice ?? "" });
   }
   function forget() {
     if (!pendingKey) return;

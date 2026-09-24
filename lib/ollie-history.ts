@@ -6,3 +6,34 @@ export function savedHistory(value: unknown): { role: "user" | "assistant"; cont
 }
 export const MISSING_HISTORY_NOTICE = "This saved answer does not include the earlier conversation. Include your budget, area and must-haves in your next question so Ollie can apply them.";
 export const LIMITED_HISTORY_NOTICE = "This conversation is getting long. Ollie uses the latest 20 messages; repeat your budget, area and must-haves if they were set earlier.";
+
+type RecentContext = { question: string; modelContent: string; history: NonNullable<ReturnType<typeof savedHistory>>; notice: string };
+function validContext(value: unknown): RecentContext | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as RecentContext;
+  const history = savedHistory(v.history);
+  if (!history || typeof v.question !== "string" || v.question.length > 4000 || typeof v.modelContent !== "string" || v.modelContent.length > 4000) return null;
+  return { question: v.question, modelContent: v.modelContent, history,
+    notice: v.notice === LIMITED_HISTORY_NOTICE || v.notice === MISSING_HISTORY_NOTICE ? v.notice : "" };
+}
+
+/** Tab/session and account scoped. The server still authorizes and loads the answer. */
+export function readRecentContext(accountKey: string | null, id: number): RecentContext | null {
+  if (!accountKey || !Number.isSafeInteger(id) || id <= 0) return null;
+  try {
+    const records = JSON.parse(sessionStorage.getItem(`${accountKey}:recent-context`) || "[]");
+    if (!Array.isArray(records) || records.length > 10) return null;
+    return validContext(records.find(row => row?.id === id)?.context);
+  } catch { return null; }
+}
+
+export function writeRecentContext(accountKey: string | null, id: number, context: RecentContext) {
+  if (!accountKey || !Number.isSafeInteger(id) || id <= 0) return;
+  const valid = validContext(context);
+  if (!valid) return;
+  try {
+    const raw = JSON.parse(sessionStorage.getItem(`${accountKey}:recent-context`) || "[]");
+    const existing = Array.isArray(raw) ? raw.filter(row => Number.isSafeInteger(row?.id) && row.id > 0 && row.id !== id && validContext(row.context)) : [];
+    sessionStorage.setItem(`${accountKey}:recent-context`, JSON.stringify([...existing.slice(-9), {id, context:valid}]));
+  } catch { /* Storage restrictions must never block asking or reading an answer. */ }
+}
