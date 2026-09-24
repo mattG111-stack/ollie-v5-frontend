@@ -492,6 +492,15 @@ function Inner({ id }: { id: string }) {
                   : "—"
               }
             />
+            {!p.is_premium && p.fair_value != null &&
+              p.range_low != null && p.range_high != null &&
+              Number.isFinite(p.range_low) && Number.isFinite(p.range_high) &&
+              p.range_low > 0 && p.range_high >= p.range_low && (
+                <Row
+                  label={`${t("prop.ourValuationRow")} — ${t("prop.likelyRange")}`}
+                  value={`${fmtMoney(p.range_low)}–${fmtMoney(p.range_high)}`}
+                />
+              )}
             <Row
               label={t("prop.councilCv")}
               value={p.cv_numeric != null ? fmtMoney(p.cv_numeric) : "—"}
@@ -506,7 +515,7 @@ function Inner({ id }: { id: string }) {
                 p.fair_value != null && p.buy_price != null && p.buy_price > 0
                   ? (() => {
                       const m = p.fair_value / p.buy_price - 1;
-                      return `${m > 0 ? "+" : "−"}${fmtMoneyShort(
+                      return `${m > 0 ? "+" : m < 0 ? "−" : ""}${fmtMoney(
                         Math.abs(p.fair_value - p.buy_price),
                       )} (${m > 0 ? "+" : ""}${(m * 100).toFixed(1)}%)`;
                     })()
@@ -536,9 +545,6 @@ function Inner({ id }: { id: string }) {
                         : t("prop.compsNearbyPlural", { n: p.comps_matched }))
                     : t("prop.noComps"),
               })}
-              {p.range_low != null && p.range_high != null
-                ? ` — ${t("prop.likelyRange")}: ${fmtMoneyShort(p.range_low)}–${fmtMoneyShort(p.range_high)}`
-                : ""}
               .
             </Note>
           )}
