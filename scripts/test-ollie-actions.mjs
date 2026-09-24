@@ -17,6 +17,13 @@ try {
  assert.equal(f.filter(a=>a.title==='Compare these properties').length,1);
  assert.ok(!followUps('[A](/property/12)').some(a=>a.title==='Compare these properties'));
  assert.ok(!followUps('No matching properties').some(a=>a.title==='Compare these properties'));
+ const rental='Ollie covers buying, selling, property values and sales analytics. Rental data is coming soon. For now, ask me about properties for sale, recent sales or market trends.';
+ const alternatives=followUps(rental);
+ assert.deepEqual(alternatives.map(a=>a.title),['Find properties for sale','Explore recent sales','Check a property']);
+ assert.ok(alternatives.every(a=>a.question.startsWith('Switch to ')));
+ assert.deepEqual(followUps(rental.replace(' Rental','\n\nRental')),alternatives);
+ // A real sales answer mentioning future rentals still keeps its evidence actions.
+ assert.ok(followUps('[A](/property/12) Rental data is coming soon.').some(a=>a.title==='Show the evidence'));
  let submitted=false;
  const html=renderToStaticMarkup(React.createElement(Actions,{prefs,disabled:true,onAsk:()=>{submitted=true}}));
  assert.equal(submitted,false);
