@@ -18,6 +18,7 @@ export default function OllieEvidence({ answer }: { answer: string }) {
   const [rows, setRows] = useState<Array<{id:number; property?:ForSaleRow}>>([]);
   const [loading,setLoading]=useState(false);
   const [checked,setChecked]=useState("");
+  const [retry,setRetry]=useState(0);
   useEffect(() => {
     let active=true;
     setRows([]); setChecked("");
@@ -28,12 +29,15 @@ export default function OllieEvidence({ answer }: { answer: string }) {
       catch {return {id:Number(id)};}
     })).then(result => {if(active) {setRows(result); setLoading(false);setChecked(new Date().toLocaleTimeString("en-NZ",{hour:"2-digit",minute:"2-digit"}));}});
     return () => {active=false;};
-  },[key]);
+  },[key,answer,retry]);
   if (!key) return null;
+  const loaded=rows.filter(row=>row.property).length;
+  const failed=rows.length-loaded;
   return <section aria-label="Property facts from Apex records" style={{ border:"1px solid #43566a",borderRadius:16,padding:16,background:"#142231",color:"#edf5ff" }}>
     <h3 style={{margin:"0 0 6px",fontSize:18}}>Compare the recorded facts</h3>
-    <p style={{fontSize:12,color:"#b4c6d8",margin:"0 0 14px"}}>Loaded directly from Apex property records{checked ? ` at ${checked}` : ""}. This is the retrieval time, not the age of the listing. Up to four linked properties.</p>
+    <p style={{fontSize:12,color:"#b4c6d8",margin:"0 0 14px"}}>{checked ? `${loaded} of ${rows.length} linked records loaded. Checked at ${checked}.` : 'Checking linked Apex property records.'} This check time is not the age of the listing. Up to four linked properties.</p>
     {loading && <p role="status">Loading property evidence…</p>}
+    {!loading && failed>0 && <button type="button" onClick={()=>setRetry(n=>n+1)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:"1px solid #9adeff",color:"#9adeff",background:"transparent",cursor:"pointer"}}>Retry property evidence</button>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 230px), 1fr))",gap:12}}>
     {rows.map(({id,property:p}) => {
       if (!p) return <p key={id} role="status">Property {id} could not be checked. <Link href={`/property/${id}`}>Open its record</Link></p>;
