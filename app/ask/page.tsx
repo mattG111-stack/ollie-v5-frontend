@@ -23,6 +23,8 @@ import { useT } from "@/lib/i18n";
  * query that produced it instead of being taken on trust.
  */
 
+interface RecentAsk { ask_id: number; question: string; status: string; created_at: string }
+
 interface Msg {
   role: "user" | "assistant";
   content: string;
@@ -45,6 +47,24 @@ function Inner() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [recent, setRecent] = useState<RecentAsk[] | null>(null);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [recentError, setRecentError] = useState("");
+  async function loadRecent() {
+    setRecentLoading(true); setRecentError("");
+    try { setRecent(await api<RecentAsk[]>("/api/assistant/asks/recent")); }
+    catch { setRecentError("Could not load recent answers. Please try again."); }
+    finally { setRecentLoading(false); }
+  }
+  async function reopen(row: RecentAsk) {
+    if (busy) return;
+    setBusy(true); setOrb("thinking"); setRecent(null); setRecentError("");
+    setMsgs([{ role: "user", content: row.question }]);
+    remember(row.ask_id, row.question, row.question);
+    try { await follow(row.ask_id); }
+    catch (e: any) { setMsgs(m => [...m, {role: "assistant", content: e?.detail || "Could not reopen this answer.", error: true}]); }
+    finally { setBusy(false); setOrb("idle"); setProgress(null); }
+  }
   const [keyStatus, setKeyStatus] = useState<AssistantKeyStatus | null>(null);
   // The daily allowance on the account-wide key. Shown before they ask, not
   // discovered when the box refuses them.
@@ -175,18 +195,7 @@ function Inner() {
       .catch(() => setHuntOpen(false));
   }, []);
 
-  /**
-   * The conversation, newest exchange FIRST.
-   *
-   * Chronological order put the newest answer at the bottom of everything that
-   * came before it, so the longer the session ran the further you scrolled to
-   * read the thing you had just asked for. Newest-first means the answer is
-   * always the next thing under the question box; the history is still there,
-   * underneath, for anyone who wants it.
-   *
-   * Grouped into exchanges rather than reversed message by message — reversing
-   * a flat list puts every answer ABOVE its own question.
-   */
+  // Keep questions and answers in chronological conversation order.
   const exchanges = (() => {
     const out: { q: Msg | null; a: Msg | null }[] = [];
     for (const m of msgs) {
@@ -194,9 +203,9 @@ function Inner() {
       else if (out.length && out[out.length - 1].a === null) out[out.length - 1].a = m;
       else out.push({ q: null, a: m });
     }
-    return out.reverse();
+    return out;
   })();
-  // Bring the top of the conversation into view, not the bottom of it.
+  // Reveal the latest exchange without skipping over the answer.
   useEffect(() => {
     if (msgs.length) endRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [msgs.length]);
@@ -220,7 +229,7 @@ function Inner() {
    */
   async function send(question: string, label?: string) {
     const q = question.trim();
-    if (!q || busy) return;
+    if (!q || busy || quota?.remaining === 0) return;
     setInput("");
     const history = msgs.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
     setMsgs((m) => [...m, { role: "user", content: label || q, modelContent: q }]);
@@ -247,7 +256,7 @@ function Inner() {
       }
       setMsgs((m) => [
         ...m,
-        { role: "assistant", content: e?.detail || "Something went wrong.", error: true },
+        { role: "assistant", content: e?.status === 0 ? "Connection interrupted. Your question may still be running. Open Recent answers before sending it again." : e?.detail || "Something went wrong.", error: true },
       ]);
       forget();
     } finally {
@@ -321,6 +330,71 @@ function Inner() {
   // the wrong person to go and buy something they do not need.
   const keyUnreadable = noKey && quota?.key_state === "unreadable";
 
+  const composer = (
+          <form
+            aria-label={msgs.length ? "Ask a follow-up" : "Ask Ollie"}
+            onSubmit={(e) => { e.preventDefault(); send(input); }}
+            style={{
+              width: "100%",
+              maxWidth: msgs.length ? "100%" : split ? "none" : orb === "listening" || input.trim() ? 620 : 460,
+              marginTop: split ? 22 : 24,
+              display: "flex", gap: 6, alignItems: "center",
+              background: D.panel,
+              border: `1px solid ${orb === "listening" ? D.lineOn : D.line}`,
+              borderRadius: 999,
+              padding: "4px 4px 4px 6px",
+              transition: "max-width .35s ease, border-color .3s ease, background .3s ease",
+            }}
+          >
+            <input
+              // A stable hook for the browser tests. Selecting this box by
+              // "form input" or by placeholder picks up the header's search
+              // field instead — it is first in the DOM and collapses to zero
+              // width on a phone, so a test aiming at Ollie silently measured
+              // something else and reported a bug that was its own.
+              data-testid="ollie-ask"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                keyUnreadable ? t("ask.placeholderKeyUnreadable")
+                : noKey ? t("ask.placeholderNoKey")
+                : msgs.length ? "Ask a follow-up about this answer…" : t("ask.placeholder")
+              }
+              disabled={!!noKey}
+              onFocus={() => { if (!busy) setOrb("listening"); }}
+              onBlur={() => { if (!busy && !input.trim()) setOrb("idle"); }}
+              style={{
+                flex: 1, minWidth: 0, border: "none", outline: "none",
+                fontSize: 14.5, fontFamily: "inherit", padding: "10px 12px",
+                background: "transparent", color: D.ink,
+              }}
+            />
+            <button
+              type="submit"
+              aria-label={t("ask.send")}
+              title={t("ask.send")}
+              disabled={busy || !input.trim() || !!noKey || quota?.remaining === 0}
+              style={{
+                width: 34, height: 34, flexShrink: 0, borderRadius: 999,
+                border: "none", display: "flex", alignItems: "center",
+                justifyContent: "center",
+                cursor: busy || !input.trim() || noKey ? "default" : "pointer",
+                background: busy || !input.trim() || noKey
+                  ? "rgba(255,255,255,.09)" : D.accent,
+                transition: "background .25s ease",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path
+                  d="M8 13.2V2.8M8 2.8L3.4 7.4M8 2.8l4.6 4.6"
+                  stroke={busy || !input.trim() || noKey ? D.faint : "#0C1116"}
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </form>
+  );
+
   return (
     <div
       style={{
@@ -347,7 +421,7 @@ function Inner() {
         Two columns on a desktop, and they divide the page by JOB rather than by
         decoration: everything you DO is on the left under Ollie — his name, the
         box, what he is watching — and everything he GIVES BACK is on the right,
-        newest at the top, read downwards. The eye goes left to ask and right to
+        in conversation order, with follow-ups below the latest answer. The eye goes left to ask and right to
         read, and neither half moves when the other fills up.
       */}
       <div
@@ -406,67 +480,7 @@ function Inner() {
               about, so stacked it stays narrow and grows on focus. In the split
               it fills his column, because the column is already the right
               width and a floating short bar under a 640px orb looks lost. */}
-          <form
-            onSubmit={(e) => { e.preventDefault(); send(input); }}
-            style={{
-              width: "100%",
-              maxWidth: split ? "none" : orb === "listening" || input.trim() ? 620 : 460,
-              marginTop: split ? 22 : 24,
-              display: "flex", gap: 6, alignItems: "center",
-              background: D.panel,
-              border: `1px solid ${orb === "listening" ? D.lineOn : D.line}`,
-              borderRadius: 999,
-              padding: "4px 4px 4px 6px",
-              transition: "max-width .35s ease, border-color .3s ease, background .3s ease",
-            }}
-          >
-            <input
-              // A stable hook for the browser tests. Selecting this box by
-              // "form input" or by placeholder picks up the header's search
-              // field instead — it is first in the DOM and collapses to zero
-              // width on a phone, so a test aiming at Ollie silently measured
-              // something else and reported a bug that was its own.
-              data-testid="ollie-ask"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                keyUnreadable ? t("ask.placeholderKeyUnreadable")
-                : noKey ? t("ask.placeholderNoKey")
-                : t("ask.placeholder")
-              }
-              disabled={!!noKey}
-              onFocus={() => { if (!busy) setOrb("listening"); }}
-              onBlur={() => { if (!busy && !input.trim()) setOrb("idle"); }}
-              style={{
-                flex: 1, minWidth: 0, border: "none", outline: "none",
-                fontSize: 14.5, fontFamily: "inherit", padding: "10px 12px",
-                background: "transparent", color: D.ink,
-              }}
-            />
-            <button
-              type="submit"
-              aria-label={t("ask.send")}
-              title={t("ask.send")}
-              disabled={busy || !input.trim() || !!noKey}
-              style={{
-                width: 34, height: 34, flexShrink: 0, borderRadius: 999,
-                border: "none", display: "flex", alignItems: "center",
-                justifyContent: "center",
-                cursor: busy || !input.trim() || noKey ? "default" : "pointer",
-                background: busy || !input.trim() || noKey
-                  ? "rgba(255,255,255,.09)" : D.accent,
-                transition: "background .25s ease",
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path
-                  d="M8 13.2V2.8M8 2.8L3.4 7.4M8 2.8l4.6 4.6"
-                  stroke={busy || !input.trim() || noKey ? D.faint : "#0C1116"}
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </form>
+          {!msgs.length && composer}
 
           {quota?.shared && quota.configured && quota.limit != null && (
             <div style={{ marginTop: 12, fontSize: 13,
@@ -565,23 +579,37 @@ function Inner() {
             </div>
           )}
 
+          <section aria-label="Recent Ollie answers" style={{ width: "100%", maxWidth: 760, margin: "18px 0" }}>
+            <button type="button" disabled={busy || recentLoading} onClick={loadRecent} style={{ background: "none", border: `1px solid ${D.line}`, borderRadius: 10, padding: "8px 12px", color: D.ink, cursor: "pointer" }}>
+              {recentLoading ? "Loading recent answers…" : "Recent answers"}
+            </button>
+            <p style={{ color: D.faint, fontSize: 12 }}>Reopen an answer without using another question.</p>
+            {recentError && <p role="alert">{recentError}</p>}
+            {recent?.length === 0 && <p>No previous questions yet.</p>}
+            {recent && <ul>{recent.map(row => <li key={row.ask_id}>
+              <button type="button" disabled={busy} onClick={() => reopen(row)} style={{ textAlign: "left", marginBottom: 8, width: "100%", color: D.ink, background: D.panel, border: `1px solid ${D.line}`, borderRadius: 10, padding: 12, cursor: "pointer" }}>
+                {row.question} · {row.status === "running" ? "In progress" : row.status === "failed" ? "Failed" : "Answered"}
+              </button>
+            </li>)}</ul>}
+          </section>
+
           {msgs.length > 0 && (
             <div style={{ width: "100%", maxWidth: split ? "none" : 760,
                           display: "flex", flexDirection: "column", gap: 22 }}>
-              <div ref={endRef} />
               {exchanges.map((x, i) => (
-                <div key={i} style={{ display: "flex", flexDirection: "column", gap: 12,
-                                      opacity: i === 0 ? 1 : 0.72 }}>
+                <div key={i} ref={i === exchanges.length - 1 ? endRef : undefined} style={{ display: "flex", flexDirection: "column", gap: 12,
+                                      opacity: 1 }}>
                   {x.q && <Bubble msg={x.q} />}
                   {x.a && (
                     <>
                       <Bubble msg={x.a} />
-                      {i === 0 && !x.a.error && <OllieEvidence answer={x.a.content} />}
-                      {i === 0 && !x.a.error && !noKey && <OllieActions answer={x.a.content} disabled={busy || quota?.remaining === 0} onAsk={send} />}
+                      {i === exchanges.length - 1 && !x.a.error && <OllieEvidence answer={x.a.content} />}
+                      {i === exchanges.length - 1 && !x.a.error && !noKey && <OllieActions answer={x.a.content} disabled={busy || quota?.remaining === 0} onAsk={send} />}
                     </>
                   )}
                 </div>
               ))}
+              {composer}
             </div>
           )}
 
