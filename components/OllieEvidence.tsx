@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import OllieDecision from "./OllieDecision";
 import { api, type ForSaleRow } from "../lib/api";
 
 export function propertyIds(answer: string): number[] {
@@ -15,7 +16,7 @@ const money = (n: number | null | undefined) => n != null && Number.isFinite(n) 
 
 const area = (n: number | null | undefined) => n != null && Number.isFinite(n) && n > 0 ? `${new Intl.NumberFormat("en-NZ", { maximumSignificantDigits: 21 }).format(n)} m²` : "Not recorded";
 
-export default function OllieEvidence({ answer }: { answer: string }) {
+export default function OllieEvidence({ answer, onAsk, disabled = false }: { answer: string; onAsk?: (question: string, label?: string) => void; disabled?: boolean }) {
   const key = propertyIds(answer).join(",");
   const [rows, setRows] = useState<Array<{id:number; property?:ForSaleRow}>>([]);
   const [loading,setLoading]=useState(false);
@@ -40,6 +41,8 @@ export default function OllieEvidence({ answer }: { answer: string }) {
     <p style={{fontSize:12,color:"#b4c6d8",margin:"0 0 14px"}}>{checked ? `${loaded} of ${rows.length} linked records loaded. Checked at ${checked}.` : 'Checking linked Apex property records.'} This check time is not the age of the listing. Up to four linked properties.</p>
     {loading && <p role="status">Loading property evidence…</p>}
     {!loading && failed>0 && <button type="button" onClick={()=>setRetry(n=>n+1)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:"1px solid #9adeff",color:"#9adeff",background:"transparent",cursor:"pointer"}}>Retry property evidence</button>}
+    {!loading && <OllieDecision rows={rows} answer={answer} onAsk={onAsk} disabled={disabled} />}
+    <details><summary style={{cursor:"pointer",padding:"10px 0",fontSize:13}}>Inspect the recorded fields</summary>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 230px), 1fr))",gap:12}}>
     {rows.map(({id,property:p}) => {
       if (!p) return <p key={id} role="status">Property {id} could not be checked. <Link href={`/property/${id}`}>Open its record</Link></p>;
@@ -56,5 +59,6 @@ export default function OllieEvidence({ answer }: { answer: string }) {
       </article>;
     })}
     </div>
+    </details>
   </section>;
 }

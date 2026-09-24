@@ -10,7 +10,7 @@ source=`import React from 'react';
 let fixture=[],cursor=0;
 export function configure(values){fixture=values;cursor=0;}
 const useState=v=>{const i=cursor++;return [i in fixture?fixture[i]:v,()=>{}];};
-const useEffect=()=>{};const Link='a';
+const useEffect=()=>{};const Link='a';const OllieDecision=()=>null;
 const api=()=>{throw Error('Unexpected request in render');};
 `+source;
 await writeFile(temp,ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
