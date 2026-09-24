@@ -13,6 +13,8 @@ export function priceComparison(asking: number | null, estimate: number | null) 
 }
 const money = (n: number | null | undefined) => n != null && Number.isFinite(n) && n > 0 ? new Intl.NumberFormat("en-NZ", {style:"currency",currency:"NZD",maximumFractionDigits:0}).format(n) : "Not recorded";
 
+const area = (n: number | null | undefined) => n != null && Number.isFinite(n) && n > 0 ? `${new Intl.NumberFormat("en-NZ", { maximumSignificantDigits: 21 }).format(n)} m²` : "Not recorded";
+
 export default function OllieEvidence({ answer }: { answer: string }) {
   const key = propertyIds(answer).join(",");
   const [rows, setRows] = useState<Array<{id:number; property?:ForSaleRow}>>([]);
@@ -42,7 +44,7 @@ export default function OllieEvidence({ answer }: { answer: string }) {
     {rows.map(({id,property:p}) => {
       if (!p) return <p key={id} role="status">Property {id} could not be checked. <Link href={`/property/${id}`}>Open its record</Link></p>;
       const comparison=priceComparison(p.asking_price,p.fair_value);
-      const facts=[['Asking price',money(p.asking_price)],['Apex estimate',money(p.fair_value)],['Recorded type',p.property_type || 'Not recorded'],['Recorded title',p.type_of_title || 'Not recorded'],['Bedrooms / bathrooms',`${p.beds ?? '—'} / ${p.baths ?? '—'}`],['Valuation comparables',p.comps_used == null ? 'Not recorded' : String(p.comps_used)]];
+      const facts=[['Asking price',money(p.asking_price)],['Apex estimate',money(p.fair_value)],['Land area',area(p.land_area_m2)],['Floor area',area(p.floor_area_m2)],['Recorded type',p.property_type || 'Not recorded'],['Recorded title',p.type_of_title || 'Not recorded'],['Bedrooms / bathrooms',`${p.beds ?? '—'} / ${p.baths ?? '—'}`],['Valuation comparables',p.comps_used == null ? 'Not recorded' : String(p.comps_used)]];
       return <article key={id} style={{background:"#1b2c3e",padding:14,borderRadius:12,border:"1px solid #344c63"}}>
         <Link href={`/property/${id}`} style={{fontSize:16,fontWeight:700,color:"#9adeff"}}>{p.address || `Property ${id}`}</Link>
         <p style={{margin:"5px 0 12px",fontSize:13,color:"#b4c6d8"}}>{p.suburb || 'Suburb not recorded'}{p.off_market ? ' · Off market' : ''}</p>
