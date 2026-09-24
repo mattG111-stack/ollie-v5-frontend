@@ -613,7 +613,7 @@ function Inner() {
                   {x.a && (
                     <>
                       <Bubble msg={x.a} />
-                      {i === exchanges.length - 1 && !x.a.error && <OllieEvidence answer={x.a.content} />}
+                      {i === exchanges.length - 1 && !x.a.error && <OllieEvidence answer={x.a.content} onAsk={send} disabled={busy || quota?.remaining === 0} />}
                       {i === exchanges.length - 1 && !x.a.error && !noKey && <OllieActions answer={x.a.content} disabled={busy || quota?.remaining === 0} onAsk={send} />}
                     </>
                   )}

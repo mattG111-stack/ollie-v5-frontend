@@ -3,6 +3,7 @@ import {readFile,writeFile,unlink} from 'node:fs/promises';
 import ts from 'typescript';
 const temp=new URL('../.evidence-test.mjs',import.meta.url);
 let source=await readFile(new URL('../components/OllieEvidence.tsx',import.meta.url),'utf8');
+source=source.replace('import OllieDecision from "./OllieDecision";', 'const OllieDecision=()=>null;');
 source=source.replace('import Link from "next/link";','const Link = "a";').replace('import { api, type ForSaleRow } from "../lib/api";','type ForSaleRow = any; const api = async <T,>(url: string): Promise<T> => { throw new Error("Unexpected request"); };');
 await writeFile(temp,ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
 try {
