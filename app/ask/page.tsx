@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AssistantAnswer from "@/components/AssistantAnswer";
 import OllieActions from "@/components/OllieActions";
+import { savedHistory, MISSING_HISTORY_NOTICE, LIMITED_HISTORY_NOTICE } from "@/lib/ollie-history";
 import OllieEvidence from "@/components/OllieEvidence";
 import OllieHunt from "@/components/OllieHunt";
 import OllieOrb, { OrbState } from "@/components/OllieOrb";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/api";
 import { C, D } from "@/components/apex";
 import { useT } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 
 /**
  * Ask anything — a full page rather than a floating panel.
@@ -44,8 +46,11 @@ export default function AskPage() {
 
 function Inner() {
   const { t } = useT();
+  const { me } = useAuth();
+  const pendingKey = me ? `apex:ask:${me.id}` : null;
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  const [contextNotice, setContextNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [recent, setRecent] = useState<RecentAsk[] | null>(null);
   const [recentLoading, setRecentLoading] = useState(false);
@@ -60,6 +65,7 @@ function Inner() {
     if (busy) return;
     setBusy(true); setOrb("thinking"); setRecent(null); setRecentError("");
     setMsgs([{ role: "user", content: row.question }]);
+    setContextNotice(MISSING_HISTORY_NOTICE);
     remember(row.ask_id, row.question, row.question);
     try { await follow(row.ask_id); }
     catch (e: any) { setMsgs(m => [...m, {role: "assistant", content: e?.detail || "Could not reopen this answer.", error: true}]); }
@@ -149,22 +155,26 @@ function Inner() {
    * Every read and write is wrapped, because a browser set to block site data
    * throws on access rather than returning nothing.
    */
-  function remember(id: number, question: string, modelContent?: string) {
-    try { sessionStorage.setItem("apex:ask", JSON.stringify({ id, question, modelContent })); } catch {}
+  function remember(id: number, question: string, modelContent?: string, history?: { role: "user" | "assistant"; content: string }[], notice?: string) {
+    if (!pendingKey) return;
+    try { sessionStorage.setItem(pendingKey, JSON.stringify({ id, question, modelContent, history: history?.map(t => ({ ...t, content: t.content.slice(0, 4000) })), notice })); } catch {}
   }
   function forget() {
-    try { sessionStorage.removeItem("apex:ask"); } catch {}
+    if (!pendingKey) return;
+    try { sessionStorage.removeItem(pendingKey); } catch {}
   }
 
   // Pick a question back up on the way in.
   useEffect(() => {
-    let parked: { id: number; question: string; modelContent?: string } | null = null;
+    let parked: { id: number; question: string; modelContent?: string; history?: unknown; notice?: string } | null = null;
     try {
-      const raw = sessionStorage.getItem("apex:ask");
+      const raw = pendingKey ? sessionStorage.getItem(pendingKey) : null;
       if (raw) parked = JSON.parse(raw);
     } catch { parked = null; }
     if (!parked?.id || typeof parked.question !== "string") return;
-    setMsgs([{ role: "user", content: parked.question, modelContent: typeof parked.modelContent === "string" ? parked.modelContent : undefined }]);
+    const prior = savedHistory(parked.history);
+    setMsgs([...(prior ?? []), { role: "user", content: parked.question, modelContent: typeof parked.modelContent === "string" ? parked.modelContent : undefined }]);
+    setContextNotice(prior === null ? MISSING_HISTORY_NOTICE : parked.notice === LIMITED_HISTORY_NOTICE || parked.notice === MISSING_HISTORY_NOTICE ? parked.notice : "");
     setBusy(true);
     setOrb("thinking");
     setProgress({ pct: 2, phase: "Catching up" });
@@ -246,7 +256,7 @@ function Inner() {
       });
       // Park it, so leaving the page and coming back does not lose the answer
       // to a question that is still being worked on. Cleared when it lands.
-      remember(ask_id, label || q, q);
+      remember(ask_id, label || q, q, history.slice(-20), history.length > 20 ? LIMITED_HISTORY_NOTICE : contextNotice);
       await follow(ask_id);
     } catch (e: any) {
       // 428 means no key configured — refresh status so the banner appears.
@@ -609,6 +619,11 @@ function Inner() {
                   )}
                 </div>
               ))}
+              {(contextNotice || msgs.filter(m => !m.error).length > 20) && (
+                <p role="status" style={{ color: D.faint, fontSize: 13, lineHeight: 1.6, margin: "16px 0 0" }}>
+                  {msgs.filter(m => !m.error).length > 20 ? LIMITED_HISTORY_NOTICE : contextNotice}
+                </p>
+              )}
               {composer}
             </div>
           )}
@@ -617,7 +632,7 @@ function Inner() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => { setMsgs([]); setOrb("idle"); }}
+              onClick={() => { setMsgs([]); setContextNotice(""); setOrb("idle"); }}
               style={{
                 marginTop: 22, background: "none", border: "none", cursor: "pointer",
                 fontFamily: "inherit", fontSize: 13, color: D.faint,
