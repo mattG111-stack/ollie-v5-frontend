@@ -748,8 +748,15 @@ function DealCard({
             </div>
             <div
               className="tnum"
-              style={{ fontSize: 15, fontWeight: 700, color: leadLots ? C.accent : marginColor }}
+              style={{ fontSize: 15, fontWeight: 700, position: "relative", isolation: "isolate",
+                color: leadLots ? (r.best_net_gain != null && r.best_net_gain > 0 ? "#171A1F" : r.best_net_gain != null && r.best_net_gain < 0 ? C.danger : C.accent) : marginColor }}
             >
+              {leadLots && r.best_net_gain != null && r.best_net_gain > 0 && <span aria-hidden="true" style={{
+                position: "absolute", inset: "-10% -10% -18%", zIndex: -1,
+                pointerEvents: "none", borderRadius: "50%",
+                background: "radial-gradient(ellipse at center, rgba(34,197,94,.25) 0%, rgba(74,222,128,.13) 45%, rgba(74,222,128,0) 74%)",
+                filter: "blur(6px)",
+              }} />}
               {leadLots
                 ? r.best_net_gain != null
                   ? t("deal.gain", { v: fmtMoneyShort(r.best_net_gain) })
