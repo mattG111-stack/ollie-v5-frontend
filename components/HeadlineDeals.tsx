@@ -297,7 +297,7 @@ function Money({
           fontWeight: 900,
           letterSpacing: "-.03em",
           marginTop: 6,
-          color: muted ? C.label : strong ? C.good : C.ink,
+          color: muted ? C.label : strong ? "#FF6B00" : C.ink,
         }}
       >
         {value}

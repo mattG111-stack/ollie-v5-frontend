@@ -8,6 +8,13 @@ await writeFile(temp, ts.transpileModule(await readFile(new URL('../components/O
 try {
  const {default: Actions, searchBrief, followUps, starters, prepareStart} = await import(temp.href);
  const prefs={state:'current',goals:['underpriced'],suburbs:['Glen Eden'],districts:['Waitakere City'],min_price:500000,max_price:800000,min_beds:3};
+ const personal={...prefs,brief:{must_haves:'Outdoor space',deal_breakers:'Major renovation',nice_to_haves:'Garage'}};
+ const personalQuestion=prepareStart(0,{area:'Henderson',budget:'900000',beds:'3',address:''},personal).question;
+ assert.match(personalQuestion,/Outdoor space/);
+ assert.match(personalQuestion,/Major renovation/);
+ assert.match(personalQuestion,/Mark unrecorded features as unknown/);
+ assert.match(personalQuestion,/"maximum_asking_price_NZD":900000/);
+ assert.equal(personal.max_price,800000);
  const q=starters(prefs)[0].question;
  for(const expected of ['Glen Eden','Waitakere City','500000','800000','minimum_bedrooms":3']) assert.ok(q.includes(expected));
  assert.match(searchBrief(null), /Ask me for my budget/);
