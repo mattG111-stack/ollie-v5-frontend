@@ -4,10 +4,14 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 const tmp=new URL('../.ollie-decision-test.mjs',import.meta.url);
-const src=await readFile(new URL('../components/OllieDecision.tsx',import.meta.url),'utf8');
+let src=await readFile(new URL('../components/OllieDecision.tsx',import.meta.url),'utf8');
+const insightTmp=new URL('../.ollie-insights-test.mjs',import.meta.url);
+await writeFile(insightTmp,ts.transpileModule(await readFile(new URL('../lib/ollie-insights.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
+src=src.replace('../lib/ollie-insights','./.ollie-insights-test.mjs');
 await writeFile(tmp,ts.transpileModule(src,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
 try {
  const {default:Decision,decisionFacts,investigationQuestion,comparisonTakeaway}=await import(tmp.href);
+ const {buildPropertyInsights}=await import(insightTmp.href);
  const rows=[
   {id:1,property:{address:'1 Synthetic Road',asking_price:569000,fair_value:607456,land_area_m2:79,floor_area_m2:111,comps_used:16}},
   {id:2,property:{address:'2 Synthetic Road',asking_price:625000,fair_value:650845,land_area_m2:79,floor_area_m2:87,comps_used:16}},
@@ -20,6 +24,18 @@ try {
  }
  assert.equal(comparisonTakeaway([{...rows[0],property:{...rows[0].property,land_area_m2:500}},rows[2]]),null);
  assert.equal(comparisonTakeaway([rows[0]]),null);
+ const insight=buildPropertyInsights(rows)[0];
+ assert.equal(insight.schemaVersion,1);assert.equal(insight.kind,'land_price_tradeoff');
+ assert.deepEqual(insight.scope.propertyIds,[1,2,3]);
+ assert.deepEqual(insight.metrics.map(m=>m.value),[60000,371]);
+ assert.equal(insight.evidence.length,4);assert.equal(insight.nextAction.href,'/property/3');
+ assert.equal(buildPropertyInsights([rows[0],{...rows[2],id:1}]).length,0);
+ const single=buildPropertyInsights([rows[2]])[0];
+ assert.equal(single.kind,'asking_estimate_gap');assert.equal(single.metrics[0].value,94162);
+ assert.equal(single.evidence[1].basis,'model-estimate');
+ assert.equal(buildPropertyInsights([{...rows[2],property:{...rows[2].property,fair_value:null}}]).length,0);
+ assert.equal(buildPropertyInsights([{...rows[2],property:{...rows[2].property,fair_value:600000}}])[0].metrics[0].value,-29000);
+ assert.equal(buildPropertyInsights([{...rows[2],property:{...rows[2].property,fair_value:629000}}])[0].metrics[0].value,0);
  const facts=decisionFacts(rows);
  assert.deepEqual(facts[0].badges,['lowest asking price']);
  assert.deepEqual(facts[1].badges,[]);
@@ -52,4 +68,4 @@ try {
  assert.doesNotMatch(hostile,/<img/);
  assert.equal(renderToStaticMarkup(React.createElement(Decision,{rows:[{id:1}],answer})), '');
  console.log('PASS: factual shortlist highlights, ties, partial/missing/duplicate/off-market suppression, exact amounts, safe rendering, scoped investigation actions and disabled controls.');
-} finally {await unlink(tmp);}
+} finally {await unlink(tmp);await unlink(insightTmp);}

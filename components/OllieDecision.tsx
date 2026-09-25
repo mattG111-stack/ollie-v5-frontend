@@ -1,3 +1,4 @@
+import { buildPropertyInsights } from "../lib/ollie-insights";
 import type { ForSaleRow } from "../lib/api";
 
 export type EvidenceRow = { id: number; property?: ForSaleRow };
@@ -37,14 +38,7 @@ export function decisionFacts(rows: EvidenceRow[]) {
 }
 
 export function comparisonTakeaway(rows: EvidenceRow[]) {
-  const facts = decisionFacts(rows);
-  const cheapest = facts.find(r => r.badges.includes("lowest asking price"));
-  const largest = facts.find(r => r.badges.includes("most land"));
-  if (!cheapest || !largest || cheapest.id === largest.id) return null;
-  const extraPrice = largest.property.asking_price! - cheapest.property.asking_price!;
-  const extraLand = largest.property.land_area_m2! - cheapest.property.land_area_m2!;
-  if (!positive(extraPrice) || !positive(extraLand)) return null;
-  return `${largest.property.address} has ${area(extraLand)} more recorded land and an asking price ${money(extraPrice)} higher than ${cheapest.property.address}.`;
+  return buildPropertyInsights(rows).find(insight => insight.kind === "land_price_tradeoff")?.finding ?? null;
 }
 
 export function investigationQuestion(id: number, answer: string) {
@@ -55,17 +49,24 @@ export function investigationQuestion(id: number, answer: string) {
 export default function OllieDecision({ rows, answer, onAsk, disabled = false }: { rows: EvidenceRow[]; answer: string; onAsk?: (question: string, label?: string) => void; disabled?: boolean }) {
   const facts = decisionFacts(rows);
   if (!facts.length) return null;
-  const takeaway = comparisonTakeaway(rows);
+  const insights = buildPropertyInsights(rows);
   const values = facts.flatMap(r => [r.property.asking_price, r.property.fair_value]).filter(positive);
   const maximum = Math.max(1, ...values);
   return <section aria-label="Shortlist decision guide" style={{margin:"16px 0",borderRadius:14,background:"#101d2a",padding:16}}>
     <h3 style={{margin:"0 0 6px",fontSize:20}}>{facts.length > 1 ? "What stands out" : "Check this property"}</h3>
     <p style={{margin:"0 0 16px",fontSize:13,color:"#b4c6d8",lineHeight:1.5}}>{facts.length > 1 ? "Compare this shortlist, then choose what to investigate. Highlights describe recorded differences, not an overall recommendation." : "Check the recorded asking price against the Apex estimate, then review the supporting evidence."}</p>
-    {takeaway && <aside aria-label="Shortlist trade-off" style={{padding:14,marginBottom:16,borderLeft:"3px solid #79cefa",borderRadius:8,background:"#193044"}}>
-      <strong style={{fontSize:14,color:"#e5f5ff"}}>More land or a lower asking price?</strong>
-      <p style={{margin:"6px 0",fontSize:14,lineHeight:1.6,color:"#e5f5ff"}}>{takeaway}</p>
-      <p style={{margin:0,fontSize:12,lineHeight:1.5,color:"#b4c6d8"}}>This compares two records in your shortlist. It does not establish land value, development potential or which property is the better purchase.</p>
-    </aside>}
+    {insights.map(insight => <aside key={insight.kind} aria-label={insight.kind === "land_price_tradeoff" ? "Shortlist trade-off" : "Property insight"} style={{padding:16,marginBottom:16,borderLeft:"3px solid #79cefa",borderRadius:8,background:"#193044"}}>
+      <span style={{fontSize:10,letterSpacing:1.3,color:"#9adeff",fontWeight:700}}>CALCULATED FROM APEX RECORDS</span>
+      <h4 style={{margin:"8px 0",fontSize:18,color:"#e5f5ff"}}>{insight.title}</h4>
+      <p style={{margin:"6px 0",fontSize:15,lineHeight:1.6,color:"#e5f5ff"}}>{insight.finding}</p>
+      <p style={{fontSize:13,lineHeight:1.5,color:"#cfdae5"}}>{insight.relevance}</p>
+      <details style={{fontSize:12,color:"#cfdae5",margin:"12px 0"}}><summary style={{cursor:"pointer"}}>Evidence & limits · {insight.evidence.length} source values</summary>
+        <p>{insight.scope.description}</p>
+        <ul style={{paddingLeft:18}}>{insight.evidence.map(e => <li key={`${e.propertyId}-${e.field}`} style={{margin:"8px 0"}}><a href={e.href} style={{color:"#9adeff"}}>{e.address}</a>: {e.field === "asking_price" ? "asking price" : e.field === "fair_value" ? "Apex estimate" : "recorded land"} {e.unit === "NZD" ? money(e.value) : area(e.value)}</li>)}</ul>
+        <ul style={{paddingLeft:18}}>{insight.limitations.map(limit => <li key={limit} style={{margin:"8px 0"}}>{limit}</li>)}</ul>
+      </details>
+      <a href={insight.nextAction.href} style={{display:"inline-block",color:"#9adeff",fontSize:13,fontWeight:700}}>{insight.nextAction.label} →</a>
+    </aside>)}
     <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,marginBottom:14}}><span style={{color:"#9adeff"}}>● Asking price</span><span style={{color:"#debeff"}}>● Apex estimate</span></div>
     {facts.map(({id,property:p,badges,checks}) => <article key={id} style={{padding:"16px 0",borderTop:"1px solid #344c63"}}>
       <a href={`/property/${id}`} style={{color:"#eef6ff",fontSize:16,fontWeight:700}}>{p.address || `Property ${id}`}</a>
