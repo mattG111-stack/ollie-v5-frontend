@@ -43,10 +43,10 @@ import { useT } from "@/lib/i18n";
 // — the backend refuses anything else, so a fifth added here alone would be
 // silently dropped rather than half-working.
 const GOALS = [
-  { key: "underpriced", accent: "#3DDC97", tint: "rgba(61,220,151,", ink: "#05221A" },
+  { key: "underpriced", accent: "#176B57", tint: "rgba(61,220,151,", ink: "#05221A" },
   { key: "subdividable", accent: "#FF7A45", tint: "rgba(255,122,69,", ink: "#200A00" },
   { key: "cashflow", accent: "#46C6F5", tint: "rgba(70,198,245,", ink: "#06121F" },
-  { key: "live_in", accent: "#B9C8DC", tint: "rgba(185,200,220,", ink: "#0A1120" },
+  { key: "live_in", accent: "#52645C", tint: "rgba(185,200,220,", ink: "#0A1120" },
 ] as const;
 
 // One dark for the whole product — see D in components/apex.tsx. These were a
@@ -73,7 +73,7 @@ function Counted({ text, value }: { text: string; value: string }) {
   return (
     <>
       {before}
-      <span style={{ color: "#3DDC97" }}>{value}</span>
+      <span style={{ color: "#176B57" }}>{value}</span>
       {after}
     </>
   );
@@ -187,7 +187,7 @@ export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
       style={{
         background: SKY,
         borderRadius: 22,
-        color: "#E8EDF5",
+        color: "#202D29",
         padding: "30px 30px 34px",
         maxWidth: 760,
         boxShadow: "0 24px 60px -30px rgba(7,11,20,.7)",
@@ -247,7 +247,7 @@ export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
       )}
 
       {failed && (
-        <div style={{ marginTop: 16, fontSize: 13.5, color: "#FF9A6E" }}>{failed}</div>
+        <div style={{ marginTop: 16, fontSize: 13.5, color: "#A63D2A" }}>{failed}</div>
       )}
     </div>
   );
@@ -295,7 +295,7 @@ function Goals({
               <div
                 style={{
                   borderRadius: 15,
-                  background: on ? `linear-gradient(160deg, #0E1E2C 0%, #0A1522 100%)` : "transparent",
+                  background: on ? `linear-gradient(160deg, #EAF3ED 0%, #F7F8F5 100%)` : "transparent",
                   padding: "15px 16px",
                   display: "flex",
                   gap: 13,
@@ -312,7 +312,7 @@ function Goals({
                   <GoalIcon which={g.key} color={on ? g.accent : DIM} />
                 </div>
                 <div style={{ flexGrow: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-.02em", color: on ? "#FFFFFF" : "#E8EDF5" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-.02em", color: on ? "#202D29" : "#202D29" }}>
                     {t(`hunt.goal.${g.key}`)}
                   </div>
                   <div style={{ fontSize: 13, color: DIM, lineHeight: 1.35, marginTop: 2 }}>
@@ -394,11 +394,11 @@ function Where({
                 cursor: "pointer", fontFamily: "inherit",
                 borderRadius: 13, padding: on ? "11px 14px" : "10px 13px",
                 border: on ? `1px solid ${CYAN}` : `1px solid ${LINE}`,
-                background: on ? "#0E2233" : PANEL,
+                background: on ? "#D8EDE1" : PANEL,
                 display: "flex", alignItems: "baseline", gap: 8,
               }}
             >
-              <span style={{ fontSize: 14.5, fontWeight: 700, color: on ? "#FFFFFF" : "#B9C8DC" }}>
+              <span style={{ fontSize: 14.5, fontWeight: 700, color: on ? "#202D29" : "#52645C" }}>
                 {s.suburb}
               </span>
               {/* What we actually hold there. An empty area can never be picked
@@ -488,8 +488,8 @@ function Where({
                 cursor: "pointer", fontFamily: "inherit", borderRadius: 10,
                 padding: "7px 13px", fontSize: 14, fontWeight: 700,
                 border: minBeds === b ? `1px solid ${CYAN}` : `1px solid ${LINE}`,
-                background: minBeds === b ? "#0E2233" : "transparent",
-                color: minBeds === b ? "#FFFFFF" : "#B9C8DC",
+                background: minBeds === b ? "#D8EDE1" : "transparent",
+                color: minBeds === b ? "#202D29" : "#52645C",
               }}
             >
               {b === null ? t("hunt.bedsAny") : `${b}+`}
@@ -599,14 +599,14 @@ function Ready({
             background: "linear-gradient(150deg, rgba(61,220,151,.7), rgba(61,220,151,.08))",
           }}
         >
-          <div style={{ borderRadius: 19, background: "linear-gradient(165deg, #0E2320 0%, #0A1522 100%)", padding: 20 }}>
+          <div style={{ borderRadius: 19, background: "linear-gradient(165deg, #EAF3ED 0%, #F7F8F5 100%)", padding: 20 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-              <div style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1, color: "#3DDC97" }}>
+              <div style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1, color: "#176B57" }}>
                 {fmtMoneyShort(best.margin_dollars)}
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: DIM }}>under</div>
             </div>
-            <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.025em", color: "#FFFFFF", marginTop: 13 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.025em", color: "#202D29", marginTop: 13 }}>
               {best.address}
             </div>
             <div style={{ fontSize: 13, color: DIM, marginTop: 3 }}>
@@ -624,10 +624,10 @@ function Ready({
 
       <div style={{ border: `1px solid ${LINE}`, borderRadius: 18, background: PANEL, padding: "18px 19px", marginTop: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <span style={{ width: 7, height: 7, borderRadius: 4, background: "#3DDC97", boxShadow: "0 0 9px #3DDC97", animation: "ollieBreathe 2.6s ease-in-out infinite" }} />
+          <span style={{ width: 7, height: 7, borderRadius: 4, background: "#176B57", boxShadow: "0 0 9px #176B57", animation: "ollieBreathe 2.6s ease-in-out infinite" }} />
           <Eyebrow>{t("hunt.fromNow")}</Eyebrow>
         </div>
-        <div style={{ fontSize: 14.5, color: "#C5D4E6", lineHeight: 1.55, marginTop: 13 }}>
+        <div style={{ fontSize: 14.5, color: "#52645C", lineHeight: 1.55, marginTop: 13 }}>
           {t("hunt.promise")}
         </div>
         <div style={{ height: 1, background: "rgba(126,154,192,.16)", margin: "16px 0" }} />
@@ -689,7 +689,7 @@ function CheckIn({
           <div key={i}>
             {i > 0 && <div style={{ height: 1, background: "rgba(126,154,192,.14)" }} />}
             <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "15px 0" }}>
-              <div style={{ flexGrow: 1, fontSize: 14.5, fontWeight: 600, color: "#E8EDF5" }}>{line}</div>
+              <div style={{ flexGrow: 1, fontSize: 14.5, fontWeight: 600, color: "#202D29" }}>{line}</div>
               <button
                 type="button"
                 onClick={onEdit}
@@ -710,7 +710,7 @@ function CheckIn({
           disabled={busy}
           style={{
             height: 52, borderRadius: 14, border: `1px solid rgba(126,154,192,.28)`,
-            background: "transparent", color: "#B9C8DC", fontSize: 15.5,
+            background: "transparent", color: "#52645C", fontSize: 15.5,
             fontWeight: 700, cursor: busy ? "default" : "pointer", fontFamily: "inherit",
           }}
         >
@@ -735,7 +735,7 @@ const rangeStyle: React.CSSProperties = {
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, monospace", fontSize: 10.5, letterSpacing: ".24em", color: "#6F8BB0", fontWeight: 600 }}>
+    <div style={{ fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, monospace", fontSize: 10.5, letterSpacing: ".24em", color: "#52645C", fontWeight: 600 }}>
       {children}
     </div>
   );
@@ -763,7 +763,7 @@ function Pill({ children, tone }: { children: React.ReactNode; tone?: "orange" }
       style={{
         background: tone === "orange" ? "rgba(255,122,69,.13)" : "rgba(126,154,192,.12)",
         borderRadius: 9, padding: "7px 11px", fontSize: 12.5, fontWeight: 700,
-        color: tone === "orange" ? "#FF9A6E" : "#E8EDF5",
+        color: tone === "orange" ? "#A63D2A" : "#202D29",
       }}
     >
       {children}
@@ -832,7 +832,7 @@ function Primary({
       style={{
         width: "100%", height: 52, borderRadius: 14, border: "none",
         background: disabled ? "rgba(70,198,245,.4)" : CYAN,
-        color: "#06121F", fontSize: 16, fontWeight: 800, letterSpacing: "-.01em",
+        color: "#FFFFFF", fontSize: 16, fontWeight: 800, letterSpacing: "-.01em",
         cursor: disabled ? "default" : "pointer", fontFamily: "inherit",
       }}
     >

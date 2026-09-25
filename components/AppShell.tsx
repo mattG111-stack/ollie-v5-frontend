@@ -382,7 +382,7 @@ function NavItem({ item, active, small, t }: { item: Nav; active: boolean; small
         fontWeight: active ? 700 : 500,
         fontSize: small ? 13.5 : 14.5,
         color: active ? "#FFFFFF" : small ? "#8A8AA8" : "#B0B0C8",
-        background: active ? "linear-gradient(90deg,#333A43,#1B2026)" : undefined,
+        background: active ? "linear-gradient(90deg,#176B57,#124C40)" : undefined,
         boxShadow: active ? "0 4px 14px rgba(120,125,133,.4)" : undefined,
       }}
     >
@@ -485,10 +485,10 @@ function TopBar({ initials, onMenu, showMenu, pollMatches = true, bare = false }
   }, [pollMatches]);
 
   // The header's own surfaces, named once so no control drifts off-token.
-  const surface = bare ? "rgba(16,28,49,.6)" : C.card;
-  const edge = bare ? "rgba(126,154,192,.22)" : C.border;
-  const text = bare ? "#E8EDF5" : C.ink;
-  const muted = bare ? "#7E9AC0" : "#5A6B82";
+  const surface = C.card;
+  const edge = C.border;
+  const text = C.ink;
+  const muted = C.label;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -510,7 +510,7 @@ function TopBar({ initials, onMenu, showMenu, pollMatches = true, bare = false }
         // Opaque when bare: the shell behind it is paper-coloured, so a
         // translucent dark composites against that and lands on a muddy slate
         // instead of on the page's near-black.
-        background: bare ? "#0A101C" : "rgba(219,224,232,.85)",
+        background: "rgba(247,248,245,.96)",
         backdropFilter: "blur(8px)",
         position: "sticky",
         top: 0,

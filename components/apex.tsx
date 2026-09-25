@@ -9,46 +9,17 @@
  */
 
 export const C = {
-  page: "#DBE0E8",
-  card: "#FFFFFF",
-  border: "#E1E7EF",
-  divider: "#EDF1F6",
-  ink: "#14233A",
-  label: "#5A6B82",
-  faint: "#7A8698",
-  mono: "#8894A6",
-  dark: "#16191F",
-  darkText: "#F1ECDD",
-  accent: "#333A43",
-  good: "#22C55E",
-  danger: "#EF4444",
-  chipBg: "#EEF2F7",
+  page: "#F7F8F5", card: "#FFFFFF", border: "#D9E3DD", divider: "#EAF0EC",
+  ink: "#202D29", label: "#52645C", faint: "#61736B", mono: "#61736B",
+  dark: "#203A33", darkText: "#F5FAF7", accent: "#176B57",
+  good: "#176B57", danger: "#B83E32", chipBg: "#EAF3ED",
 } as const;
 
-/**
- * The dark surfaces, in one place.
- *
- * The rail has always been dark; Ollie's page is dark too, and it was drawn in
- * its own blue-black — a second dark, close enough to look like a mistake and
- * far enough to see. One product should have one dark, so these are derived
- * from the rail (C.dark) and every dark panel in the app takes them from here.
- */
+/** Shared light surfaces for Ollie and its supporting panels. */
 export const D = {
-  /** The page itself — the same ink as the navigation rail. */
-  ground: C.dark,
-  /** A touch of lift at the top of a tall page, so it is not a flat slab. */
-  lift: "#1D2129",
-  /** A raised card on that ground. */
-  panel: "rgba(255,255,255,.045)",
-  panelSolid: "#1E222A",
-  line: "rgba(255,255,255,.10)",
-  /** A border that is doing something — focus, selection. */
-  lineOn: "rgba(70,198,245,.55)",
-  ink: C.darkText,
-  dim: "#A7A398",
-  faint: "#767690",
-  accent: "#46C6F5",
-  good: "#3DDC97",
+  ground: C.page, lift: "#EEF5EF", panel: "#FFFFFF", panelSolid: "#FFFFFF",
+  line: C.border, lineOn: "#176B57", ink: C.ink, dim: "#52645C",
+  faint: "#61736B", accent: "#176B57", good: "#176B57",
 } as const;
 
 export const MONO = "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace";

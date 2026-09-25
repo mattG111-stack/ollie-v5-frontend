@@ -404,7 +404,7 @@ function Inner() {
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
                 <path
                   d="M8 13.2V2.8M8 2.8L3.4 7.4M8 2.8l4.6 4.6"
-                  stroke={busy || !input.trim() || noKey ? D.faint : "#0C1116"}
+                  stroke={busy || !input.trim() || noKey ? D.faint : "#FFFFFF"}
                   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                 />
               </svg>
@@ -501,7 +501,7 @@ function Inner() {
 
           {quota?.shared && quota.configured && quota.limit != null && (
             <div style={{ marginTop: 12, fontSize: 13,
-                          color: quota.remaining === 0 ? "#FF9A6E" : D.faint }}>
+                          color: quota.remaining === 0 ? "#A63D2A" : D.faint }}>
               {quota.remaining === 0
                 ? t("ask.quotaNone", { limit: quota.limit })
                 : t("ask.quotaLeft", { n: quota.remaining ?? 0, limit: quota.limit })}
@@ -511,7 +511,7 @@ function Inner() {
           {/* Say what is wrong and who fixes it, rather than greying a box and
               leaving the reader to guess whether the product is broken. */}
           {noKey && (
-            <p style={{ marginTop: 14, fontSize: 13, color: "#FF9A6E",
+            <p style={{ marginTop: 14, fontSize: 13, color: "#A63D2A",
                         textAlign: split ? "left" : "center", lineHeight: 1.5,
                         maxWidth: 420 }}>
               {keyUnreadable ? t("ask.keyUnreadable") : t("ask.keyMissing")}
@@ -617,8 +617,8 @@ function Inner() {
                   {x.q && <Bubble msg={x.q} />}
                   {x.a && (
                     <>
-                      <Bubble msg={x.a} />
                       {i === exchanges.length - 1 && !x.a.error && <OllieEvidence answer={x.a.content} onAsk={send} disabled={busy || quota?.remaining === 0} />}
+                      <Bubble msg={x.a} />
                       {i === exchanges.length - 1 && !x.a.error && !noKey && <OllieActions answer={x.a.content} disabled={busy || quota?.remaining === 0} onAsk={send} />}
                     </>
                   )}
@@ -662,8 +662,8 @@ function Bubble({ msg }: { msg: Msg }) {
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <div
           style={{
-            maxWidth: "80%", background: "rgba(70,198,245,.12)",
-            border: `1px solid rgba(70,198,245,.28)`, color: "#CFE6F6",
+            maxWidth: "80%", background: "rgba(23,107,87,.08)",
+            border: `1px solid rgba(23,107,87,.24)`, color: "#204A3B",
             padding: "12px 17px", borderRadius: "16px 16px 4px 16px",
             fontSize: 15.5, lineHeight: 1.5, fontWeight: 600,
           }}
@@ -683,7 +683,7 @@ function Bubble({ msg }: { msg: Msg }) {
         padding: "16px 19px",
       }}
     >
-      <div style={{ fontSize: 15.5, lineHeight: 1.65, color: msg.error ? "#FF9A6E" : D.ink }}>
+      <div style={{ fontSize: 15.5, lineHeight: 1.65, color: msg.error ? "#A63D2A" : D.ink }}>
         {msg.error ? <p role="alert">{msg.content}</p> : <AssistantAnswer content={msg.content} />}
       </div>
     </div>
