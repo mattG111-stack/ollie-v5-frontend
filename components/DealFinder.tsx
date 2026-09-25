@@ -727,12 +727,12 @@ function DealCard({
                 fontSize: 30,
                 fontWeight: 900,
                 letterSpacing: "-.03em",
-                color: leadLots ? C.accent : marginPct != null && marginPct > 0 ? "#171A1F" : marginColor,
+                color: leadLots ? C.accent : gap == null || gap === 0 ? C.faint : gap > 0 ? "#171A1F" : C.danger,
                 position: "relative",
                 isolation: "isolate",
               }}
             >
-              {!leadLots && marginPct != null && marginPct > 0 && <span aria-hidden="true" style={{
+              {!leadLots && gap != null && gap > 0 && <span aria-hidden="true" style={{
                 position: "absolute", inset: "4% -12% -10%", zIndex: -1,
                 pointerEvents: "none", borderRadius: "50%",
                 background: "radial-gradient(ellipse at center, rgba(34,197,94,.25) 0%, rgba(74,222,128,.13) 45%, rgba(74,222,128,0) 74%)",
@@ -742,14 +742,14 @@ function DealCard({
                 ? lots != null
                   ? `+${lots.toFixed(0)}`
                   : "—"
-                : marginPct != null
-                ? `${marginPct > 0 ? "+" : ""}${marginPct.toFixed(1)}%`
+                : gap != null
+                ? `${gap > 0 ? "+" : gap < 0 ? "−" : ""}${fmtMoneyShort(Math.abs(gap))}`
                 : "—"}
             </div>
             <div
               className="tnum"
               style={{ fontSize: 15, fontWeight: 700, position: "relative", isolation: "isolate",
-                color: leadLots ? (r.best_net_gain != null && r.best_net_gain > 0 ? "#171A1F" : r.best_net_gain != null && r.best_net_gain < 0 ? C.danger : C.accent) : marginColor }}
+                color: leadLots ? (r.best_net_gain != null && r.best_net_gain > 0 ? "#171A1F" : r.best_net_gain != null && r.best_net_gain < 0 ? C.danger : C.accent) : marginPct == null || marginPct === 0 ? C.faint : marginPct > 0 ? C.good : C.danger }}
             >
               {leadLots && r.best_net_gain != null && r.best_net_gain > 0 && <span aria-hidden="true" style={{
                 position: "absolute", inset: "-10% -10% -18%", zIndex: -1,
@@ -761,8 +761,8 @@ function DealCard({
                 ? r.best_net_gain != null
                   ? t("deal.gain", { v: fmtMoneyShort(r.best_net_gain) })
                   : ""
-                : gap != null
-                ? `${gap >= 0 ? "+" : "−"}${fmtMoneyShort(Math.abs(gap))}`
+                : marginPct != null
+                ? `${marginPct > 0 ? "+" : ""}${marginPct.toFixed(1)}%`
                 : ""}
             </div>
           </div>
