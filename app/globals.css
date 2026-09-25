@@ -16,12 +16,12 @@
 .assistant-answer a:focus-visible, .assistant-answer-table:focus-visible { outline: 2px solid #176B57; outline-offset: 3px; }
 .assistant-answer-table { overflow-x: auto; max-width: 100%; margin: 1em 0; }
 .assistant-answer table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9em; }
-.assistant-answer th, .assistant-answer td { padding: .55em .75em; border: 1px solid #D9E3DD; text-align: left; min-width: 90px; }
+.assistant-answer th, .assistant-answer td { padding: .55em .75em; border: 1px solid #DEDFE1; text-align: left; min-width: 90px; }
 .assistant-answer th { font-weight: 700; background: rgba(255,255,255,.06); }
 .assistant-answer pre { overflow-x: auto; padding: .75em; background: rgba(0,0,0,.15); border-radius: 8px; }
 .assistant-answer blockquote { border-left: 3px solid #176B57; padding-left: 1em; margin: 1em 0; }
 
-html, body { background: #F7F8F5; color: #202D29; -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
+html, body { background: #F5F5F5; color: #26292D; -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
 /* No element may scroll the whole page sideways on mobile. `clip` (not `hidden`)
    keeps position:sticky headers working; wide tables/charts keep their own
    overflow-x:auto containers, so only accidental overflow is trimmed. */
@@ -31,9 +31,9 @@ html, body { max-width: 100%; overflow-x: clip; }
 .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #F7F8F5; }
-::-webkit-scrollbar-thumb { background: #BBCFC2; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #7DAF96; }
+::-webkit-scrollbar-track { background: #F5F5F5; }
+::-webkit-scrollbar-thumb { background: #C8CBD0; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #959BA4; }
 
 /* Deal-finder rows.
    Photo | details | figures | pills. The three prices and the margin live in one
@@ -140,7 +140,7 @@ html, body { max-width: 100%; overflow-x: clip; }
   padding: 10px 12px;
   font-family: inherit;
   font-size: 14px;
-  color: #52645C;
+  color: #595E65;
   outline: none;
   min-width: 0;
   max-width: 100%;
