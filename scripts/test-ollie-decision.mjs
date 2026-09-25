@@ -7,12 +7,19 @@ const tmp=new URL('../.ollie-decision-test.mjs',import.meta.url);
 const src=await readFile(new URL('../components/OllieDecision.tsx',import.meta.url),'utf8');
 await writeFile(tmp,ts.transpileModule(src,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
 try {
- const {default:Decision,decisionFacts,investigationQuestion}=await import(tmp.href);
+ const {default:Decision,decisionFacts,investigationQuestion,comparisonTakeaway}=await import(tmp.href);
  const rows=[
   {id:1,property:{address:'1 Synthetic Road',asking_price:569000,fair_value:607456,land_area_m2:79,floor_area_m2:111,comps_used:16}},
   {id:2,property:{address:'2 Synthetic Road',asking_price:625000,fair_value:650845,land_area_m2:79,floor_area_m2:87,comps_used:16}},
   {id:3,property:{address:'3 Synthetic Road',asking_price:629000,fair_value:723162,land_area_m2:450,floor_area_m2:85,comps_used:16}}
  ];
+ assert.equal(comparisonTakeaway(rows),'3 Synthetic Road has 371 m² more recorded land and an asking price $60,000 higher than 1 Synthetic Road.');
+ assert.equal(comparisonTakeaway([...rows,{id:4}]),null);
+ for (const patch of [{asking_price:null},{land_area_m2:null},{off_market:true},{address:'1 Synthetic Road'},{asking_price:569000},{land_area_m2:450}]) {
+  assert.equal(comparisonTakeaway([rows[0],{...rows[1],property:{...rows[1].property,...patch}},rows[2]]),null);
+ }
+ assert.equal(comparisonTakeaway([{...rows[0],property:{...rows[0].property,land_area_m2:500}},rows[2]]),null);
+ assert.equal(comparisonTakeaway([rows[0]]),null);
  const facts=decisionFacts(rows);
  assert.deepEqual(facts[0].badges,['lowest asking price']);
  assert.deepEqual(facts[1].badges,[]);
@@ -31,6 +38,7 @@ try {
  const tree=Decision({rows,answer,onAsk:(...args)=>calls.push(args)});
  const html=renderToStaticMarkup(tree);
  assert.equal(calls.length,0);
+ assert.match(html,/Shortlist trade-off/);assert.match(html,/\$60,000 higher/);
  assert.match(html,/\$723,162/);assert.match(html,/450 m²/);assert.match(html,/same zero baseline/);
  assert.equal((html.match(/Investigate this property/g)||[]).length,3);
  const buttons=[];
