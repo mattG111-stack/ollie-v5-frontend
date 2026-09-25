@@ -56,6 +56,29 @@ try {
   assert.equal(state().token,null);
   assert.deepEqual(state().calls,['/sign-in']);
   assert.equal(context().error,null);
+  // An older profile request must not clear a newly authenticated session.
+  let rejectOld;
+  setup(path=>{
+    if(path.endsWith('/sign-in'))return Promise.resolve({access_token:'new-token'});
+    if(state().token==='existing-token')return new Promise((resolve,reject)=>{rejectOld=reject;});
+    return Promise.resolve(user);
+  });
+  const oldRefresh=context().refresh();
+  assert.equal(await context().signIn('synthetic@example.test','synthetic'),user);
+  rejectOld({status:401});
+  await oldRefresh;
+  assert.equal(state().token,'new-token');
+  assert.equal(context().me,user);
+  assert.equal(context().error,null);
+  // Nor may an older successful response restore a user after sign-out.
+  let resolveOld;
+  setup(()=>new Promise(resolve=>{resolveOld=resolve;}));
+  const oldSuccess=context().refresh();
+  context().signOut();
+  resolveOld(user);
+  await oldSuccess;
+  assert.equal(state().token,null);
+  assert.equal(context().me,null);
   console.log('PASS: outages preserve credentials without authenticating, 401 clears them, retry recovers, failed profile checks do not complete sign-in, explicit sign-out clears state.');
 } finally {await unlink(temp);}
 

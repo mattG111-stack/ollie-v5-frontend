@@ -190,6 +190,7 @@ export async function api<T = unknown>(
   if (!res.ok) {
     // Expired or invalid token — clear and bounce to sign-in instead of crashing the page.
     if (res.status === 401 && !opts.background && typeof window !== "undefined"
+        && getToken() === token
         && !path.startsWith("/api/auth/sign-in")) {
       setToken(null);
       if (!window.location.pathname.startsWith("/sign-in")) {
