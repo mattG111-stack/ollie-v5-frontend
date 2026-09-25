@@ -297,9 +297,18 @@ function Money({
           fontWeight: 900,
           letterSpacing: "-.03em",
           marginTop: 6,
-          color: muted ? C.label : strong ? "#FF6B00" : C.ink,
+          color: muted ? C.label : strong ? "#171A1F" : C.ink,
+          position: "relative",
+          isolation: "isolate",
+          width: "fit-content",
         }}
       >
+        {strong && <span aria-hidden="true" style={{
+          position: "absolute", inset: "8% -10% -8%", zIndex: -1,
+          pointerEvents: "none", borderRadius: "50%",
+          background: "radial-gradient(ellipse at center, rgba(72,151,255,.24) 0%, rgba(106,178,255,.12) 45%, rgba(106,178,255,0) 74%)",
+          filter: "blur(8px)",
+        }} />}
         {value}
       </div>
       <div style={{ fontSize: 12.5, color: C.faint, marginTop: 6, lineHeight: 1.45 }}>{hint}</div>
