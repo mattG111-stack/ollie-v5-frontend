@@ -52,15 +52,13 @@ export default function OllieDecision({ rows, answer, onAsk, disabled = false }:
   const insights = buildPropertyInsights(rows);
   const values = facts.flatMap(r => [r.property.asking_price, r.property.fair_value]).filter(positive);
   const maximum = Math.max(1, ...values);
-  return <section aria-label="Shortlist decision guide" style={{margin:"16px 0",borderRadius:14,background:"#FFFFFF",padding:16}}>
-    <h3 style={{margin:"0 0 6px",fontSize:20}}>{facts.length > 1 ? "What stands out" : "Check this property"}</h3>
-    <p style={{margin:"0 0 16px",fontSize:13,color:"#595E65",lineHeight:1.5}}>{facts.length > 1 ? "Compare this shortlist, then choose what to investigate. Highlights describe recorded differences, not an overall recommendation." : "Check the recorded asking price against the Apex estimate, then review the supporting evidence."}</p>
-    {insights.map(insight => <aside key={insight.kind} aria-label={insight.kind === "land_price_tradeoff" ? "Shortlist trade-off" : "Property insight"} style={{padding:18,marginBottom:18,border:"1px solid #DCE3ED",borderLeft:"3px solid #245EA8",borderRadius:12,background:"#F5F7FA"}}>
-      <span style={{fontSize:11,letterSpacing:1.1,color:"#245EA8",fontWeight:700}}>CALCULATED FROM APEX RECORDS</span>
-      <h4 style={{margin:"8px 0",fontSize:18,color:"#26292D"}}>{insight.title}</h4>
+  return <section aria-label="Shortlist decision guide" style={{margin:"12px 0"}}>
+    {!insights.length && <h3 style={{margin:"0 0 12px",fontSize:20}}>{facts.length > 1 ? "Compare your shortlist" : "Check this property"}</h3>}
+    {insights.map(insight => <aside key={insight.kind} aria-label={insight.kind === "land_price_tradeoff" ? "Shortlist trade-off" : "Property insight"} style={{padding:"4px 0 16px",marginBottom:8,borderBottom:"1px solid #E5E7EB"}}>
+      <h3 style={{margin:"0 0 10px",fontSize:21,lineHeight:1.3,color:"#26292D"}}>{insight.title}</h3>
       <p style={{margin:"6px 0",fontSize:15,lineHeight:1.6,color:"#26292D"}}>{insight.finding}</p>
-      <p style={{fontSize:13,lineHeight:1.5,color:"#4E535A"}}>{insight.relevance}</p>
       <details style={{fontSize:12,color:"#4E535A",margin:"12px 0"}}><summary style={{cursor:"pointer"}}>Evidence & limits · {insight.evidence.length} source values</summary>
+        <p>{insight.relevance}</p>
         <p>{insight.scope.description}</p>
         <ul style={{paddingLeft:18}}>{insight.evidence.map(e => <li key={`${e.propertyId}-${e.field}`} style={{margin:"8px 0"}}><a href={e.href} style={{color:"#245EA8"}}>{e.address}</a>: {e.field === "asking_price" ? "asking price" : e.field === "fair_value" ? "Apex estimate" : "recorded land"} {e.unit === "NZD" ? money(e.value) : area(e.value)}</li>)}</ul>
         <ul style={{paddingLeft:18}}>{insight.limitations.map(limit => <li key={limit} style={{margin:"8px 0"}}>{limit}</li>)}</ul>
@@ -83,7 +81,8 @@ export default function OllieDecision({ rows, answer, onAsk, disabled = false }:
       {checks.length > 1 && <details style={{fontSize:12,color:"#595E65",marginBottom:10}}><summary style={{cursor:"pointer"}}>Other checks ({checks.length - 1})</summary><ul>{checks.slice(1).map(check=><li key={check} style={{marginTop:6}}>{check}</li>)}</ul></details>}
       {onAsk && <button type="button" disabled={disabled} onClick={()=>onAsk(investigationQuestion(id,answer),`Investigate ${p.address || `property ${id}`}`)} style={{padding:"9px 12px",borderRadius:9,border:"1px solid #C5C8CE",background:"#EFF0F2",color:"#26292D",fontFamily:"inherit",cursor:disabled?"default":"pointer",opacity:disabled?.5:1}}>Investigate this property →</button>}
     </article>)}
+    <p style={{fontSize:12,color:"#595E65",lineHeight:1.5}}>Bars share the same zero baseline and price scale.{onAsk ? " Investigating uses one question; viewing this comparison is free." : ""}</p>
     </details>
-    <p style={{fontSize:12,color:"#595E65",lineHeight:1.5,marginBottom:0}}>Bars share the same zero baseline and price scale. Estimates are not sale prices or profit. Condition and feasibility still need checking.{onAsk ? " Investigating a property sends one question using your normal allowance; this comparison itself is free." : ""}</p>
+    <p style={{fontSize:12,color:"#595E65",lineHeight:1.5,marginBottom:0}}>Estimates are not sale prices or profit. Condition and feasibility need checking.</p>
   </section>;
 }

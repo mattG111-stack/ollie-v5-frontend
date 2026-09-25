@@ -37,8 +37,7 @@ export default function OllieEvidence({ answer, onAsk, disabled = false }: { ans
   const loaded=rows.filter(row=>row.property).length;
   const failed=rows.length-loaded;
   return <section aria-label="Property facts from Apex records" style={{ border:"1px solid #DEDFE1",borderRadius:16,padding:16,background:"#FFFFFF",color:"#26292D" }}>
-    <h3 style={{margin:"0 0 6px",fontSize:18}}>Compare the recorded facts</h3>
-    <p style={{fontSize:12,color:"#595E65",margin:"0 0 14px"}}>{checked ? `${loaded} of ${rows.length} linked records loaded. Checked at ${checked}.` : 'Checking linked Apex property records.'} This check time is not the age of the listing. Up to four linked properties.</p>
+    <p style={{fontSize:12,color:"#595E65",margin:"0 0 14px"}}>{checked ? `${loaded} of ${rows.length} records loaded · checked at ${checked}.` : 'Checking linked Apex property records.'} Check time is not listing age.</p>
     {loading && <p role="status">Loading property evidence…</p>}
     {!loading && failed>0 && <button type="button" onClick={()=>setRetry(n=>n+1)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:"1px solid #176B57",color:"#176B57",background:"transparent",cursor:"pointer"}}>Retry property evidence</button>}
     {!loading && <OllieDecision rows={rows} answer={answer} onAsk={onAsk} disabled={disabled} />}
