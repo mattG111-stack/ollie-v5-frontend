@@ -21,6 +21,7 @@ import { translatePropertyType } from "@/lib/translations";
 import { hiRes } from "@/lib/img";
 import { useT } from "@/lib/i18n";
 import WhenVisible from "@/components/WhenVisible";
+import usePropertyInterest from "@/components/usePropertyInterest";
 
 // Leaflet reaches for `window` as it loads, so the sun map has to stay off the server.
 const SunMap = dynamic(() => import("@/components/SunMap"), { ssr: false });
@@ -108,6 +109,7 @@ function Inner({ id }: { id: string }) {
   }, [id]);
 
   const shots = photos(p);
+  usePropertyInterest(p?.id);
 
   useEffect(() => {
     if (lightbox == null) return;

@@ -2,6 +2,7 @@
 
 import AppShell from "@/components/AppShell";
 import AssistantKeySettings from "@/components/AssistantKeySettings";
+import InterestMemorySettings from "@/components/InterestMemorySettings";
 import { useAuth } from "@/lib/auth";
 import { useT } from "@/lib/i18n";
 
@@ -48,6 +49,7 @@ function Inner() {
           {t("settings.updatePassword")}
         </button>
       </div>
+      <InterestMemorySettings />
       <AssistantKeySettings />
     </div>
   );
