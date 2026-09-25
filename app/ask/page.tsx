@@ -103,7 +103,7 @@ function Inner() {
   // deliberately. Kept in component state rather than read back off `prefs`,
   // because the answer they've just given should stick for this visit even
   // while the server round-trip is in flight.
-  const [huntOpen, setHuntOpen] = useState<boolean | null>(null);
+  const [huntOpen, setHuntOpen] = useState(false);
   // How big Ollie can be here. A fixed size is right on a laptop and wider than
   // a phone, so the full size is a CEILING and the viewport decides below it.
   const [vw, setVw] = useState(1280);
@@ -204,7 +204,8 @@ function Inner() {
     api<Preferences>("/api/preferences")
       .then((p) => {
         setPrefs(p);
-        setHuntOpen(p.state !== "current");
+        // Saved preferences inform the starters; editing them is optional.
+        // Do not open a second form over the first-use decision flow.
       })
       // A failure here must not lock anyone out of Ollie: if we cannot tell
       // whether to ask, we don't ask.
@@ -536,10 +537,12 @@ function Inner() {
           )}
 
           {/* What he is watching for this person, and the way back into it. */}
-          {prefs && prefs.state !== "unset" && (
+          {prefs && (
             <button
               type="button"
-              onClick={() => setHuntOpen(true)}
+              onClick={() => setHuntOpen(open => !open)}
+              aria-expanded={huntOpen}
+              aria-controls="ollie-preferences-editor"
               style={{
                 marginTop: split ? 20 : 26, background: "none", border: "none",
                 cursor: "pointer", fontFamily: "inherit", fontSize: 12.5,
@@ -547,13 +550,13 @@ function Inner() {
                 maxWidth: split ? 380 : 620,
               }}
             >
-              {[
+              {prefs.state === "unset" ? "Personalise your property search" : [
                 prefs.goals.length
                   ? prefs.goals.map((g) => t(`hunt.goal.${g}`)).join(" · ")
                   : t("checkin.anyGoal"),
                 prefs.suburbs.length ? prefs.suburbs.join(", ") : t("checkin.anywhere"),
               ].join(" — ")}
-              <span style={{ color: D.accent, fontWeight: 700 }}>  {t("hunt.change")}</span>
+              <span style={{ color: D.accent, fontWeight: 700 }}>  {huntOpen ? "Close preferences" : prefs.state === "due" ? "Review saved preferences" : prefs.state === "unset" ? "Set preferences" : t("hunt.change")}</span>
             </button>
           )}
         </div>
@@ -567,14 +570,11 @@ function Inner() {
             marginTop: split ? 0 : 24,
           }}
         >
-          {/* The hunt questions are CONTENT, not a gate. Rendered as the whole
-              page they meant a new customer opened Ollie and met a form — no
-              orb, no question box, nothing to ask with until they had answered
-              or found the skip. They belong on this side, above whatever else
-              is here, and never in place of the box. */}
+          {/* Preferences are optional and open only when requested. */}
           {huntOpen && prefs && (
-            <div style={{ width: "100%", maxWidth: split ? "none" : 760,
+            <div id="ollie-preferences-editor" style={{ width: "100%", maxWidth: split ? "none" : 760,
                           marginBottom: 22 }}>
+              <button type="button" onClick={() => setHuntOpen(false)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:`1px solid ${D.line}`,background:"none",color:D.ink,cursor:"pointer"}}>Back to Ollie</button>
               <OllieHunt
                 prefs={prefs}
                 onDone={setPrefs}
