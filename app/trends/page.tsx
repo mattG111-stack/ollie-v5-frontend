@@ -415,17 +415,17 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
         <h3 className="text-sm font-semibold">Selling time by home age</h3>
         <p className="text-xs text-muted mt-1">Median recorded days on market · {windowLabel(s)}</p>
         <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 mt-3">
-          {[{ key: "under_3", label: "Under 3 years" }, { key: "3_to_8", label: "3 to under 8 years" }, { key: "8_plus", label: "8 years and older" }, { key: "uncertain", label: "Age uncertain" }].map(({ key, label }) => {
+          {[{ key: "under_3", label: "Under 3 years" }, { key: "3_to_8", label: "3 to under 8 years" }, { key: "8_plus", label: "8 years and older" }].map(({ key, label }) => {
             const group = s?.age_selling_times?.groups.find(g => g.key === key);
             const count = group?.sales ?? 0;
             return <div key={key}>
               <div className="text-xs text-muted">{label}</div>
               <div className="font-display text-2xl font-bold mt-1">{group?.median_days != null ? `${Math.round(group.median_days)} days` : "—"}</div>
-              <div className="text-xs text-muted mt-1">{!group ? "Comparison unavailable" : count ? `${count} ${count === 1 ? "sale" : "sales"}${count < 10 ? " · small sample" : ""}` : "No qualifying records"}</div>
+              <div className="text-xs text-muted mt-1">{!group ? "Comparison unavailable" : count ? `${count} ${count === 1 ? "sale" : "sales"}${count < 10 ? " · small sample" : ""}` : "Not enough age-and-duration data"}</div>
             </div>;
           })}
         </div>
-        <p className="text-[11px] text-muted mt-3">Age is approximate at the time of sale. Decade-only dates are grouped only when their whole possible range fits; otherwise they appear under Age uncertain, along with missing build dates. Legacy years ending in zero are treated conservatively as decades. An empty group does not mean no homes of that age sold.</p>
+        <p className="text-[11px] text-muted mt-3">Only sales with a sufficiently precise build date and recorded duration are included. Decade-only dates may be too broad for these age bands. A blank result does not mean no homes of that age sold. Ages are approximate at the time of sale.</p>
         <p className="text-[11px] text-muted mt-2">Recorded durations are not independently verified time to sale. Size, land and condition differ between groups; this comparison does not prove that age makes a home sell faster.</p>
         {!!s?.age_selling_times?.excluded_sales && <p className="text-[11px] text-muted mt-1">{s.age_selling_times.excluded_sales} sales excluded because a usable sale date, price or duration was unavailable.</p>}
       </section>
