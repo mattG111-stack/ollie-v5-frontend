@@ -953,6 +953,7 @@ export interface AskProgress {
  * "due" puts the check-in in front of them, "current" leaves them alone.
  */
 export interface Preferences {
+  brief?: Partial<Record<"must_haves" | "nice_to_haves" | "deal_breakers" | "timing" | "trade_offs", string>>;
   goals: string[];
   suburbs: string[];
   districts: string[];

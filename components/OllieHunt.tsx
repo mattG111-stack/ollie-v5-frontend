@@ -89,11 +89,13 @@ export interface HuntProps {
 }
 
 export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
+  const { t } = useT();
   // "due" means we already know what they said and are only checking it still
   // holds — so that starts on the check-in card, not on question one.
-  const [step, setStep] = useState<"checkin" | "goals" | "where" | "ready">(
+  const [step, setStep] = useState<"checkin" | "goals" | "where" | "needs" | "confirm" | "ready">(
     prefs.state === "due" ? "checkin" : "goals",
   );
+  const [brief, setBrief] = useState<NonNullable<Preferences["brief"]>>(prefs.brief ?? {});
   const [goals, setGoals] = useState<string[]>(prefs.goals ?? []);
   const [suburbs, setSuburbs] = useState<string[]>(prefs.suburbs ?? []);
   const [minPrice, setMinPrice] = useState<number | null>(prefs.min_price);
@@ -108,12 +110,13 @@ export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
     () => ({
       goals,
       suburbs,
-      districts: [],
+      districts: prefs.districts ?? [],
+      brief,
       min_price: minPrice,
       max_price: maxPrice,
       min_beds: minBeds,
     }),
-    [goals, suburbs, minPrice, maxPrice, minBeds],
+    [goals, suburbs, minPrice, maxPrice, minBeds, brief, prefs.districts],
   );
 
   useEffect(() => {
@@ -232,11 +235,41 @@ export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
           setMinBeds={setMinBeds}
           preview={preview}
           onBack={() => setStep("goals")}
-          onDone={save}
+          onDone={() => setStep("needs")}
           busy={saving}
         />
       )}
 
+      {step === "needs" && (
+        <>
+          <Eyebrow>Make it personal</Eyebrow>
+          <Heading>What makes a property right for you?</Heading>
+          <p style={{color:DIM,lineHeight:1.6}}>A few words are enough. Leave anything open if you are still deciding.</p>
+          <div style={{display:"grid",gap:16,marginTop:20}}>
+            {BRIEF_QUESTIONS.map(([key,label,hint]) => <label key={key} style={{display:"grid",gap:6,fontSize:14,fontWeight:700}}>
+              {label}
+              <textarea value={brief[key] ?? ""} maxLength={400} rows={2} placeholder={hint}
+                onChange={e=>setBrief(b=>({...b,[key]:e.target.value}))}
+                style={{width:"100%",boxSizing:"border-box",resize:"vertical",padding:12,borderRadius:10,border:`1px solid ${LINE}`,background:PANEL,color:D.ink,font:"inherit",fontWeight:400}} />
+            </label>)}
+          </div>
+          <p style={{color:DIM,fontSize:12,lineHeight:1.5}}>Budget, area and bedrooms guide the search. Written requirements guide Ollie’s explanation; features absent from our records still need checking.</p>
+          <Primary onClick={()=>setStep("confirm")}>Review my brief</Primary>
+          <div style={{textAlign:"center",marginTop:14}}><Quiet onClick={()=>setStep("where")}>Back to budget &amp; areas</Quiet></div>
+        </>
+      )}
+      {step === "confirm" && (
+        <>
+          <Eyebrow>Your property brief</Eyebrow>
+          <Heading>Have I got that right?</Heading>
+          <p style={{lineHeight:1.7}}>You’re looking for {goals.length ? goals.map(g=>t(`hunt.goal.${g}`)).join(" or ").toLowerCase() : "a property"} in {suburbs.length ? suburbs.join(", ") : prefs.districts?.length ? prefs.districts.join(", ") : "Auckland"}, {maxPrice ? `with a maximum budget of ${fmtMoneyShort(maxPrice)}` : "with no maximum budget set"}{minPrice ? ` and a minimum of ${fmtMoneyShort(minPrice)}` : ""}{minBeds ? `, and at least ${minBeds} bedrooms` : ""}.</p>
+          <BriefSummary brief={brief} />
+          <p style={{color:DIM,fontSize:13,lineHeight:1.6}}>Must-haves and deal-breakers stay firm. Nice-to-haves can be weighed against your trade-offs. Ollie will distinguish recorded matches from things you need to verify.</p>
+          <Primary onClick={save} disabled={saving}>{saving ? "Saving your brief…" : "Yes, save my brief"}</Primary>
+          <div style={{textAlign:"center",marginTop:14}}><Quiet onClick={()=>setStep("needs")} disabled={saving}>Edit my answers</Quiet></div>
+        </>
+      )}
+      {step === "ready" && <p style={{color:DIM,fontSize:13,lineHeight:1.5}}>The preview below uses search criteria only. Your written needs are saved for Ollie; this count does not verify every must-have.</p>}
       {step === "ready" && (
         <Ready
           preview={preview}
@@ -506,7 +539,7 @@ function Where({
 
       <div style={{ marginTop: 24 }}>
         <Primary onClick={onDone} disabled={busy}>
-          {busy ? t("hunt.saving") : t("hunt.done")}
+          {busy ? t("hunt.saving") : "Next: what matters to you"}
         </Primary>
         <div style={{ textAlign: "center", marginTop: 14 }}>
           <Quiet onClick={onBack} disabled={busy}>{t("hunt.back")}</Quiet>
@@ -702,6 +735,7 @@ function CheckIn({
         ))}
       </div>
 
+      <BriefSummary brief={prefs.brief ?? {}} />
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 22 }}>
         <Primary onClick={onConfirm} disabled={busy}>{t("checkin.confirm")}</Primary>
         <button
@@ -858,4 +892,15 @@ function Quiet({
       {children}
     </button>
   );
+}
+
+const BRIEF_QUESTIONS = [
+  ["must_haves", "What must it have?", "E.g. outdoor space, room to work from home"],
+  ["nice_to_haves", "What would be a bonus?", "E.g. a garage or an extra bedroom"],
+  ["deal_breakers", "What would rule it out?", "E.g. major renovation or a shared title"],
+  ["timing", "When would you like to buy?", "E.g. within six months, or just exploring"],
+  ["trade_offs", "Where could you be flexible?", "E.g. a smaller home for the right location; up to $30k for improvements"],
+] as const;
+function BriefSummary({brief}:{brief:NonNullable<Preferences["brief"]>}) {
+  return <dl style={{display:"grid",gap:12,margin:"18px 0"}}>{BRIEF_QUESTIONS.filter(([key])=>brief[key]?.trim()).map(([key,label])=><div key={key} style={{padding:12,background:D.lift,borderRadius:10}}><dt style={{fontSize:12,fontWeight:700,color:DIM}}>{label}</dt><dd style={{margin:"6px 0 0",fontSize:14,lineHeight:1.5,whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{brief[key]}</dd></div>)}</dl>;
 }
