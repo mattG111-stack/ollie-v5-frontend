@@ -1363,11 +1363,11 @@ function parseSaleHistory(raw: string | null): Array<{ date: string; price: numb
     const list = Array.isArray(data) ? data : data.points || data.sales || [];
     return list
       .map((s: any) => ({
-        date: s.date || s.sold_date || s.year || "—",
-        price: Number(s.price || s.sale_price || s.value || 0),
+        date: s.saleDate || s.date || s.sold_date || s.year || "—",
+        price: Number(s.salePrice ?? s.price ?? s.sale_price ?? s.value ?? 0),
         method: s.method || s.sale_method || "",
       }))
-      .filter((s: any) => s.price > 0);
+      .filter((s: any) => Number.isFinite(s.price) && s.price > 0);
   } catch {
     return [];
   }

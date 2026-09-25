@@ -827,15 +827,7 @@ function Stat({ label, value, accent, sub }: {
   );
 }
 
-/**
- * Which portals can answer right now.
- *
- * Trade Me, OneRoof and realestate.co.nz render their figures in the browser,
- * so they are reached through Apify and need a token. Without one the button
- * still works — it asks the two that can be read directly — and saying so here
- * is the difference between "those three found nothing" and "those three were
- * never asked".
- */
+/** Configured sources; a connection is not proof of a successful collection. */
 function PortalSources() {
   const [st, setSt] = useState<{ sources: string[]; needs_browser: string[]; browser_ready: boolean } | null>(null);
   useEffect(() => {
@@ -851,8 +843,7 @@ function PortalSources() {
       Asking: {st.sources.map((x) => NAMES[x] || x).join(" · ")}
       {!st.browser_ready && (
         <span className="text-muted">
-          {" "}— {st.needs_browser.map((x) => NAMES[x] || x).join(", ")} need an APIFY_TOKEN
-          (they render their figures in the browser); set one and they join the run.
+          {" "}— {st.needs_browser.map((x) => NAMES[x] || x).join(", ")} need the direct scraper configured in Data connection.
         </span>
       )}
     </div>
