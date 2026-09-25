@@ -6,8 +6,8 @@ const config: Config = {
     extend: {
       colors: {
         // Ollie palette (from Screen Designs v18)
-        blue: { DEFAULT: "#3D434B", dark: "#292D32" },
-        cyan: "#176B57",
+        blue: { DEFAULT: "#B54708", dark: "#8F3707" },
+        cyan: "#B54708",
         rail: "#292D32",
         paper: "#F5F5F5",
         card: "#FFFFFF",
