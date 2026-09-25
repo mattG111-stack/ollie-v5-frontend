@@ -101,7 +101,7 @@ export default function MarketHistoryChart({ region = "Auckland", height = 210 }
           </div>
         </div>
         {pctMove != null && (
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: pctMove >= 0 ? "#A34400" : "#D4503E" }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: pctMove >= 0 ? "#176B57" : "#D4503E" }}>
             {pctMove >= 0 ? "+" : ""}{(pctMove * 100).toFixed(1)}%{" "}
             {sales ? t("today.sinceWhen", { when: at(first) }) : t("today.sinceFirst")}
           </div>

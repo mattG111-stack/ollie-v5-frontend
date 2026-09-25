@@ -35,7 +35,7 @@ const C = {
   faint: "#7A8698",
   text: "#14233A",
   danger: "#EF4444",
-  good: "#FF8000",
+  good: "#176B57",
   editBg: "#EEF2F7",
 } as const;
 

@@ -12,14 +12,14 @@ export const C = {
   page: "#F5F5F5", card: "#FFFFFF", border: "#DEDFE1", divider: "#ECEDEF",
   ink: "#26292D", label: "#595E65", faint: "#656B73", mono: "#656B73",
   dark: "#292D32", darkText: "#F7F7F8", accent: "#454B54",
-  good: "#A34400", danger: "#B83E32", chipBg: "#EFF0F2",
+  good: "#176B57", danger: "#B83E32", chipBg: "#EFF0F2",
 } as const;
 
 /** Shared light surfaces for Ollie and its supporting panels. */
 export const D = {
   ground: C.page, lift: "#F0F1F3", panel: "#FFFFFF", panelSolid: "#FFFFFF",
   line: C.border, lineOn: "#454B54", ink: C.ink, dim: "#595E65",
-  faint: "#656B73", accent: "#454B54", good: "#A34400",
+  faint: "#656B73", accent: "#454B54", good: "#176B57",
 } as const;
 
 export const MONO = "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
