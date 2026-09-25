@@ -421,7 +421,7 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
             return <div key={key}>
               <div className="text-xs text-muted">{label}</div>
               <div className="font-display text-2xl font-bold mt-1">{group?.median_days != null ? `${Math.round(group.median_days)} days` : "—"}</div>
-              <div className="text-xs text-muted mt-1">{count ? `${count} ${count === 1 ? "sale" : "sales"}${count < 10 ? " · small sample" : ""}` : "No usable sales"}</div>
+              <div className="text-xs text-muted mt-1">{!s?.age_selling_times ? "Comparison unavailable" : count ? `${count} ${count === 1 ? "sale" : "sales"}${count < 10 ? " · small sample" : ""}` : "No usable sales"}</div>
             </div>;
           })}
         </div>
