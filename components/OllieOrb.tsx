@@ -9,7 +9,7 @@
  * particles and they travel; nothing pops, nothing restarts. That travelling IS
  * the effect, and it is why this is a canvas rather than four looping GIFs.
  *
- *   idle       barely there, drifting. He is present, not demanding.
+ *   idle       visible blue-green cloud, slowly drifting.
  *   listening  opens into a slow spiral — the shape of taking something in.
  *   thinking   pulls tight and speeds up, orbits crossing. Visibly working.
  *   speaking   throws straight rays out from a bright core. Delivery.
@@ -63,22 +63,16 @@ interface Look {
 }
 
 const LOOKS: Record<OrbState, Look> = {
-  idle:      { spread: 0.32, spin: 0.34, core: 0.055, glow: 0.72, line: 0.80, trail: 1.1, ink: 1.35 },
+  idle:      { spread: 0.48, spin: 0.34, core: 0.075, glow: 0.95, line: 1.05, trail: 1.1, ink: 1.65 },
   listening: { spread: 0.86, spin: 0.26, core: 0.075, glow: 1.00, line: 0.80, trail: 1.0, ink: 1.45 },
   thinking:  { spread: 0.44, spin: 1.30, core: 0.070, glow: 0.95, line: 0.75, trail: 1.5, ink: 1.05 },
   speaking:  { spread: 0.96, spin: 0.03, core: 0.125, glow: 1.00, line: 0.85, trail: 1.4, ink: 2.10 },
 };
 
-/** Cyan at the middle, green at the rim — the hue is a function of distance. */
+/** Saturated blue through the body, emerald at the rim on light surfaces. */
 function tint(u: number): [number, number, number] {
-  if (u < 0.34) {
-    const k = u / 0.34;                        // white-cyan -> cyan
-    return [232 - 162 * k, 252 - 54 * k, 255 - 10 * k];
-  }
-  // Green only in the last third. Turning at the halfway mark washed the whole
-  // outer half green and lost the cyan the brand actually reads as.
-  const k = Math.max(0, (u - 0.5) / 0.5);
-  return [70 - 9 * k, 198 + 22 * k, 245 - 94 * k];
+  const k = Math.max(0, Math.min(1, (u - 0.20) / 0.80));
+  return [24 - 12 * k, 100 + 78 * k, 230 - 112 * k];
 }
 
 interface P {
@@ -210,11 +204,11 @@ export default function OllieOrb({
       // white centre against a lot of black, not from a big soft ball.
       const cr = R * L.core * (1 + (still ? 0 : Math.sin(t * 1.9) * 0.07));
       const halo = ctx.createRadialGradient(mid, mid, 0, mid, mid, cr * 7);
-      halo.addColorStop(0, `rgba(240,253,255,${0.98 * L.glow})`);
-      halo.addColorStop(0.08, `rgba(150,232,255,${0.72 * L.glow})`);
-      halo.addColorStop(0.26, `rgba(70,198,245,${0.26 * L.glow})`);
-      halo.addColorStop(0.6, `rgba(61,220,151,${0.07 * L.glow})`);
-      halo.addColorStop(1, "rgba(61,220,151,0)");
+      halo.addColorStop(0, `rgba(36,116,238,${0.60 * L.glow})`);
+      halo.addColorStop(0.08, `rgba(24,144,230,${0.48 * L.glow})`);
+      halo.addColorStop(0.26, `rgba(20,160,204,${0.30 * L.glow})`);
+      halo.addColorStop(0.6, `rgba(16,178,118,${0.16 * L.glow})`);
+      halo.addColorStop(1, "rgba(16,178,118,0)");
       ctx.fillStyle = halo;
       ctx.beginPath();
       ctx.arc(mid, mid, cr * 7, 0, Math.PI * 2);
@@ -225,7 +219,8 @@ export default function OllieOrb({
       // direction of travel reads as a filament, and where filaments overlap
       // the additive blend builds the bright spine of an arm by itself. That is
       // the whole difference between this and the first attempt.
-      ctx.globalCompositeOperation = "lighter";
+      // Source-over preserves saturated filaments against the light page.
+      ctx.globalCompositeOperation = "source-over";
       ctx.lineCap = "round";
       const scale = size / 300;
       for (const p of ps) {
