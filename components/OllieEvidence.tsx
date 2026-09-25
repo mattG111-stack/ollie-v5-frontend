@@ -39,7 +39,7 @@ export default function OllieEvidence({ answer, onAsk, disabled = false }: { ans
   return <section aria-label="Property facts from Apex records" style={{ border:"1px solid #DEDFE1",borderRadius:16,padding:16,background:"#FFFFFF",color:"#26292D" }}>
     <p style={{fontSize:12,color:"#595E65",margin:"0 0 14px"}}>{checked ? `${loaded} of ${rows.length} records loaded · checked at ${checked}.` : 'Checking linked Apex property records.'} Check time is not listing age.</p>
     {loading && <p role="status">Loading property evidence…</p>}
-    {!loading && failed>0 && <button type="button" onClick={()=>setRetry(n=>n+1)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:"1px solid #B54708",color:"#B54708",background:"transparent",cursor:"pointer"}}>Retry property evidence</button>}
+    {!loading && failed>0 && <button type="button" onClick={()=>setRetry(n=>n+1)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:"1px solid #454B54",color:"#454B54",background:"transparent",cursor:"pointer"}}>Retry property evidence</button>}
     {!loading && <OllieDecision rows={rows} answer={answer} onAsk={onAsk} disabled={disabled} />}
     <details><summary style={{cursor:"pointer",padding:"10px 0",fontSize:13}}>Inspect the recorded fields</summary>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 230px), 1fr))",gap:12}}>
@@ -48,13 +48,13 @@ export default function OllieEvidence({ answer, onAsk, disabled = false }: { ans
       const comparison=priceComparison(p.asking_price,p.fair_value);
       const facts=[['Asking price',money(p.asking_price)],['Apex estimate',money(p.fair_value)],['Land area',area(p.land_area_m2)],['Floor area',area(p.floor_area_m2)],['Recorded type',p.property_type || 'Not recorded'],['Recorded title',p.type_of_title || 'Not recorded'],['Bedrooms / bathrooms',`${p.beds ?? '—'} / ${p.baths ?? '—'}`],['Valuation comparables',p.comps_used == null ? 'Not recorded' : String(p.comps_used)]];
       return <article key={id} style={{background:"#F5F5F5",padding:14,borderRadius:12,border:"1px solid #DEDFE1"}}>
-        <Link href={`/property/${id}`} style={{fontSize:16,fontWeight:700,color:"#B54708"}}>{p.address || `Property ${id}`}</Link>
+        <Link href={`/property/${id}`} style={{fontSize:16,fontWeight:700,color:"#454B54"}}>{p.address || `Property ${id}`}</Link>
         <p style={{margin:"5px 0 12px",fontSize:13,color:"#595E65"}}>{p.suburb || 'Suburb not recorded'}{p.off_market ? ' · Off market' : ''}</p>
         <dl style={{margin:0}}>{facts.map(([name,value])=><div key={name} style={{display:"flex",justifyContent:"space-between",gap:12,fontSize:13,padding:"5px 0"}}><dt style={{color:"#595E65"}}>{name}</dt><dd style={{margin:0,textAlign:"right"}}>{value}</dd></div>)}</dl>
         {p.asking_basis && p.asking_basis !== 'advertised' && <p style={{fontSize:12}}>Price basis: {p.asking_basis}</p>}
         {comparison && <p style={{fontSize:13,borderTop:"1px solid #DEDFE1",paddingTop:10}}>{comparison.discount >= 0 ? `${comparison.discount.toFixed(1)}% below` : `${Math.abs(comparison.discount).toFixed(1)}% above`} Apex estimate · {comparison.uplift.toFixed(1)}% value uplift over asking.</p>}
         <p style={{fontSize:12,color:"#595E65"}}>Condition and reasons for pricing are not verified here. An estimated value gap is not profit.</p>
-        <Link href={`/property/${id}`} style={{fontSize:13,color:"#B54708"}}>View property and sold evidence →</Link>
+        <Link href={`/property/${id}`} style={{fontSize:13,color:"#454B54"}}>View property and sold evidence →</Link>
       </article>;
     })}
     </div>

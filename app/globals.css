@@ -12,14 +12,14 @@
 .assistant-answer li { margin: .35em 0; }
 .assistant-answer h1, .assistant-answer h2, .assistant-answer h3,
 .assistant-answer h4 { font-size: 1.1em; font-weight: 700; margin: 1em 0 .4em; }
-.assistant-answer a { color: #B54708; text-decoration: underline; text-underline-offset: 3px; }
-.assistant-answer a:focus-visible, .assistant-answer-table:focus-visible { outline: 2px solid #B54708; outline-offset: 3px; }
+.assistant-answer a { color: #454B54; text-decoration: underline; text-underline-offset: 3px; }
+.assistant-answer a:focus-visible, .assistant-answer-table:focus-visible { outline: 2px solid #454B54; outline-offset: 3px; }
 .assistant-answer-table { overflow-x: auto; max-width: 100%; margin: 1em 0; }
 .assistant-answer table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9em; }
 .assistant-answer th, .assistant-answer td { padding: .55em .75em; border: 1px solid #DEDFE1; text-align: left; min-width: 90px; }
 .assistant-answer th { font-weight: 700; background: rgba(255,255,255,.06); }
 .assistant-answer pre { overflow-x: auto; padding: .75em; background: rgba(0,0,0,.15); border-radius: 8px; }
-.assistant-answer blockquote { border-left: 3px solid #B54708; padding-left: 1em; margin: 1em 0; }
+.assistant-answer blockquote { border-left: 3px solid #454B54; padding-left: 1em; margin: 1em 0; }
 
 html, body { background: #F5F5F5; color: #26292D; -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
 /* No element may scroll the whole page sideways on mobile. `clip` (not `hidden`)
@@ -145,7 +145,7 @@ html, body { max-width: 100%; overflow-x: clip; }
   min-width: 0;
   max-width: 100%;
 }
-.apex-suburb-select:focus { border-color: #B54708; }
+.apex-suburb-select:focus { border-color: #454B54; }
 .apex-suburb-select:disabled { opacity: .6; }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -208,4 +208,4 @@ html, body { max-width: 100%; overflow-x: clip; }
   }
 }
 
-:focus-visible { outline: 2px solid #B54708; outline-offset: 3px; }
+:focus-visible { outline: 2px solid #454B54; outline-offset: 3px; }

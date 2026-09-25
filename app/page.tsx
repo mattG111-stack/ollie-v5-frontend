@@ -62,7 +62,7 @@ export default function Landing() {
         <Feature
           title="Underpriced deal-finder"
           body="Surfaces listings priced below Apex's valuation, with a confidence tier and recent local sales to sanity-check against."
-          color="#0A8754"
+          color="#A34400"
         />
         <Feature
           title="Cashflow-positive screening"
@@ -72,7 +72,7 @@ export default function Landing() {
         <Feature
           title="Subdivision feasibility"
           body="38-zone Auckland Unitary Plan map, lot-count math, demolish-vs-keep economics on every eligible site."
-          color="#FF6A00"
+          color="#626872"
         />
         <Feature
           title="Single buy score"

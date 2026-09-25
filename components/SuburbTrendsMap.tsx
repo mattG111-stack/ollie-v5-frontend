@@ -24,8 +24,8 @@ type Resp = { points: Pt[] };
 
 // Mirrors MapView's palette so the legend reads consistently across the app.
 const COLOR = {
-  underpriced: "#1B2026",   // near-black — the strongest signal
-  subdividable: "#FF6A00",  // vivid orange
+  underpriced: "#FF8000",   // papaya highlight for underpriced listings
+  subdividable: "#626872",  // neutral grey
   forSale: "#9AA6B6",       // pale grey — listed, no flag
   sold: "#C2CAD4",          // lightest — recent sales, context only
 };

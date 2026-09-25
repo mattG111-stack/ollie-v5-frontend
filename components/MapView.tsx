@@ -29,12 +29,12 @@ type MapResponse = { dataset: string; count: number; points: MapPoint[] };
 
 // Markers sit over a light basemap, so each category needs its own clearly
 // separable value: near-black for the signal that matters (underpriced), a
-// vivid orange for subdividable, and pale greys for the de-emphasised rest.
+// neutral grey for subdividable, and pale greys for the de-emphasised rest.
 // The "other" grey is deliberately much lighter than the underpriced charcoal —
 // two dark tones next to each other were indistinguishable at marker size.
 const COLOR = {
-  underpriced: "#1B2026",   // near-black — the strongest signal, reads on any tile
-  subdividable: "#FF6A00",  // vivid orange
+  underpriced: "#FF8000",   // papaya highlight for underpriced listings
+  subdividable: "#626872",  // neutral grey
   forSale: "#9AA6B6",       // pale grey for "other" (present but recessive)
   sold: "#C2CAD4",
 };
