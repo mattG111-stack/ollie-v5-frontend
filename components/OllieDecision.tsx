@@ -60,19 +60,19 @@ export default function OllieDecision({ rows, answer, onAsk, disabled = false }:
       <details style={{fontSize:12,color:"#4E535A",margin:"12px 0"}}><summary style={{cursor:"pointer"}}>Evidence & limits · {insight.evidence.length} source values</summary>
         <p>{insight.relevance}</p>
         <p>{insight.scope.description}</p>
-        <ul style={{paddingLeft:18}}>{insight.evidence.map(e => <li key={`${e.propertyId}-${e.field}`} style={{margin:"8px 0"}}><a href={e.href} style={{color:"#245EA8"}}>{e.address}</a>: {e.field === "asking_price" ? "asking price" : e.field === "fair_value" ? "Apex estimate" : "recorded land"} {e.unit === "NZD" ? money(e.value) : area(e.value)}</li>)}</ul>
+        <ul style={{paddingLeft:18}}>{insight.evidence.map(e => <li key={`${e.propertyId}-${e.field}`} style={{margin:"8px 0"}}><a href={e.href} style={{color:"#B54708"}}>{e.address}</a>: {e.field === "asking_price" ? "asking price" : e.field === "fair_value" ? "Apex estimate" : "recorded land"} {e.unit === "NZD" ? money(e.value) : area(e.value)}</li>)}</ul>
         <ul style={{paddingLeft:18}}>{insight.limitations.map(limit => <li key={limit} style={{margin:"8px 0"}}>{limit}</li>)}</ul>
       </details>
-      <a href={insight.nextAction.href} style={{display:"inline-block",color:"#245EA8",fontSize:13,fontWeight:700}}>{insight.nextAction.label} →</a>
+      <a href={insight.nextAction.href} style={{display:"inline-block",color:"#B54708",fontSize:13,fontWeight:700}}>{insight.nextAction.label} →</a>
     </aside>)}
-    <details open={insights.length === 0}><summary style={{cursor:"pointer",fontSize:14,color:"#245EA8",padding:"10px 0",fontWeight:700}}>Compare prices & property details ({facts.length})</summary>
-    <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,marginBottom:14}}><span style={{color:"#245EA8"}}>● Asking price</span><span style={{color:"#606D80"}}>● Apex estimate</span></div>
+    <details open={insights.length === 0}><summary style={{cursor:"pointer",fontSize:14,color:"#B54708",padding:"10px 0",fontWeight:700}}>Compare prices & property details ({facts.length})</summary>
+    <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,marginBottom:14}}><span style={{color:"#B54708"}}>● Asking price</span><span style={{color:"#606D80"}}>● Apex estimate</span></div>
     {facts.map(({id,property:p,badges,checks}) => <article key={id} style={{padding:"20px 0",borderTop:"1px solid #DEDFE1"}}>
       <a href={`/property/${id}`} style={{color:"#26292D",fontSize:16,fontWeight:700}}>{p.address || `Property ${id}`}</a>
       <p style={{margin:"5px 0 10px",fontSize:12,color:"#595E65"}}>Land: {area(p.land_area_m2)} · Floor: {area(p.floor_area_m2)}</p>
-      {!!badges.length && <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{badges.map(badge=><span key={badge} style={{fontSize:11,border:"1px solid #E0E5EC",background:"#F5F7FA",borderRadius:6,padding:"4px 7px",color:"#49566A"}}>{badge} · in this shortlist</span>)}</div>}
+      {!!badges.length && <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{badges.map(badge=><span key={badge} style={{fontSize:11,border:"1px solid #E0E5EC",background:"#F6F6F6",borderRadius:6,padding:"4px 7px",color:"#49566A"}}>{badge} · in this shortlist</span>)}</div>}
       <div aria-label={`Price comparison for ${p.address || id}`}>
-        {([{label:"Asking price",value:p.asking_price,color:"#245EA8"},{label:"Apex estimate",value:p.fair_value,color:"#606D80"}]).map(item=><div key={item.label} style={{margin:"8px 0"}}>
+        {([{label:"Asking price",value:p.asking_price,color:"#B54708"},{label:"Apex estimate",value:p.fair_value,color:"#606D80"}]).map(item=><div key={item.label} style={{margin:"8px 0"}}>
           <div style={{display:"flex",justifyContent:"space-between",gap:12,fontSize:13,marginBottom:7,fontVariantNumeric:"tabular-nums"}}><span>{item.label}</span><strong>{money(item.value)}</strong></div>
           {positive(item.value) && <div aria-hidden="true" style={{height:6,borderRadius:4,background:"#E6E8EB"}}><div style={{width:`${item.value / maximum * 100}%`,height:"100%",borderRadius:4,background:item.color}} /></div>}
         </div>)}

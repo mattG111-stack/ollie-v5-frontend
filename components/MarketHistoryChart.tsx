@@ -27,7 +27,7 @@ type Point = {
 };
 type History = { region: string; points: Point[]; basis?: string };
 
-const INK = "#1B2026";      // median asking — the primary line
+const INK = "#B54708";      // median asking — the primary line
 const VALUE = "#8894A6";    // our valuation — secondary line
 const BAR = "#E6EAF0";      // listing-count bars, behind everything
 

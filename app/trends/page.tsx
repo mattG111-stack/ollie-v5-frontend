@@ -246,11 +246,11 @@ function Inner() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                     <div>
                       <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">{t("trends.medianAsking")}</div>
-                      <Sparkline values={data.points.map((p) => p.median_asking)} width={400} height={70} color="#2E353D" />
+                      <Sparkline values={data.points.map((p) => p.median_asking)} width={400} height={70} color="#B54708" />
                     </div>
                     <div>
                       <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">{t("trends.medianEstimate")}</div>
-                      <Sparkline values={data.points.map((p) => p.median_market_value)} width={400} height={70} color="#0A8754" />
+                      <Sparkline values={data.points.map((p) => p.median_market_value)} width={400} height={70} color="#606D80" />
                     </div>
                   </div>
                   <table className="w-full text-sm mt-3">
@@ -440,7 +440,7 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
       {trend && trend.filter((v) => v != null && v > 0).length >= 2 && (
         <div className="mt-4 pt-4 border-t border-line/60">
           <div className="text-[11px] uppercase tracking-wider text-muted font-semibold mb-2">Median asking · recent weeks</div>
-          <Sparkline values={trend} width={440} height={64} color="#2E353D" />
+          <Sparkline values={trend} width={440} height={64} color="#B54708" />
         </div>
       )}
     </div>
@@ -669,7 +669,7 @@ function MarketDirection({ s }: { s: SuburbStats | null }) {
         {zeroY != null && (
           <line x1={PAD} x2={W - PAD} y1={zeroY} y2={zeroY} stroke="#E1E7EF" strokeDasharray="3 3" />
         )}
-        <path d={solid} fill="none" stroke="#2E353D"
+        <path d={solid} fill="none" stroke="#B54708"
               strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
         {lead && (
           <path d={lead} fill="none" stroke={dirColour} strokeWidth="2"
