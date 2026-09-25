@@ -373,8 +373,14 @@ export default function DealFinder({
               </div>
               <div
                 className="tnum"
-                style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1, marginTop: 8, color: metric === "lots" ? "#C9CED6" : hero.margin == null || hero.margin === 0 ? "#C9CED6" : hero.margin > 0 ? "#6EE7B7" : "#FDA29B" }}
+                style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1, marginTop: 8, position: "relative", isolation: "isolate", width: "fit-content", color: metric === "lots" ? "#C9CED6" : hero.margin == null || hero.margin === 0 ? "#C9CED6" : hero.margin > 0 ? "#FFFFFF" : "#FDA29B" }}
               >
+                {metric !== "lots" && hero.margin != null && hero.margin > 0 && <span aria-hidden="true" style={{
+                  position: "absolute", inset: "0 -10% -12%", zIndex: -1,
+                  pointerEvents: "none", borderRadius: "50%",
+                  background: "radial-gradient(ellipse at center, rgba(52,211,153,.32) 0%, rgba(34,197,94,.16) 45%, rgba(34,197,94,0) 74%)",
+                  filter: "blur(12px)",
+                }} />}
                 {metric === "lots"
                   ? `+${hero.max_addl_lots?.toFixed(0) ?? "—"}`
                   : hero.margin != null
