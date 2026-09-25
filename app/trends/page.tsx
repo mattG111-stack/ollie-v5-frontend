@@ -48,6 +48,7 @@ type SuburbStats = {
   sales_this_month: number; latest_month: string | null; current_month: string | null;
   monthly: MonthPoint[];
   by_beds: BedSeries[];
+  age_selling_times?: { groups: { key: string; sales: number; median_days: number | null }[]; excluded_sales: number } | null;
   median_days: number | null; sale_vs_cv: number | null; effects: Effect[];
   by_method: MethodResult[];
   from_year: number | null; to_year: number | null; years_available: number[];
@@ -409,6 +410,24 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
           sub={windowLabel(s)}
           color={s?.sale_vs_cv != null ? (s.sale_vs_cv >= 0 ? "#176B57" : "#DC2626") : undefined} />
       </div>
+
+      <section className="mt-5 rounded-2xl border border-black/10 bg-white/60 p-4" aria-label="Selling time by home age">
+        <h3 className="text-sm font-semibold">Does home age change selling time?</h3>
+        <p className="text-xs text-muted mt-1">Median recorded days on market · {windowLabel(s)}</p>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          {[{ key: "under_3", label: "Under 3 years old" }, { key: "3_plus", label: "3 years and older" }].map(({ key, label }) => {
+            const group = s?.age_selling_times?.groups.find(g => g.key === key);
+            const count = group?.sales ?? 0;
+            return <div key={key}>
+              <div className="text-xs text-muted">{label}</div>
+              <div className="font-display text-2xl font-bold mt-1">{group?.median_days != null ? `${Math.round(group.median_days)} days` : "—"}</div>
+              <div className="text-xs text-muted mt-1">{count ? `${count} ${count === 1 ? "sale" : "sales"}${count < 10 ? " · small sample" : ""}` : "No usable sales"}</div>
+            </div>;
+          })}
+        </div>
+        <p className="text-[11px] text-muted mt-3">Age is sale year minus build year, so it is approximate. Recorded durations have not been independently verified as time to sale. These groups can differ in size, land and condition; this is an observed comparison, not proof that age makes a home sell faster.</p>
+        {!!s?.age_selling_times?.excluded_sales && <p className="text-[11px] text-muted mt-1">{s.age_selling_times.excluded_sales} sales excluded because usable age, sale date or duration was unavailable.</p>}
+      </section>
 
       <div className="text-[11px] uppercase tracking-wider text-muted font-semibold mt-5 mb-1">What moves value here</div>
       <MoveRow icon="＋🛏" name="Add a bedroom" note={basisNote(bed)}
