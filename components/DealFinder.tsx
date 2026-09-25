@@ -721,9 +721,17 @@ function DealCard({
                 fontSize: 30,
                 fontWeight: 900,
                 letterSpacing: "-.03em",
-                color: leadLots ? C.accent : marginColor,
+                color: leadLots ? C.accent : marginPct != null && marginPct > 0 ? "#171A1F" : marginColor,
+                position: "relative",
+                isolation: "isolate",
               }}
             >
+              {!leadLots && marginPct != null && marginPct > 0 && <span aria-hidden="true" style={{
+                position: "absolute", inset: "4% -12% -10%", zIndex: -1,
+                pointerEvents: "none", borderRadius: "50%",
+                background: "radial-gradient(ellipse at center, rgba(34,197,94,.25) 0%, rgba(74,222,128,.13) 45%, rgba(74,222,128,0) 74%)",
+                filter: "blur(7px)",
+              }} />}
               {leadLots
                 ? lots != null
                   ? `+${lots.toFixed(0)}`
