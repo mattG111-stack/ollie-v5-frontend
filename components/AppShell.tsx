@@ -382,7 +382,7 @@ function NavItem({ item, active, small, t }: { item: Nav; active: boolean; small
         fontWeight: active ? 700 : 500,
         fontSize: small ? 13.5 : 14.5,
         color: active ? "#FFFFFF" : small ? "#8A8AA8" : "#B0B0C8",
-        background: active ? "linear-gradient(90deg,#176B57,#124C40)" : undefined,
+        background: active ? "linear-gradient(90deg,#494F58,#343940)" : undefined,
         boxShadow: active ? "0 4px 14px rgba(120,125,133,.4)" : undefined,
       }}
     >
@@ -510,7 +510,7 @@ function TopBar({ initials, onMenu, showMenu, pollMatches = true, bare = false }
         // Opaque when bare: the shell behind it is paper-coloured, so a
         // translucent dark composites against that and lands on a muddy slate
         // instead of on the page's near-black.
-        background: "rgba(247,248,245,.96)",
+        background: "rgba(245,245,245,.96)",
         backdropFilter: "blur(8px)",
         position: "sticky",
         top: 0,

@@ -662,8 +662,8 @@ function Bubble({ msg }: { msg: Msg }) {
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <div
           style={{
-            maxWidth: "80%", background: "rgba(23,107,87,.08)",
-            border: `1px solid rgba(23,107,87,.24)`, color: "#204A3B",
+            maxWidth: "80%", background: "rgba(55,65,81,.06)",
+            border: `1px solid rgba(55,65,81,.18)`, color: "#343A42",
             padding: "12px 17px", borderRadius: "16px 16px 4px 16px",
             fontSize: 15.5, lineHeight: 1.5, fontWeight: 600,
           }}

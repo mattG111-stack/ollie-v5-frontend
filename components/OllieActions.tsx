@@ -57,7 +57,7 @@ export function prepareStart(intent: number, values: { area: string; budget: str
   return { question: action.question + " The area and maximum budget were explicitly confirmed in the search form for this request. Treat Auckland as the whole region when that is the entered area. Use recorded asking prices for this budget; exclude missing asking prices rather than substituting estimates. Do not infer title, condition, defects or reasons for a low price from missing fields, address format or days on market. Label unverified checks as unknown.", label: `${action.title} · ${areas.join(", ")} · up to NZ$${budget.toLocaleString("en-NZ")}${beds !== null ? ` · ${beds}+ beds` : ""}` };
 }
 
-const buttonStyle = { textAlign: "left" as const, padding: "16px 18px", borderRadius: 14, border: "1px solid #D9E3DD", background: "#FFFFFF", color: "#202D29", fontFamily: "inherit", cursor: "pointer" };
+const buttonStyle = { textAlign: "left" as const, padding: "16px 18px", borderRadius: 14, border: "1px solid #DEDFE1", background: "#FFFFFF", color: "#26292D", fontFamily: "inherit", cursor: "pointer" };
 
 export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs?: Preferences | null; answer?: string; disabled: boolean; onAsk: (question: string, label?: string) => void }) {
   const [intent, setIntent] = useState<number | null>(null);
@@ -70,8 +70,8 @@ export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs
     {followUps(answer).map(action => <button key={action.title} type="button" disabled={disabled} onClick={() => onAsk(action.question, action.title)} style={{ ...buttonStyle, padding: "9px 12px", fontSize: 13, opacity: disabled ? .5 : 1 }}>{action.title}</button>)}
   </div>;
   return <section aria-label="Start with a property decision" style={{ width: "100%" }}>
-    <h2 style={{ color: "#202D29", fontSize: 22, margin: "0 0 8px" }}>Find something worth investigating.</h2>
-    <p style={{ color: "#52645C", fontSize: 14, margin: "0 0 18px", lineHeight: 1.5 }}>Start with your goal. Ollie can bring together listings, sales evidence and the questions still worth asking.</p>
+    <h2 style={{ color: "#26292D", fontSize: 22, margin: "0 0 8px" }}>Find something worth investigating.</h2>
+    <p style={{ color: "#595E65", fontSize: 14, margin: "0 0 18px", lineHeight: 1.5 }}>Start with your goal. Ollie can bring together listings, sales evidence and the questions still worth asking.</p>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))", gap: 10 }}>
       {starters(prefs ?? null).map(action => <button key={action.title} type="button" disabled={disabled} aria-expanded={intent === starters(prefs ?? null).findIndex(item => item.title === action.title)} onClick={() => {
         if (intent === null) {
@@ -82,7 +82,7 @@ export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs
         setIntent(starters(prefs ?? null).findIndex(item => item.title === action.title)); setError("");
       }} style={{ ...buttonStyle, opacity: disabled ? .5 : 1 }}>
         <span style={{ display: "block", fontSize: 16, fontWeight: 650, marginBottom: 8 }}>{action.title} <span aria-hidden="true">→</span></span>
-        <span style={{ display: "block", fontSize: 13, lineHeight: 1.5, color: "#52645C" }}>{action.detail}</span>
+        <span style={{ display: "block", fontSize: 13, lineHeight: 1.5, color: "#595E65" }}>{action.detail}</span>
       </button>)}
     </div>
     {intent !== null && <form aria-label="Confirm your search" onSubmit={event => {
@@ -92,7 +92,7 @@ export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs
       if (result.error) { setError(result.error); return; }
       setError("");
       onAsk(result.question!, result.label);
-    }} style={{ marginTop: 16, padding: 16, border: "1px solid #D9E3DD", borderRadius: 14, color: "#202D29" }}>
+    }} style={{ marginTop: 16, padding: 16, border: "1px solid #DEDFE1", borderRadius: 14, color: "#26292D" }}>
       <h3 style={{ margin: "0 0 12px" }}>{intent === 2 ? "Which property are you considering?" : intent === 1 ? "Where should we compare?" : "Make this search yours"}</h3>
       <div style={{ display: "grid", gap: 12 }}>
         {intent === 2 && <label>Street address <input required autoComplete="street-address" value={address} onChange={e => setAddress(e.target.value)} placeholder="Include the unit number, if any" style={{ ...buttonStyle, display: "block", width: "100%", boxSizing: "border-box", marginTop: 5 }} /></label>}
@@ -101,10 +101,10 @@ export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs
         <label>Minimum bedrooms (optional) <input type="number" min="0" step="1" max="20" value={beds} onChange={e => setBeds(e.target.value)} style={{ ...buttonStyle, display: "block", width: "100%", boxSizing: "border-box", marginTop: 5 }} /></label></>}
       </div>
       {error && <p role="alert" style={{color:"#A63D2A",fontSize:13}}>{error}</p>}
-      <p style={{ fontSize: 12, color: "#52645C" }}>Applies to this search. Your saved preferences stay as they are.</p>
-      <button type="submit" disabled={disabled} style={{ ...buttonStyle, background: "#D8EDE1" }}>{intent === 2 ? "Check this property →" : intent === 1 ? "Compare these areas →" : "Find my options →"}</button>
+      <p style={{ fontSize: 12, color: "#595E65" }}>Applies to this search. Your saved preferences stay as they are.</p>
+      <button type="submit" disabled={disabled} style={{ ...buttonStyle, background: "#E2E4E7" }}>{intent === 2 ? "Check this property →" : intent === 1 ? "Compare these areas →" : "Find my options →"}</button>
       <button type="button" disabled={disabled} onClick={() => {setIntent(null);setError("");}} style={{...buttonStyle,marginLeft:8,marginTop:8,background:"transparent"}}>Cancel</button>
     </form>}
-    <p style={{ color: "#52645C", fontSize: 12, marginTop: 12 }}>Choose a starting point, then confirm the details. Only submitting a question uses your normal allowance. You can also ask in your own words.</p>
+    <p style={{ color: "#595E65", fontSize: 12, marginTop: 12 }}>Choose a starting point, then confirm the details. Only submitting a question uses your normal allowance. You can also ask in your own words.</p>
   </section>;
 }
