@@ -595,19 +595,18 @@ function Inner() {
             </div>
           )}
 
-          <section aria-label="Recent Ollie answers" style={{ width: "100%", maxWidth: 760, margin: "18px 0" }}>
-            <button type="button" disabled={busy || recentLoading} onClick={loadRecent} style={{ background: "none", border: `1px solid ${D.line}`, borderRadius: 10, padding: "8px 12px", color: D.ink, cursor: "pointer" }}>
-              {recentLoading ? "Loading recent answers…" : "Recent answers"}
-            </button>
+          <details aria-label="Recent Ollie answers" onToggle={e => { if (e.currentTarget.open && !busy && !recentLoading) void loadRecent(); }} style={{ width: "100%", maxWidth: 760, margin: "18px 0" }}>
+            <summary style={{padding:"10px 0",color:D.faint,cursor:"pointer",fontSize:13}}>Previous questions & answers</summary>
+            {recentLoading && <p role="status">Loading recent answers…</p>}
             <p style={{ color: D.faint, fontSize: 12 }}>Reopen an answer without using another question.</p>
-            {recentError && <p role="alert">{recentError}</p>}
+            {recentError && <div role="alert">{recentError} <button type="button" disabled={busy || recentLoading} onClick={loadRecent}>Retry</button></div>}
             {recent?.length === 0 && <p>No previous questions yet.</p>}
             {recent && <ul>{recent.map(row => <li key={row.ask_id}>
               <button type="button" disabled={busy} onClick={() => reopen(row)} style={{ textAlign: "left", marginBottom: 8, width: "100%", color: D.ink, background: D.panel, border: `1px solid ${D.line}`, borderRadius: 10, padding: 12, cursor: "pointer" }}>
                 {recentQuestionLabel(pendingKey, row.ask_id, row.question)} · {row.status === "running" ? "In progress" : row.status === "failed" ? "Failed" : "Answered"}
               </button>
             </li>)}</ul>}
-          </section>
+          </details>
 
           {msgs.length > 0 && (
             <div style={{ width: "100%", maxWidth: split ? "none" : 760,
