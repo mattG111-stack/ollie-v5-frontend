@@ -334,7 +334,7 @@ export default function OllieOrb({
           style={{
             fontSize: 14.5,
             letterSpacing: ".02em",
-            color: "rgba(200,226,240,.72)",
+            color: "#52645C",
             fontWeight: 500,
           }}
         >

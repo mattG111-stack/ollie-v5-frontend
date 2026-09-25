@@ -12,16 +12,16 @@
 .assistant-answer li { margin: .35em 0; }
 .assistant-answer h1, .assistant-answer h2, .assistant-answer h3,
 .assistant-answer h4 { font-size: 1.1em; font-weight: 700; margin: 1em 0 .4em; }
-.assistant-answer a { color: #72d2ff; text-decoration: underline; text-underline-offset: 3px; }
-.assistant-answer a:focus-visible, .assistant-answer-table:focus-visible { outline: 2px solid #72d2ff; outline-offset: 3px; }
+.assistant-answer a { color: #176B57; text-decoration: underline; text-underline-offset: 3px; }
+.assistant-answer a:focus-visible, .assistant-answer-table:focus-visible { outline: 2px solid #176B57; outline-offset: 3px; }
 .assistant-answer-table { overflow-x: auto; max-width: 100%; margin: 1em 0; }
 .assistant-answer table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9em; }
-.assistant-answer th, .assistant-answer td { padding: .55em .75em; border: 1px solid #485160; text-align: left; min-width: 90px; }
+.assistant-answer th, .assistant-answer td { padding: .55em .75em; border: 1px solid #D9E3DD; text-align: left; min-width: 90px; }
 .assistant-answer th { font-weight: 700; background: rgba(255,255,255,.06); }
 .assistant-answer pre { overflow-x: auto; padding: .75em; background: rgba(0,0,0,.15); border-radius: 8px; }
-.assistant-answer blockquote { border-left: 3px solid #72d2ff; padding-left: 1em; margin: 1em 0; }
+.assistant-answer blockquote { border-left: 3px solid #176B57; padding-left: 1em; margin: 1em 0; }
 
-html, body { background: #DBE0E8; color: #14233A; -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
+html, body { background: #F7F8F5; color: #202D29; -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
 /* No element may scroll the whole page sideways on mobile. `clip` (not `hidden`)
    keeps position:sticky headers working; wide tables/charts keep their own
    overflow-x:auto containers, so only accidental overflow is trimmed. */
@@ -31,9 +31,9 @@ html, body { max-width: 100%; overflow-x: clip; }
 .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #EEF2F8; }
-::-webkit-scrollbar-thumb { background: #c4cfe0; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #9fb0c8; }
+::-webkit-scrollbar-track { background: #F7F8F5; }
+::-webkit-scrollbar-thumb { background: #BBCFC2; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #7DAF96; }
 
 /* Deal-finder rows.
    Photo | details | figures | pills. The three prices and the margin live in one
@@ -140,12 +140,12 @@ html, body { max-width: 100%; overflow-x: clip; }
   padding: 10px 12px;
   font-family: inherit;
   font-size: 14px;
-  color: #5A6B82;
+  color: #52645C;
   outline: none;
   min-width: 0;
   max-width: 100%;
 }
-.apex-suburb-select:focus { border-color: #2E71D6; }
+.apex-suburb-select:focus { border-color: #176B57; }
 .apex-suburb-select:disabled { opacity: .6; }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -207,3 +207,5 @@ html, body { max-width: 100%; overflow-x: clip; }
     overflow: visible;
   }
 }
+
+:focus-visible { outline: 2px solid #176B57; outline-offset: 3px; }
