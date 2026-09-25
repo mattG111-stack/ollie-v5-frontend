@@ -312,6 +312,7 @@ function Goals({
               key={g.key}
               type="button"
               onClick={() => onToggle(g.key)}
+              disabled={g.key === "cashflow" && !on}
               aria-pressed={on}
               style={{
                 textAlign: "left",
@@ -346,10 +347,10 @@ function Goals({
                 </div>
                 <div style={{ flexGrow: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-.02em", color: on ? "#26292D" : "#26292D" }}>
-                    {t(`hunt.goal.${g.key}`)}
+                    {g.key === "cashflow" ? "Rental data is coming soon" : t(`hunt.goal.${g.key}`)}
                   </div>
                   <div style={{ fontSize: 13, color: DIM, lineHeight: 1.35, marginTop: 2 }}>
-                    {t(`hunt.goal.${g.key}.sub`)}
+                    {g.key === "cashflow" ? (on ? "Previously selected — tap to remove from your brief." : "For now, explore homes, sales evidence and subdivision potential.") : t(`hunt.goal.${g.key}.sub`)}
                   </div>
                 </div>
                 <Tick on={on} accent={g.accent} ink={g.ink} />
@@ -459,10 +460,10 @@ function Where({
 
       <div style={{ marginTop: 28 }}>
         <Eyebrow>{t("hunt.budget")}</Eyebrow>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 12 }}>
-          <Big>{fmtMoneyShort(from)}</Big>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 10, marginTop: 12 }}>
+          <Big>{minPrice == null ? "No minimum" : fmtMoneyShort(minPrice)}</Big>
           <span style={{ fontSize: 17, fontWeight: 700, color: FAINT }}>—</span>
-          <Big>{fmtMoneyShort(to)}</Big>
+          <Big>{maxPrice == null ? "No maximum" : fmtMoneyShort(maxPrice)}</Big>
         </div>
 
         {/* The range sits on the real distribution, so the choice is informed
@@ -489,7 +490,7 @@ function Where({
           <div style={{ position: "absolute", left: 0, right: 0, top: 10, height: 3, borderRadius: 2, background: "rgba(126,154,192,.2)" }} />
           <div style={{ position: "absolute", left: `${pct(from)}%`, right: `${100 - pct(to)}%`, top: 10, height: 3, borderRadius: 2, background: CYAN }} />
           <input
-            aria-label="Lowest price"
+            aria-label="Lowest price" aria-valuetext={minPrice == null ? "No minimum" : fmtMoneyShort(minPrice)}
             type="range" min={lo} max={hi} step={10_000} value={from}
             onChange={(e) => {
               const v = Number(e.target.value);
@@ -498,7 +499,7 @@ function Where({
             style={rangeStyle}
           />
           <input
-            aria-label="Highest price"
+            aria-label="Highest price" aria-valuetext={maxPrice == null ? "No maximum" : fmtMoneyShort(maxPrice)}
             type="range" min={lo} max={hi} step={10_000} value={to}
             onChange={(e) => {
               const v = Number(e.target.value);
