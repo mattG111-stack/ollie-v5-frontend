@@ -421,9 +421,8 @@ function Inner() {
         background: `radial-gradient(120% 60% at 50% 0%, ${D.lift} 0%, ${D.ground} 46%, ${D.ground} 100%)`,
         minHeight: "100%",
         width: "100%",
-        // There is no header on this page, so the page provides its own top
-        // room rather than starting hard against the window edge.
-        padding: "26px 24px 60px",
+        // The shared header already provides top spacing.
+        padding: split ? "26px 24px 60px" : "12px 24px 40px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -469,7 +468,7 @@ function Inner() {
             // Pull the column up through that space so the two line up.
             marginTop: split
               ? -Math.round(orbSize * 0.12)
-              : msgs.length ? 10 : "min(6vh, 44px)",
+              : msgs.length ? 0 : -Math.round(orbSize * 0.08),
             marginBottom: !split && msgs.length ? -Math.round(orbSize * 0.17) : 0,
             transition: "margin-top .5s ease",
           }}
