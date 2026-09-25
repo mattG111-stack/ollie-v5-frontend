@@ -373,7 +373,7 @@ export default function DealFinder({
               </div>
               <div
                 className="tnum"
-                style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1, marginTop: 8, color: "#6EE7B7" }}
+                style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1, marginTop: 8, color: "#FF8000" }}
               >
                 {metric === "lots"
                   ? `+${hero.max_addl_lots?.toFixed(0) ?? "—"}`
