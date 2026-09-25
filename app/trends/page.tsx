@@ -411,7 +411,7 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
           color={s?.sale_vs_cv != null ? (s.sale_vs_cv >= 0 ? "#176B57" : "#DC2626") : undefined} />
       </div>
 
-      <section className="mt-5 rounded-2xl border border-black/10 bg-white/60 p-4" aria-label="Selling time by home age">
+      {(s?.age_selling_times?.groups.filter(g => ["under_3", "3_to_8", "8_plus"].includes(g.key) && g.sales > 0 && g.median_days != null && Number.isFinite(g.median_days)).length ?? 0) >= 2 && <section className="mt-5 rounded-2xl border border-black/10 bg-white/60 p-4" aria-label="Selling time by home age">
         <h3 className="text-sm font-semibold">Selling time by home age</h3>
         <p className="text-xs text-muted mt-1">Median recorded days on market · {windowLabel(s)}</p>
         <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 mt-3">
@@ -428,7 +428,7 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
         <p className="text-[11px] text-muted mt-3">Only sales with a sufficiently precise build date and recorded duration are included. Decade-only dates may be too broad for these age bands. A blank result does not mean no homes of that age sold. Ages are approximate at the time of sale.</p>
         <p className="text-[11px] text-muted mt-2">Recorded durations are not independently verified time to sale. Size, land and condition differ between groups; this comparison does not prove that age makes a home sell faster.</p>
         {!!s?.age_selling_times?.excluded_sales && <p className="text-[11px] text-muted mt-1">{s.age_selling_times.excluded_sales} sales excluded because a usable sale date, price or duration was unavailable.</p>}
-      </section>
+      </section>}
 
       <div className="text-[11px] uppercase tracking-wider text-muted font-semibold mt-5 mb-1">What moves value here</div>
       <MoveRow icon="＋🛏" name="Add a bedroom" note={basisNote(bed)}
