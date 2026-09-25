@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 const temp = new URL('../.ollie-actions-test.mjs', import.meta.url);
 await writeFile(temp, ts.transpileModule(await readFile(new URL('../components/OllieActions.tsx', import.meta.url), 'utf8'), {compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
 try {
- const {default: Actions, searchBrief, followUps, starters} = await import(temp.href);
+ const {default: Actions, searchBrief, followUps, starters, prepareStart} = await import(temp.href);
  const prefs={state:'current',goals:['underpriced'],suburbs:['Glen Eden'],districts:['Waitakere City'],min_price:500000,max_price:800000,min_beds:3};
  const q=starters(prefs)[0].question;
  for(const expected of ['Glen Eden','Waitakere City','500000','800000','minimum_bedrooms":3']) assert.ok(q.includes(expected));
@@ -24,6 +24,22 @@ try {
  assert.deepEqual(followUps(rental.replace(' Rental','\n\nRental')),alternatives);
  // A real sales answer mentioning future rentals still keeps its evidence actions.
  assert.ok(followUps('[A](/property/12) Rental data is coming soon.').some(a=>a.title==='Show the evidence'));
+ const search=prepareStart(0,{area:'Glen Eden, Henderson',budget:'800000',beds:'3',address:''},prefs);
+ assert.ok(!search.error);
+ assert.match(search.question,/"suburbs":\["Glen Eden","Henderson"\]/);
+ assert.match(search.question,/"maximum_asking_price_NZD":800000/);
+ assert.match(search.question,/exclude missing asking prices/);
+ assert.match(search.label,/800,000.*3\+ beds/);
+ assert.match(prepareStart(1,{area:'Glen Eden',budget:'800000',beds:'',address:''},null).error,/two areas/);
+ assert.ok(prepareStart(1,{area:'Glen Eden, Henderson',budget:'800000',beds:'',address:''},null).question);
+ for(const budget of ['','0','-1','NaN','Infinity','0.5']) assert.ok(prepareStart(0,{area:'Auckland',budget,beds:'',address:''},null).error);
+ for(const beds of ['-1','1.5','Infinity','21']) assert.ok(prepareStart(0,{area:'Auckland',budget:'800000',beds,address:''},null).error);
+ const address=prepareStart(2,{area:'Glen Eden',address:'2/42 Example Road',budget:'',beds:''},null);
+ assert.match(address.question,/2\/42 Example Road/);
+ assert.match(address.question,/never substitute/);
+ assert.ok(!address.error);
+ assert.ok(prepareStart(2,{area:'',address:'42 Road',budget:'',beds:''},null).error);
+ assert.ok(prepareStart(2,{area:'Auckland',address:'',budget:'',beds:''},null).error);
  let submitted=false;
  const html=renderToStaticMarkup(React.createElement(Actions,{prefs,disabled:true,onAsk:()=>{submitted=true}}));
  assert.equal(submitted,false);
