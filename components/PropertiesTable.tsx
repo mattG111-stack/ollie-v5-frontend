@@ -204,7 +204,7 @@ export default function PropertiesTable({
           <FilterChip
             active={filters.underpriced === "true"}
             onClick={() => setFilter("underpriced", filters.underpriced === "true" ? null : "true")}
-            color="#FF8000"
+            color="#FF6B00"
           >
             {t("ptable.underpriced")}
           </FilterChip>
@@ -480,7 +480,7 @@ function PropertyRow({ row: r }: { row: ForSaleRow }) {
       <td className="px-3 py-2.5">
         <div className="flex gap-1 flex-wrap">
           {r.pricing_path === "asking" && <Chip color="#2E353D">{t("ptable.listed")}</Chip>}
-          {r.is_underpriced && <Chip color="#FF8000">{t("ptable.underpriced")}</Chip>}
+          {r.is_underpriced && <Chip color="#FF6B00">{t("ptable.underpriced")}</Chip>}
           {r.is_cashflow_positive && <Chip color="#0E8C8C">{t("ptable.cashflow")}</Chip>}
           {r.is_subdividable && <Chip color="#626872">{t("ptable.subdiv")}</Chip>}
         </div>
@@ -492,7 +492,7 @@ function PropertyRow({ row: r }: { row: ForSaleRow }) {
 function ScorePill({ v }: { v: number | null | undefined }) {
   if (v == null) return <span className="text-faint">—</span>;
   let bg = "#8A98AD";
-  if (v >= 80) bg = "#A34400";
+  if (v >= 80) bg = "#176B57";
   else if (v >= 60) bg = "#0E9AA0";
   else if (v >= 40) bg = "#5A6B85";
   return (
@@ -509,7 +509,7 @@ function Chip({ children, color }: { children: React.ReactNode; color: string })
   return (
     <span
       className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-      style={{ background: `${color}18`, color: color === "#FF8000" ? "#A34400" : color }}
+      style={{ background: `${color}18`, color: color === "#FF6B00" ? "#A34400" : color }}
     >
       {children}
     </span>
@@ -563,7 +563,7 @@ function FilterChip({
       className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
         active ? "text-white border-transparent" : "bg-white text-muted border-line hover:border-blue"
       }`}
-      style={active ? { background: color, color: color === "#FF8000" ? "#26292D" : "#FFFFFF" } : undefined}
+      style={active ? { background: color, color: color === "#FF6B00" ? "#26292D" : "#FFFFFF" } : undefined}
     >
       {children}
     </button>

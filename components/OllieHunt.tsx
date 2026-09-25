@@ -43,7 +43,7 @@ import { useT } from "@/lib/i18n";
 // — the backend refuses anything else, so a fifth added here alone would be
 // silently dropped rather than half-working.
 const GOALS = [
-  { key: "underpriced", accent: "#FF8000", tint: "rgba(255,128,0,", ink: "#05221A" },
+  { key: "underpriced", accent: "#FF6B00", tint: "rgba(255,107,0,", ink: "#05221A" },
   { key: "subdividable", accent: "#626872", tint: "rgba(98,104,114,", ink: "#200A00" },
   { key: "cashflow", accent: "#46C6F5", tint: "rgba(70,198,245,", ink: "#06121F" },
   { key: "live_in", accent: "#595E65", tint: "rgba(185,200,220,", ink: "#0A1120" },
@@ -596,7 +596,7 @@ function Ready({
         <div
           style={{
             borderRadius: 20, marginTop: 22, padding: 1,
-            background: "linear-gradient(150deg, rgba(255,128,0,.7), rgba(255,128,0,.08))",
+            background: "linear-gradient(150deg, rgba(255,107,0,.7), rgba(255,107,0,.08))",
           }}
         >
           <div style={{ borderRadius: 19, background: "linear-gradient(165deg, #EFF0F2 0%, #F5F5F5 100%)", padding: 20 }}>

@@ -33,7 +33,7 @@ type MapResponse = { dataset: string; count: number; points: MapPoint[] };
 // The "other" grey is deliberately much lighter than the underpriced charcoal —
 // two dark tones next to each other were indistinguishable at marker size.
 const COLOR = {
-  underpriced: "#FF8000",   // papaya highlight for underpriced listings
+  underpriced: "#FF6B00",   // papaya highlight for underpriced listings
   subdividable: "#626872",  // neutral grey
   forSale: "#9AA6B6",       // pale grey for "other" (present but recessive)
   sold: "#C2CAD4",

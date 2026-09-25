@@ -373,12 +373,12 @@ export default function DealFinder({
               </div>
               <div
                 className="tnum"
-                style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1, marginTop: 8, color: "#FF8000" }}
+                style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1, marginTop: 8, color: metric === "lots" ? "#C9CED6" : hero.margin == null || hero.margin === 0 ? "#C9CED6" : hero.margin > 0 ? "#6EE7B7" : "#FDA29B" }}
               >
                 {metric === "lots"
                   ? `+${hero.max_addl_lots?.toFixed(0) ?? "—"}`
                   : hero.margin != null
-                  ? `+${(hero.margin * 100).toFixed(1)}%`
+                  ? `${hero.margin > 0 ? "+" : ""}${(hero.margin * 100).toFixed(1)}%`
                   : "—"}
               </div>
               <div className="tnum" style={{ fontSize: 20, fontWeight: 700, marginTop: 2 }}>
@@ -613,7 +613,7 @@ function DealCard({
   // Colour off the real number, and stay neutral when there isn't one — a null
   // margin defaulting to 0 rendered "no data" and "loss" as green.
   const signal = marginPct ?? (gap != null ? gap : null);
-  const marginColor = signal == null ? C.faint : signal >= 0 ? C.good : C.danger;
+  const marginColor = signal == null ? C.faint : signal > 0 ? C.good : signal < 0 ? C.danger : C.faint;
   const lots = r.max_addl_lots ?? null;
   const leadLots = metric === "lots";
 

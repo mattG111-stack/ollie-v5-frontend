@@ -16,7 +16,7 @@ const config: Config = {
         text: "#26292D",
         muted: "#595E65",
         faint: "#656B73",
-        under: "#A34400",
+        under: "#176B57",
         cash: "#0E8C8C",
         sub: "#626872",
         danger: "#D4503E",

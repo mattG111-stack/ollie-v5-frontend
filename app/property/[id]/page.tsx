@@ -1382,7 +1382,7 @@ function EstimatesCompare({
 }) {
   const b = band && band > 0 ? band : 0;
   const items = ([
-    ourValue && ourValue > 0 ? { key: "our", label: "OUR VALUE", value: ourValue, color: "#FF8000", ink: "#A34400", big: true } : null,
+    ourValue && ourValue > 0 ? { key: "our", label: "OUR VALUE", value: ourValue, color: "#FF6B00", ink: "#A34400", big: true } : null,
     asking && asking > 0 ? { key: "ask", label: "ASKING", value: asking, color: "#EF4444", ink: "#EF4444" } : null,
     sellEstimate && sellEstimate > 0
       ? { key: "sell", label: "SELL EST.", value: sellEstimate, color: "#333A43", ink: "#333A43",

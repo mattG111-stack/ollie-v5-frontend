@@ -407,7 +407,7 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
           sub={windowLabel(s)} />
         <StatTile k="Sale vs CV" v={s?.sale_vs_cv != null ? `${s.sale_vs_cv >= 0 ? "+" : ""}${(s.sale_vs_cv * 100).toFixed(1)}%` : "—"}
           sub={windowLabel(s)}
-          color={s?.sale_vs_cv != null ? (s.sale_vs_cv >= 0 ? "#A34400" : "#DC2626") : undefined} />
+          color={s?.sale_vs_cv != null ? (s.sale_vs_cv >= 0 ? "#176B57" : "#DC2626") : undefined} />
       </div>
 
       <div className="text-[11px] uppercase tracking-wider text-muted font-semibold mt-5 mb-1">What moves value here</div>
@@ -554,7 +554,7 @@ function MarketDirection({ s }: { s: SuburbStats | null }) {
   // Direction is read through the metric, never off the pixels: fewer days on
   // market is an improving market, so `improving` (not "went up") picks green.
   const hasPartial = partialIdx >= 0 && known.some(([i]) => i === partialIdx);
-  const dirColour = flat ? "#7A8698" : improving ? "#A34400" : "#D4503E";
+  const dirColour = flat ? "#7A8698" : improving ? "#176B57" : "#D4503E";
   // known[0][0] — with no bracket — is what crashed this page.
   //
   // The guard above only checks that the suburb has THREE MONTHS, not that the
@@ -868,7 +868,7 @@ function MoveRow({ icon, name, note, value, muted, sub, last, warn }: {
       <div className="text-left ml-12 sm:ml-0 sm:text-right sm:flex-none">
         {value ? (
           <>
-            <div className="font-bold text-base" style={{ color: warn ? "#7A8698" : "#A34400" }}>{value}</div>
+            <div className="font-bold text-base" style={{ color: warn ? "#7A8698" : "#176B57" }}>{value}</div>
             {sub && <div className="text-xs text-muted">{sub}</div>}
           </>
         ) : (

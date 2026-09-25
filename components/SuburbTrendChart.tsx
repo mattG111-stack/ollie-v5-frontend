@@ -56,7 +56,7 @@ const nzdShort = (v: number) =>
 const MONTHS = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"];
 
-const UP = "#A34400";
+const UP = "#176B57";
 const DOWN = "#D4503E";
 const FLAT = "#5A6B85";
 /** Thirty years of history is history, not news. It is drawn in ink; only the
