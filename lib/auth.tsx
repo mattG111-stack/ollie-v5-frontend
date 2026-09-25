@@ -22,26 +22,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const refresh = useCallback(async (): Promise<Me | null> => {
+    const token = getToken();
+    let clearedRejectedSession = false;
     setLoading(true);
     setError(null);
     try {
-      if (!getToken()) {
+      if (!token) {
         setMe(null);
         return null;
       }
       // Handle rejected sessions here; a temporary outage is not a logout.
       const m = await api<Me>("/api/auth/me", {}, { background: true });
+      if (getToken() !== token) return null;
       // Cached so api() can route a 402 by role, not just by path.
       setRole(m.role);
       setMe(m);
       return m;
     } catch (err: any) {
+      // An old request cannot invalidate a newer sign-in (or undo sign-out).
+      if (getToken() !== token) return null;
       setMe(null);
-      if (err?.status === 401) setToken(null);
+      if (err?.status === 401) {
+        setToken(null);
+        clearedRejectedSession = true;
+      }
       else setError("We couldn't check your account connection. Please retry.");
       return null;
     } finally {
-      setLoading(false);
+      if (getToken() === token || clearedRejectedSession) setLoading(false);
     }
   }, []);
 
@@ -67,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(() => {
     setToken(null);
+    setLoading(false);
     setMe(null);
     setError(null);
     router.push("/sign-in");
