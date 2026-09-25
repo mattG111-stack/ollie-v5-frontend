@@ -102,7 +102,7 @@ export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs
       </div>
       {error && <p role="alert" style={{color:"#A63D2A",fontSize:13}}>{error}</p>}
       <p style={{ fontSize: 12, color: "#595E65" }}>Applies to this search. Your saved preferences stay as they are.</p>
-      <button type="submit" disabled={disabled} style={{ ...buttonStyle, background: "#B54708", color: "#FFFFFF" }}>{intent === 2 ? "Check this property →" : intent === 1 ? "Compare these areas →" : "Find my options →"}</button>
+      <button type="submit" disabled={disabled} style={{ ...buttonStyle, background: "#454B54", color: "#FFFFFF" }}>{intent === 2 ? "Check this property →" : intent === 1 ? "Compare these areas →" : "Find my options →"}</button>
       <button type="button" disabled={disabled} onClick={() => {setIntent(null);setError("");}} style={{...buttonStyle,marginLeft:8,marginTop:8,background:"transparent"}}>Cancel</button>
     </form>}
     <p style={{ color: "#595E65", fontSize: 12, marginTop: 12 }}>Choose a starting point, then confirm the details. Only submitting a question uses your normal allowance. You can also ask in your own words.</p>

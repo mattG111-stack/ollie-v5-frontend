@@ -146,7 +146,7 @@ function Inner() {
                 color: !pulse?.median_asking_change_pct
                   ? undefined
                   : pulse.median_asking_change_pct > 0
-                  ? "#22C55E"
+                  ? "#FF8000"
                   : "#EF4444",
               }}
             >
@@ -177,7 +177,7 @@ function Inner() {
         {data.biggest_drops.length > 0 && (
           <MoverList
             title={t("today.biggestDrops")}
-            color="#22C55E"
+            color="#FF8000"
             tone="drop"
             rows={data.biggest_drops}
           />
@@ -250,7 +250,7 @@ function Kpi({
       {delta != null && deltaFmt && (
         <div
           className="text-xs mt-0.5 tnum"
-          style={{ color: delta > 0 ? "#22C55E" : delta < 0 ? "#EF4444" : undefined }}
+          style={{ color: delta > 0 ? "#FF8000" : delta < 0 ? "#EF4444" : undefined }}
         >
           {deltaFmt(delta)}
         </div>
@@ -301,7 +301,7 @@ function MoverList({
               </div>
               <div
                 className="text-sm font-display font-bold tabular-nums"
-                style={{ color: tone === "rise" ? "#EF4444" : "#22C55E" }}
+                style={{ color: tone === "rise" ? "#EF4444" : "#FF8000" }}
               >
                 {r.change_pct == null
                   ? "—"

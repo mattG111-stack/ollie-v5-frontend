@@ -701,7 +701,7 @@ function TopBar({ initials, onMenu, showMenu, pollMatches = true, bare = false }
               minWidth: 19,
               height: 19,
               padding: "0 4px",
-              background: "#22C55E",
+              background: "#FF8000",
               color: "#fff",
               borderRadius: 10,
               fontSize: 11,

@@ -43,8 +43,8 @@ import { useT } from "@/lib/i18n";
 // — the backend refuses anything else, so a fifth added here alone would be
 // silently dropped rather than half-working.
 const GOALS = [
-  { key: "underpriced", accent: "#176B57", tint: "rgba(61,220,151,", ink: "#05221A" },
-  { key: "subdividable", accent: "#FF7A45", tint: "rgba(255,122,69,", ink: "#200A00" },
+  { key: "underpriced", accent: "#FF8000", tint: "rgba(255,128,0,", ink: "#05221A" },
+  { key: "subdividable", accent: "#626872", tint: "rgba(98,104,114,", ink: "#200A00" },
   { key: "cashflow", accent: "#46C6F5", tint: "rgba(70,198,245,", ink: "#06121F" },
   { key: "live_in", accent: "#595E65", tint: "rgba(185,200,220,", ink: "#0A1120" },
 ] as const;
@@ -73,7 +73,7 @@ function Counted({ text, value }: { text: string; value: string }) {
   return (
     <>
       {before}
-      <span style={{ color: "#176B57" }}>{value}</span>
+      <span style={{ color: "#A34400" }}>{value}</span>
       {after}
     </>
   );
@@ -596,12 +596,12 @@ function Ready({
         <div
           style={{
             borderRadius: 20, marginTop: 22, padding: 1,
-            background: "linear-gradient(150deg, rgba(61,220,151,.7), rgba(61,220,151,.08))",
+            background: "linear-gradient(150deg, rgba(255,128,0,.7), rgba(255,128,0,.08))",
           }}
         >
           <div style={{ borderRadius: 19, background: "linear-gradient(165deg, #EFF0F2 0%, #F5F5F5 100%)", padding: 20 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-              <div style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1, color: "#176B57" }}>
+              <div style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1, color: "#A34400" }}>
                 {fmtMoneyShort(best.margin_dollars)}
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: DIM }}>under</div>
@@ -624,7 +624,7 @@ function Ready({
 
       <div style={{ border: `1px solid ${LINE}`, borderRadius: 18, background: PANEL, padding: "18px 19px", marginTop: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <span style={{ width: 7, height: 7, borderRadius: 4, background: "#176B57", boxShadow: "0 0 9px #176B57", animation: "ollieBreathe 2.6s ease-in-out infinite" }} />
+          <span style={{ width: 7, height: 7, borderRadius: 4, background: "#A34400", boxShadow: "0 0 9px #A34400", animation: "ollieBreathe 2.6s ease-in-out infinite" }} />
           <Eyebrow>{t("hunt.fromNow")}</Eyebrow>
         </div>
         <div style={{ fontSize: 14.5, color: "#595E65", lineHeight: 1.55, marginTop: 13 }}>
@@ -761,7 +761,7 @@ function Pill({ children, tone }: { children: React.ReactNode; tone?: "orange" }
   return (
     <div
       style={{
-        background: tone === "orange" ? "rgba(255,122,69,.13)" : "rgba(126,154,192,.12)",
+        background: tone === "orange" ? "rgba(98,104,114,.13)" : "rgba(126,154,192,.12)",
         borderRadius: 9, padding: "7px 11px", fontSize: 12.5, fontWeight: 700,
         color: tone === "orange" ? "#A63D2A" : "#26292D",
       }}

@@ -27,7 +27,7 @@ type Point = {
 };
 type History = { region: string; points: Point[]; basis?: string };
 
-const INK = "#B54708";      // median asking — the primary line
+const INK = "#454B54";      // median asking — the primary line
 const VALUE = "#8894A6";    // our valuation — secondary line
 const BAR = "#E6EAF0";      // listing-count bars, behind everything
 
@@ -101,7 +101,7 @@ export default function MarketHistoryChart({ region = "Auckland", height = 210 }
           </div>
         </div>
         {pctMove != null && (
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: pctMove >= 0 ? "#16A34A" : "#D4503E" }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: pctMove >= 0 ? "#A34400" : "#D4503E" }}>
             {pctMove >= 0 ? "+" : ""}{(pctMove * 100).toFixed(1)}%{" "}
             {sales ? t("today.sinceWhen", { when: at(first) }) : t("today.sinceFirst")}
           </div>
