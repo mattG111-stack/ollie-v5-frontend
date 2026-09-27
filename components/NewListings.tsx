@@ -118,7 +118,7 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
     // Opt-out rather than opt-in: the common case is "these all look right".
     // A flagged sale is the exception — it starts unticked, because the whole
     // point of the flag is that somebody should look before it goes in.
-    setChosen(new Set(d.listings.filter((l) => !l.price_flag).map((l) => l.id)));
+    setChosen(new Set());
   }, [tab, pageSize, offset]);
 
   useEffect(() => { load(); }, [load]);
@@ -301,6 +301,8 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
               {chosen.size} of {rows.length} selected
               {pending > rows.length ? ` · ${pending} waiting in total` : ""}
             </span>
+            <button className="text-xs border border-line rounded px-3 py-2" disabled={busy} onClick={() => setChosen(new Set(rows.filter(l => !l.price_flag).map(l => l.id)))}>Select this page</button>
+            <button className="text-xs border border-line rounded px-3 py-2" disabled={busy || !chosen.size} onClick={() => setChosen(new Set())}>Clear selection</button>
             {/* A portal advertises a listing; it does not publish a council
                 record. Without a CV a listing cannot be valued at all, so
                 approving one marked "no council record" was approving it into
