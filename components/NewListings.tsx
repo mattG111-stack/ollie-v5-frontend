@@ -244,7 +244,7 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
               key={k}
               onClick={() => { setTab(k); setOffset(0); }}
               className={`text-[11px] px-2.5 py-1 rounded-md font-semibold ${
-                tab === k ? "bg-ink text-white" : "text-muted hover:bg-paper"}`}
+                tab === k ? "bg-[#1c1f23] text-white" : "text-muted hover:bg-paper"}`}
             >
               {k === "sold" ? "Sold" : "For sale"}
             </button>
@@ -284,6 +284,20 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
           : "Progress measures listings checked. Details unavailable from the source can remain blank."}</p>
       </div>}
 
+      {!sold && !readOnly && <div className="mt-4 rounded-xl border border-line bg-white p-4">
+        <h3 className="text-base font-bold">What happens next</h3>
+        <p className="mt-1 text-sm text-muted">These listings are already saved. No CSV upload is needed.</p>
+        <ol className="mt-3 space-y-3 text-sm list-decimal pl-5">
+          <li><strong>Review the property details.</strong> Open the photos and details below. Leave unresolved source conflicts unticked.</li>
+          <li><strong>Price the selected listings.</strong> The “Price &amp; add” button below calculates valuations and adds your selection to the current batch. Listings without enough usable data may be held.</li>
+          <li><strong>Check publication.</strong> A staged batch waits in Review &amp; publish. If there is no staged batch, eligible listings can enter the live list immediately.</li>
+        </ol>
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-[#5c410b]">
+          <strong>Before bulk adding:</strong> the earlier pricing check found property-matching and valuation discrepancies that still need validation. A completed missing-details check does not clear those pricing issues.
+        </div>
+        <a href="/admin/publish" className="mt-3 inline-flex rounded-lg bg-[#1c1f23] px-4 py-2 text-sm font-semibold text-white">Open Review &amp; publish →</a>
+      </div>}
+
       {pending === 0 ? (
         <div className="text-xs text-muted mt-4">
           Nothing waiting. {sold
@@ -317,9 +331,9 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
             <button
               onClick={() => decide(true)}
               disabled={busy || !chosen.size}
-              className={`${sold ? "ml-auto " : ""}text-xs font-semibold px-3 py-1.5 rounded-lg bg-ink text-white disabled:opacity-50`}
+              className={`${sold ? "ml-auto " : ""}text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1c1f23] text-white disabled:opacity-50`}
             >
-              Add {chosen.size} to the {sold ? "sold records" : "live list"}
+              {sold ? `Add ${chosen.size} to sold records` : `Price & add ${chosen.size} listings`}
             </button>
             <button
               onClick={() => decide(false)}
