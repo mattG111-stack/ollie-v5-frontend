@@ -269,7 +269,7 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
         <div role="progressbar" aria-label="Missing details check progress"
           aria-valuemin={0} aria-valuemax={100} aria-valuenow={fillPercent}
           className="mt-3 h-2.5 overflow-hidden rounded-full bg-black/10">
-          <div className="h-full rounded-full bg-ink transition-[width] duration-500 motion-reduce:transition-none"
+          <div className="h-full rounded-full bg-[#1c1f23] transition-[width] duration-500 motion-reduce:transition-none"
             style={{ width: `${fillPercent}%` }} />
         </div>
         <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted" aria-live="polite">
