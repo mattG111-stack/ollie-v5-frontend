@@ -21,6 +21,8 @@
  * a row missing a CV, not a row missing half the engine.
  */
 
+import { Fragment } from "react";
+import ListingEvidence from "./ListingEvidence";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { fmtArea, fmtDayDate, fmtMoneyShort } from "@/lib/format";
@@ -45,6 +47,8 @@ type Listing = {
   estimate: number | null;
   listed_date: string | null;
   image_url: string | null;
+  photos?: string[];
+  details?: Record<string, string | number | boolean | null>;
   has_council_data: boolean;
   /** Sold rows only: the sale price is far from what this suburb does. */
   price_flag?: string | null;
@@ -57,13 +61,16 @@ type Listing = {
 type Tab = "for_sale" | "sold";
 
 const SOURCE: Record<string, string> = {
+  homes: "Homes",
   oneroof: "OneRoof",
   realestate: "realestate.co.nz",
   trademe: "Trade Me",
 };
 
-export default function NewListings() {
+export default function NewListings({ readOnly = false }: { readOnly?: boolean }) {
   const [rows, setRows] = useState<Listing[]>([]);
+  const [offset, setOffset] = useState(0);
+  const pageSize = readOnly ? 20 : 200;
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
   const [filling, setFilling] = useState(false);
@@ -129,7 +136,7 @@ export default function NewListings() {
   const load = useCallback(async () => {
     const path = tab === "sold" ? "sold" : "new";
     const d = await api<{ pending: number; listings: Listing[] }>(
-      `/api/admin/release/listings/${path}`).catch(() => null);
+      `/api/admin/release/listings/${path}?limit=${pageSize}&offset=${offset}`).catch((e) => { setMsg(e?.detail || e?.message || "Could not load listings"); return null; });
     if (!d) return;
     setRows(d.listings);
     setPending(d.pending);
@@ -137,7 +144,7 @@ export default function NewListings() {
     // A flagged sale is the exception — it starts unticked, because the whole
     // point of the flag is that somebody should look before it goes in.
     setChosen(new Set(d.listings.filter((l) => !l.price_flag).map((l) => l.id)));
-  }, [tab]);
+  }, [tab, pageSize, offset]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -214,18 +221,18 @@ export default function NewListings() {
     <section className="mt-8 border border-line rounded-xl p-5">
       <div className="flex items-baseline gap-3 flex-wrap">
         <h2 className="font-display text-lg font-bold">
-          {sold ? "Recently sold" : "New on the market"}
+          {sold ? "Sold records needing review" : "Collected listings awaiting review"}
         </h2>
         <span className="text-xs text-muted">
           {sold
-            ? "Sales the portals have and our sold files do not"
-            : "Listed in the last day, and not in this week\u2019s file yet"}
+            ? "Validated sales save automatically; unresolved records remain here"
+            : "Photos and property details from retained source records"}
         </span>
         <div className="flex gap-1">
           {(["for_sale", "sold"] as Tab[]).map((k) => (
             <button
               key={k}
-              onClick={() => setTab(k)}
+              onClick={() => { setTab(k); setOffset(0); }}
               className={`text-[11px] px-2.5 py-1 rounded-md font-semibold ${
                 tab === k ? "bg-ink text-white" : "text-muted hover:bg-paper"}`}
             >
@@ -233,13 +240,13 @@ export default function NewListings() {
             </button>
           ))}
         </div>
-        <button
+        {!readOnly && <button
           onClick={sweep}
           disabled={busy}
           className="ml-auto text-xs font-semibold px-3 py-1.5 rounded-lg border border-line hover:border-blue disabled:opacity-50"
         >
           {busy ? "Checking…" : "Check now"}
-        </button>
+        </button>}
       </div>
 
       {msg && <div className="text-xs text-muted mt-2">{msg}</div>}
@@ -253,7 +260,7 @@ export default function NewListings() {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 mt-4 flex-wrap">
+          {readOnly ? <p className="text-xs text-muted mt-4">Showing {rows.length} of {pending} awaiting review. <a className="underline" href="/admin/upload">Open review controls</a></p> : <div className="flex items-center gap-2 mt-4 flex-wrap">
             <span className="text-xs text-muted">
               {chosen.size} of {rows.length} selected
               {pending > rows.length ? ` · ${pending} waiting in total` : ""}
@@ -288,8 +295,13 @@ export default function NewListings() {
             >
               Discard
             </button>
-          </div>
+          </div>}
 
+          <div className="flex items-center gap-3 mt-3 text-xs">
+            <button disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))} className="border rounded px-3 py-2 disabled:opacity-40">Previous page</button>
+            <span>{offset + 1}–{offset + rows.length} of {pending}</span>
+            <button disabled={offset + rows.length >= pending} onClick={() => setOffset(offset + pageSize)} className="border rounded px-3 py-2 disabled:opacity-40">Next page</button>
+          </div>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-[13px] border-collapse">
               <thead>
@@ -312,14 +324,14 @@ export default function NewListings() {
               </thead>
               <tbody>
                 {rows.map((l) => (
-                  <tr key={l.id} className="border-b border-line/60 hover:bg-[#FAFAFA]">
+                  <Fragment key={l.id}><tr className="border-b border-line/60 hover:bg-[#FAFAFA]">
                     <td className="py-1.5 pr-2">
-                      <input
+                      {!readOnly && <input
                         type="checkbox"
                         checked={chosen.has(l.id)}
                         onChange={() => toggle(l.id)}
                         aria-label={`Select ${l.address ?? "listing"}`}
-                      />
+                      />}
                     </td>
                     <td className="py-1.5 pr-3">
                       {l.url ? (
@@ -376,7 +388,7 @@ export default function NewListings() {
                         </a>
                       ) : (SOURCE[l.source] ?? l.source)}
                     </td>
-                  </tr>
+                  </tr><tr><td colSpan={13} className="pb-3"><ListingEvidence listing={l} /></td></tr></Fragment>
                 ))}
               </tbody>
             </table>

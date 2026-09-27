@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AccuracyVsHougarden from "@/components/AccuracyVsHougarden";
+import NewListings from "@/components/NewListings";
 import BuildVersions from "@/components/BuildVersions";
 import { api } from "@/lib/api";
 import { fmtMoneyShort } from "@/lib/format";
@@ -94,6 +95,8 @@ function Inner() {
       <h1 className="font-display text-2xl font-semibold mt-1.5 mb-5">Business &amp; data dashboard</h1>
 
       <BuildVersions />
+
+      <NewListings readOnly />
 
       {/* REVENUE */}
       <Section title="Revenue">
