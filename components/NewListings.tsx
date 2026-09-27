@@ -22,6 +22,7 @@
  */
 
 import { Fragment } from "react";
+import PortalPricingReview from "./PortalPricingReview";
 import ListingEvidence from "./ListingEvidence";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
@@ -244,7 +245,7 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
               key={k}
               onClick={() => { setTab(k); setOffset(0); }}
               className={`text-[11px] px-2.5 py-1 rounded-md font-semibold ${
-                tab === k ? "bg-ink text-white" : "text-muted hover:bg-paper"}`}
+                tab === k ? "bg-[#1c1f23] text-white" : "text-muted hover:bg-paper"}`}
             >
               {k === "sold" ? "Sold" : "For sale"}
             </button>
@@ -284,6 +285,8 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
           : "Progress measures listings checked. Details unavailable from the source can remain blank."}</p>
       </div>}
 
+      {!sold && !readOnly && <PortalPricingReview ids={[...chosen]} onPriced={load} />}
+
       {pending === 0 ? (
         <div className="text-xs text-muted mt-4">
           Nothing waiting. {sold
@@ -314,13 +317,13 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
                 {filling ? "Filling…" : "Fill the missing details"}
               </button>
             )}
-            <button
+            {sold && <button
               onClick={() => decide(true)}
               disabled={busy || !chosen.size}
-              className={`${sold ? "ml-auto " : ""}text-xs font-semibold px-3 py-1.5 rounded-lg bg-ink text-white disabled:opacity-50`}
+              className={`${sold ? "ml-auto " : ""}text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1c1f23] text-white disabled:opacity-50`}
             >
-              Add {chosen.size} to the {sold ? "sold records" : "live list"}
-            </button>
+              Add {chosen.size} to sold records
+            </button>}
             <button
               onClick={() => decide(false)}
               disabled={busy || !chosen.size}
