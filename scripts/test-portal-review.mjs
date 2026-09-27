@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,unlink} from 'node:fs/promises';
+import ts from 'typescript';
+const temp=new URL('../.portal-review-test.mjs',import.meta.url);
+let source=await readFile(new URL('../components/PortalPricingReview.tsx',import.meta.url),'utf8');
+source=source.replace(/import[^;]*;/g,'');
+source=`let states=[],cursor=0,handler;\nconst useState=initial=>{const i=cursor++;if(!(i in states))states[i]=initial;return [states[i],value=>states[i]=typeof value==='function'?value(states[i]):value];};\nconst useEffect=()=>{};const useCallback=f=>f;const api=(...a)=>handler(...a);const fmtMoney=v=>String(v??'—');\nexport function setup(review,fn){states=[review,null,true,'all',0,false,'',new Set()];handler=fn;}\nexport function render(){cursor=0;return PortalPricingReview({ids:[999],onPriced:()=>{}});}\n`+source;
+await writeFile(temp,ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
+try{
+ const {setup,render}=await import(temp.href);
+ const nodes=n=>!n||typeof n!=='object'?[]:Array.isArray(n)?n.flatMap(nodes):[n,...nodes(n.props?.children)];
+ const text=n=>n==null?'':typeof n==='object'?Array.isArray(n)?n.map(text).join(''):text(n.props?.children):String(n);
+ const find=(type,label)=>nodes(render()).find(n=>n.type===type&&text(n)===label);
+ const rows=Array.from({length:230},(_,i)=>({id:i+1,address:`${i+1} Test Road`,suburb:'Test',value:800000,held:i>=210,removed:false,floor:100,land:300,image_url:'https://example.test/photo.jpg',reason:i>=210?'Missing source evidence':null}));
+ const review={publish_enabled:true,rows};const calls=[];
+ setup(review,async(path,init)=>{calls.push([path,init]);return init?.method==='POST'?{published:200,job_id:22}:review;});
+ assert.equal(nodes(render()).filter(n=>n.type==='input').length,20);
+ find('button','Next').props.onClick();
+ assert.match(text(render()),/Page 2 of 12/);
+ find('button','Select ready listings (up to 200)').props.onClick();
+ assert.equal(find('button','3. Live (200)').props.disabled,false);
+ await find('button','3. Live (200)').props.onClick();
+ assert.deepEqual(JSON.parse(calls[0][1].body).ids,rows.slice(0,200).map(r=>r.id));
+ setup(review,async(path,init)=>{calls.push([path,init]);return {job_id:22};});
+ await find('button','Run pricing again').props.onClick();
+ assert.deepEqual(JSON.parse(calls.at(-1)[1].body),{ids:[1]});
+ setup(review,async()=>review);
+ nodes(render()).find(n=>n.type==='select').props.onChange({target:{value:'held'}});
+ assert.equal(nodes(render()).filter(n=>n.type==='input').length,20);
+ assert.ok(nodes(render()).filter(n=>n.type==='input').every(n=>n.props.disabled));
+ setup({...review,publish_enabled:false},async()=>review);
+ find('button','Select ready listings (up to 200)').props.onClick();
+ assert.equal(find('button','3. Live (200)').props.disabled,true);
+ console.log('PASS: review paginates 20 rows, caps ready selection at 200, holds cannot be selected, repricing sends one exact ID, publication sends only ready selected IDs, deployment gate remains enforced.');
+}finally{await unlink(temp);}
