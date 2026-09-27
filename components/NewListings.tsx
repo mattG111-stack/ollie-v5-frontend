@@ -23,7 +23,7 @@
 
 import { Fragment } from "react";
 import ListingEvidence from "./ListingEvidence";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { fmtArea, fmtDayDate, fmtMoneyShort } from "@/lib/format";
 
@@ -60,6 +60,13 @@ type Listing = {
  * ratio, which every valuation leans on. */
 type Tab = "for_sale" | "sold";
 
+type FillJob = {
+  id: number; filename: string; status: string; stage: string | null;
+  progress_pct: number | null; rows_total: number | null;
+  rows_inserted: number | null; error_message: string | null;
+};
+const fillActive = (job: FillJob | null) => !!job && !["completed", "failed", "cancelled"].includes(job.status);
+
 const SOURCE: Record<string, string> = {
   homes: "Homes",
   oneroof: "OneRoof",
@@ -73,60 +80,27 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
   const pageSize = readOnly ? 20 : 200;
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [filling, setFilling] = useState(false);
+  const [startingFill, setStartingFill] = useState(false);
+  const [fillJob, setFillJob] = useState<FillJob | null>(null);
+  const [progressOffline, setProgressOffline] = useState(false);
+  const fillJobRef = useRef<FillJob | null>(null);
+  const filling = startingFill || fillActive(fillJob);
 
-  /* Fill the gaps. Starts a JOB and watches it — it does not do the work.
-   *
-   * This asked the server for the lot in one request: up to 400 listings, one
-   * real council lookup each. That takes minutes, the gateway closes the
-   * connection long before it returns, and the browser reports "HTTP 500 with
-   * no response body". It reads as a crash and was only ever a hang-up.
-   *
-   * Chunking made each request survivable but still needed somebody sitting
-   * here with the tab open. Now the server answers immediately and the work
-   * runs behind it to the end — two thousand listings at a second each is half
-   * an hour, and that is fine, because nothing is waiting on it. Close the tab
-   * and it keeps going; come back and the job list has the result. */
   async function fillGaps() {
-    setFilling(true);
-    setMsg("Looking up the gaps… this runs in the background.");
+    setStartingFill(true);
     try {
       const { job_id } = await api<{ job_id: number }>(
         `/api/admin/release/listings/fill?kind=${tab}`, { method: "POST" });
-
-      // Every 3s for up to an hour. Watching is a convenience, not the
-      // mechanism — giving up here stops the WATCHING, never the work.
-      for (let i = 0; i < 1200; i++) {
-        await new Promise((r) => setTimeout(r, 3000));
-        const job = await api<{ status: string; stage: string | null;
-                               progress_pct: number | null;
-                               rows_total: number | null;
-                               rows_inserted: number | null;
-                               error_message: string | null }>(
-          `/api/admin/jobs/${job_id}`).catch(() => null);
-        if (!job) continue;
-        if (job.status === "completed") {
-          setMsg(job.stage || "Done");
-          await load();
-          return;
-        }
-        if (job.status === "failed" || job.status === "cancelled") {
-          // Say what got done before it stopped. Whatever was filled is
-          // committed and stays filled — a re-run only looks at what is still
-          // blank, so pressing again carries on rather than starting over.
-          const done = job.rows_inserted ? ` (${job.rows_inserted} filled first)` : "";
-          setMsg((job.error_message || "Stopped") + done);
-          await load();
-          return;
-        }
-        if (job.stage) setMsg(`${job.stage}…`);
-      }
-      setMsg("Still going — it will finish on its own. Check the job list.");
+      const job: FillJob = { id: job_id, filename: "filling", status: "pending",
+        stage: "Starting", progress_pct: 0, rows_total: null,
+        rows_inserted: 0, error_message: null };
+      fillJobRef.current = job;
+      setFillJob(job);
+      setProgressOffline(false);
+      setMsg(null);
     } catch (e: any) {
       setMsg(e?.detail || e?.message || "Could not start it");
-    } finally {
-      setFilling(false);
-    }
+    } finally { setStartingFill(false); }
   }
 
   const [msg, setMsg] = useState<string | null>(null);
@@ -147,6 +121,34 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
   }, [tab, pageSize, offset]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Reconnect after navigation. This view never controls the worker lifetime.
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    async function poll() {
+      const previous = fillJobRef.current;
+      try {
+        const job = fillActive(previous)
+          ? await api<FillJob>(`/api/admin/jobs/${previous!.id}`)
+          : (await api<FillJob[]>("/api/admin/jobs?limit=100")).find(j => j.filename === "filling") ?? null;
+        if (cancelled) return;
+        // Do not replace a just-started job with an older discovery response.
+        if (job && (!fillJobRef.current || job.id >= fillJobRef.current.id)) {
+          fillJobRef.current = job;
+          setFillJob(job);
+          if (fillActive(previous) && !fillActive(job)) await load();
+        }
+        if (!cancelled) setProgressOffline(false);
+      } catch {
+        if (!cancelled) setProgressOffline(true);
+      } finally {
+        if (!cancelled) timer = setTimeout(poll, fillActive(fillJobRef.current) ? 3000 : 15000);
+      }
+    }
+    poll();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [load]);
 
   /* Start the sweep, then POLL. It cannot be awaited in one request: an Apify
    * actor takes tens of seconds to a few minutes and the sweep asks two of
@@ -217,6 +219,14 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
 
   const sold = tab === "sold";
 
+  const fillPercent = fillJob?.status === "completed" ? 100
+    : Math.max(0, Math.min(99, fillJob?.progress_pct ?? 0));
+  const checked = fillJob?.stage?.match(/filling ([\d,]+)\/([\d,]+)/i);
+  const fillLabel = fillJob?.status === "completed" ? "Missing details check complete"
+    : fillJob?.status === "failed" ? "Missing details check failed"
+    : fillJob?.status === "cancelled" ? "Missing details check stopped"
+    : "Filling missing details";
+
   return (
     <section className="mt-8 border border-line rounded-xl p-5">
       <div className="flex items-baseline gap-3 flex-wrap">
@@ -250,6 +260,29 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
       </div>
 
       {msg && <div className="text-xs text-muted mt-2">{msg}</div>}
+
+      {fillJob && <div className="mt-4 rounded-xl border border-line bg-paper p-4">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm font-semibold">{fillLabel}</span>
+          <span className="text-2xl font-bold tabular-nums">{fillPercent}%</span>
+        </div>
+        <div role="progressbar" aria-label="Missing details check progress"
+          aria-valuemin={0} aria-valuemax={100} aria-valuenow={fillPercent}
+          className="mt-3 h-2.5 overflow-hidden rounded-full bg-black/10">
+          <div className="h-full rounded-full bg-ink transition-[width] duration-500 motion-reduce:transition-none"
+            style={{ width: `${fillPercent}%` }} />
+        </div>
+        <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted" aria-live="polite">
+          <span>{checked ? `${checked[1]} of ${checked[2]} listings checked`
+            : fillJob.status === "completed" ? fillJob.stage || "Finished"
+            : fillJob.stage || "Waiting to start"}</span>
+          <span>{(fillJob.rows_inserted ?? 0).toLocaleString()} fields filled</span>
+        </div>
+        {fillJob.error_message && <p className="mt-2 text-xs text-danger">{fillJob.error_message}</p>}
+        <p className="mt-2 text-xs text-muted">{progressOffline
+          ? "Connection interrupted — showing the last confirmed progress. Retrying automatically."
+          : "Progress measures listings checked. Details unavailable from the source can remain blank."}</p>
+      </div>}
 
       {pending === 0 ? (
         <div className="text-xs text-muted mt-4">
