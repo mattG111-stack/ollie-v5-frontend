@@ -49,25 +49,41 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
   const currentPage=Math.min(page,lastPage);
   const visible=filtered.slice(currentPage*20,currentPage*20+20);
   const button='rounded-lg border border-line px-4 py-2 text-sm font-semibold disabled:opacity-40';
-  return <section className="mt-4 rounded-xl border border-line bg-white p-4">
-    <h3 className="font-bold text-lg">Run pricing → Review → Push live</h3>
-    <p className="mt-1 text-sm text-muted">Select listings in the downloaded list below and run pricing. Open Review to check the results, then select ready listings and press Push live.</p>
-    <div className="mt-4 flex flex-wrap gap-2">
-      <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!ids.length} onClick={()=>price()}>1. Run pricing{active(job)?'…':''}</button>
-      <button className={button} disabled={busy||active(job)||!(ready.length+held.length)} onClick={()=>price([],true)}>Rerun pricing on all drafts ({ready.length+held.length})</button>
-      <button className={button} disabled={!review?.rows.length} onClick={()=>setView(!view)} aria-expanded={view}>Review ({review?.rows.filter(r=>!r.removed).length??0})</button>
-      <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!review?.publish_enabled||!selected.size} onClick={live}>Push live{selected.size?` (${selected.size})`:''}</button>
+  return <section className="mt-5 overflow-hidden rounded-2xl border border-line bg-white">
+    <div className="border-b border-line p-5 sm:p-6">
+      <h3 className="text-xl font-bold">Price, review and publish</h3>
+      <p className="mt-1 text-sm text-muted">Your collected properties stay private until you push them live.</p>
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        <div className="flex flex-col rounded-xl border border-line bg-slate-50 p-4">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">Step 1 · Pricing</span>
+          <p className="mt-2 mb-4 flex-1 text-sm">Recalculate all {ready.length+held.length} current drafts using their latest details.</p>
+          <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!(ready.length+held.length)} onClick={()=>price([],true)}>Rerun pricing on all drafts ({ready.length+held.length})</button>
+          {!!ids.length&&<button className={`${button} mt-2 bg-white`} disabled={busy||active(job)} onClick={()=>price()}>Price selected downloads ({ids.length})</button>}
+          {!rows.length&&!ids.length&&<p className="mt-2 text-xs text-muted">Select downloaded listings below to start pricing.</p>}
+        </div>
+        <div className="flex flex-col rounded-xl border border-line p-4">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">Step 2 · Review</span>
+          <p className="mt-2 mb-4 flex-1 text-sm">Check details and valuations. Remove properties you don't want to publish.</p>
+          <button className={button} disabled={!review?.rows.length} onClick={()=>setView(!view)} aria-expanded={view}>Review ({ready.length+held.length})</button>
+        </div>
+        <div className="flex flex-col rounded-xl border border-line p-4">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">Step 3 · Publish</span>
+          <p className="mt-2 mb-4 flex-1 text-sm">{!review?'Loading publication status…':!ready.length?'No properties are ready yet. Review the blocked listings below.':!selected.size?'Select ready properties in Review, then push them live.':`${selected.size} selected properties are ready to go live.`}</p>
+          <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!review?.publish_enabled||!selected.size} onClick={live}>Push live{selected.size?` (${selected.size})`:''}</button>
+        </div>
+      </div>
+      {job&&<div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm" role="status">
+        <div className="flex flex-wrap justify-between gap-2"><span className="font-semibold">{active(job)?'Pricing in progress':job.status==='completed'?'Pricing complete':`Pricing ${job.status}`}</span><span>{job.rows_inserted??0} priced · {job.rows_rejected??0} processing errors{active(job)?` · ${job.progress_pct??0}%`:''}</span></div>
+        {active(job)&&<progress aria-label="Pricing progress" className="mt-2 h-2 w-full accent-slate-800" value={job.progress_pct??0} max={100}/>}
+        {job.error_message&&<p className="mt-2 text-red-700">{job.error_message}</p>}
+      </div>}
+      {review&&<div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm" role="status"><span className="font-semibold text-emerald-800">{ready.length} ready to publish</span><span className="font-semibold text-amber-800">{held.length} blocked — needs review</span><span className="text-muted">{rows.filter(r=>r.removed).length} removed</span></div>}
+      {review&&!review.publish_enabled&&<p className="mt-3 text-sm text-amber-800">Publication is paused while pricing validation is resolved.</p>}
+      {message&&<p className="mt-3 text-sm" role="status">{message}</p>}
     </div>
-    {review&&<p className="mt-3 text-sm" role="status">{ready.length} ready to publish · {held.length} need attention · {rows.filter(r=>r.removed).length} deleted from review</p>}
-    {review&&review.publish_enabled&&!active(job)&&<p className="mt-2 text-sm text-muted">{!ready.length?'Push live is unavailable: no listings have passed review. Open Review to see what needs fixing.':!selected.size?'Open Review and select ready listings to enable Push live.':`${selected.size} selected listings will be published when you press Push live.`}</p>}
-    {!ids.length&&!active(job)&&<p className="mt-2 text-sm text-muted">Choose at least one downloaded listing below to start pricing. After filling missing details, use Rerun pricing on all drafts to update every current draft, including held listings. Deleted drafts are excluded.</p>}
-    {job&&<div className="mt-3 text-sm" role="status"><div>Latest pricing run #{job.id}: {job.status} · {job.progress_pct??0}%</div><div>{job.rows_inserted??0} priced · {job.rows_rejected??0} processing errors</div><p className="text-muted">Run progress is separate from publication readiness shown above.</p>
-      <progress aria-label="Pricing progress" className="w-full mt-1" value={job.progress_pct??0} max={100}/>
-      {job.error_message&&<p>{job.error_message}</p>}</div>}
-    {review&&!review.publish_enabled&&<p className="mt-3 text-sm text-[#785000]">Push live is currently blocked while the outstanding pricing validation is resolved. You can price and review privately.</p>}
-    {message&&<p className="mt-2 text-sm" role="status">{message}</p>}
-    {view&&<div className="mt-4">
-      <p className="text-sm text-muted mb-3">Tick the priced listings you want live. Delete removes a listing from this review; Undo restores it. Held listings cannot go live.</p>
+    {view&&<div className="p-5 sm:p-6">
+      <h4 className="mb-2 text-lg font-bold">Review properties</h4>
+      <p className="text-sm text-muted mb-3">Select ready properties to publish. Blocked properties stay private. You can undo removals.</p>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <label className="text-sm">Show <select aria-label="Review filter" className="rounded border border-line p-2" value={filter} onChange={e=>{setFilter(e.target.value as typeof filter);setPage(0);}}>
           <option value="all">All current drafts ({ready.length+held.length})</option><option value="ready">Ready ({ready.length})</option><option value="held">Need attention ({held.length})</option><option value="removed">Deleted ({rows.filter(r=>r.removed).length})</option>
@@ -76,10 +92,10 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
         {!!selected.size&&<button className={button} onClick={()=>setSelected(new Set())}>Clear selection</button>}
       </div>
       {filtered.length===0&&<p className="my-3 text-sm">{filter==='ready'?'No listings are ready yet. Choose Need attention to see the reason for each hold.':'No listings in this view.'}</p>}
-      <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Publish</th><th className="text-left">Property</th><th>Asking</th><th>Valuation</th><th>Review</th></tr></thead>
+      <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Publish</th><th className="text-left">Property</th><th>Asking</th><th>Valuation</th><th>Actions</th></tr></thead>
         <tbody>{visible.map(r=><tr key={r.id} className={`border-t border-line ${r.removed?'opacity-50':''}`}>
           <td><input aria-label={`Select ${r.address} for Push live`} type="checkbox" disabled={r.removed||r.held||!r.value||busy||active(job)} checked={selected.has(r.id)} onChange={e=>setSelected(s=>{const n=new Set(s);e.target.checked?n.add(r.id):n.delete(r.id);return n;})}/></td>
-          <td className="p-3">{r.image_url&&<img src={r.image_url} alt={`Photo of ${r.address}`} loading="lazy" className="mb-2 h-20 w-28 rounded object-cover"/>}{r.address}<div className="text-xs text-muted">{r.suburb} · Floor {r.floor??'—'} m² · Land {r.land??'—'} m²</div>{r.reason&&<div className="text-xs text-[#785000]">{r.reason}</div>}</td>
+          <td className="p-3">{r.image_url&&<img src={r.image_url} alt={`Photo of ${r.address}`} loading="lazy" className="mb-2 h-20 w-28 rounded object-cover"/>}{r.address}<div className="text-xs text-muted">{r.suburb} · Floor {r.floor??'—'} m² · Land {r.land??'—'} m²</div>{r.reason&&<div className="mt-2 rounded bg-amber-50 p-2 text-xs text-amber-900">{[...new Set(r.reason.split(';').map(reason=>reason.trim()).filter(Boolean))].join('; ')}</div>}</td>
           <td className="p-2 whitespace-nowrap">{fmtMoney(r.asking)}</td><td className="p-2 whitespace-nowrap">{fmtMoney(r.value)}</td>
           <td>{!r.removed&&<button className={button} disabled={busy||active(job)} onClick={()=>price([r.id])}>Run pricing again</button>}<button className={button} disabled={busy||active(job)} onClick={()=>remove(r.id,!r.removed)}>{r.removed?'Undo delete':'Delete'}</button></td>
         </tr>)}</tbody></table></div>
