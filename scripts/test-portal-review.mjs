@@ -36,5 +36,12 @@ try{
  assert.equal(calls.at(-1)[0],'/api/admin/release/portal-review/reprice-all');
  assert.equal(calls.at(-1)[1].body,undefined);
  assert.equal(find('button','Rerun pricing on all drafts (230)').props.disabled,true);
+ setup({...review,rows:[{...rows[0],excluded:true,exclusion_reason:'Missing land area'}]},async()=>review);
+ assert.equal(nodes(render()).filter(n=>n.type==='input').length,0);
+ assert.equal(find('button','Push live').props.disabled,true);
+ nodes(render()).find(n=>n.type==='select').props.onChange({target:{value:'excluded'}});
+ assert.equal(nodes(render()).filter(n=>n.type==='input').length,1);
+ assert.ok(nodes(render()).find(n=>n.type==='input').props.disabled);
+ assert.equal(find('button','Run pricing again'),undefined);
  console.log('PASS: review paginates 20 rows, caps ready selection at 200, holds cannot be selected, repricing sends one exact ID, publication sends only ready selected IDs, deployment gate remains enforced.');
 }finally{await unlink(temp);}
