@@ -18,8 +18,8 @@ try{
  find('button','Next').props.onClick();
  assert.match(text(render()),/Page 2 of 12/);
  find('button','Select ready listings (up to 200)').props.onClick();
- assert.equal(find('button','3. Live (200)').props.disabled,false);
- await find('button','3. Live (200)').props.onClick();
+ assert.equal(find('button','Push live (200)').props.disabled,false);
+ await find('button','Push live (200)').props.onClick();
  assert.deepEqual(JSON.parse(calls[0][1].body).ids,rows.slice(0,200).map(r=>r.id));
  setup(review,async(path,init)=>{calls.push([path,init]);return {job_id:22};});
  await find('button','Run pricing again').props.onClick();
@@ -30,7 +30,7 @@ try{
  assert.ok(nodes(render()).filter(n=>n.type==='input').every(n=>n.props.disabled));
  setup({...review,publish_enabled:false},async()=>review);
  find('button','Select ready listings (up to 200)').props.onClick();
- assert.equal(find('button','3. Live (200)').props.disabled,true);
+ assert.equal(find('button','Push live (200)').props.disabled,true);
  setup(review,async(path,init)=>{calls.push([path,init]);return {job_id:23};});
  await find('button','Rerun pricing on all drafts (230)').props.onClick();
  assert.equal(calls.at(-1)[0],'/api/admin/release/portal-review/reprice-all');
