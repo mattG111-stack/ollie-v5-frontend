@@ -31,5 +31,10 @@ try{
  setup({...review,publish_enabled:false},async()=>review);
  find('button','Select ready listings (up to 200)').props.onClick();
  assert.equal(find('button','3. Live (200)').props.disabled,true);
+ setup(review,async(path,init)=>{calls.push([path,init]);return {job_id:23};});
+ await find('button','Rerun pricing on all drafts (230)').props.onClick();
+ assert.equal(calls.at(-1)[0],'/api/admin/release/portal-review/reprice-all');
+ assert.equal(calls.at(-1)[1].body,undefined);
+ assert.equal(find('button','Rerun pricing on all drafts (230)').props.disabled,true);
  console.log('PASS: review paginates 20 rows, caps ready selection at 200, holds cannot be selected, repricing sends one exact ID, publication sends only ready selected IDs, deployment gate remains enforced.');
 }finally{await unlink(temp);}

@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { fmtMoney } from "@/lib/format";
 type Row = {id:number;address:string;suburb:string;asking:number|null;value:number|null;held:boolean;reason:string|null;removed:boolean;floor:number|null;land:number|null;image_url?:string|null};
 type Review = {publish_enabled:boolean;rows:Row[]};
-type Job = {id:number;filename:string;status:string;stage:string|null;progress_pct:number|null;error_message:string|null};
+type Job = {id:number;filename:string;status:string;stage:string|null;progress_pct:number|null;error_message:string|null;rows_inserted?:number|null;rows_rejected?:number|null};
 const active = (j:Job|null)=>!!j && ['pending','running'].includes(j.status);
 export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPriced:()=>void}) {
   const [review,setReview]=useState<Review|null>(null);
@@ -29,8 +29,8 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
     poll();return()=>{disposed=true;clearTimeout(timer);};
   },[load]);
   useEffect(()=>{if(job?.status==='completed'){onPriced();setView(true);}},[job?.id,job?.status,onPriced]);
-  async function price(priceIds=ids){setBusy(true);setMessage('');try{
-    const r=await api<{job_id:number}>('/api/admin/release/portal-review/price',{method:'POST',body:JSON.stringify({ids:priceIds})});
+  async function price(priceIds=ids, allDrafts=false){setBusy(true);setMessage('');try{
+    const r=await api<{job_id:number}>(allDrafts?'/api/admin/release/portal-review/reprice-all':'/api/admin/release/portal-review/price',{method:'POST',...(allDrafts?{}:{body:JSON.stringify({ids:priceIds})})});
     setJob({id:r.job_id,filename:'portal pricing',status:'pending',stage:'Starting pricing',progress_pct:0,error_message:null});
   }catch(e:any){setMessage(e?.detail||e?.message||'Could not start pricing');}finally{setBusy(false);}}
   async function remove(id:number,removed:boolean){setBusy(true);try{
@@ -53,12 +53,13 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
     <p className="mt-1 text-sm text-muted">Select listings in the downloaded list below and run pricing. Open View to review the results, then select ready listings and press Live.</p>
     <div className="mt-4 flex flex-wrap gap-2">
       <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!ids.length} onClick={()=>price()}>1. Run pricing{active(job)?'…':''}</button>
+      <button className={button} disabled={busy||active(job)||!(ready.length+held.length)} onClick={()=>price([],true)}>Rerun pricing on all drafts ({ready.length+held.length})</button>
       <button className={button} disabled={!review?.rows.length} onClick={()=>setView(!view)}>2. View ({review?.rows.filter(r=>!r.removed).length??0})</button>
       <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!review?.publish_enabled||!selected.size} onClick={live}>3. Live{selected.size?` (${selected.size})`:''}</button>
     </div>
     {review&&<p className="mt-3 text-sm" role="status">{ready.length} ready to publish · {held.length} need attention · {rows.filter(r=>r.removed).length} deleted from review</p>}
-    {!ids.length&&!active(job)&&<p className="mt-2 text-sm text-muted">Choose at least one downloaded listing below to start pricing. Existing drafts can be repriced from View.</p>}
-    {job&&<div className="mt-3 text-sm" role="status"><div>{job.stage} · {job.progress_pct??0}%</div>
+    {!ids.length&&!active(job)&&<p className="mt-2 text-sm text-muted">Choose at least one downloaded listing below to start pricing. After filling missing details, use Rerun pricing on all drafts to update every current draft, including held listings. Deleted drafts are excluded.</p>}
+    {job&&<div className="mt-3 text-sm" role="status"><div>Latest pricing run #{job.id}: {job.status} · {job.progress_pct??0}%</div><div>{job.rows_inserted??0} priced · {job.rows_rejected??0} processing errors</div><p className="text-muted">Run progress is separate from publication readiness shown above.</p>
       <progress aria-label="Pricing progress" className="w-full mt-1" value={job.progress_pct??0} max={100}/>
       {job.error_message&&<p>{job.error_message}</p>}</div>}
     {review&&!review.publish_enabled&&<p className="mt-3 text-sm text-[#785000]">Live is currently blocked while the outstanding pricing validation is resolved. You can price and review privately.</p>}
