@@ -24,6 +24,7 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
       const jobs=await api<Job[]>('/api/admin/jobs?limit=100');
       const j=jobs.find(x=>x.filename==='portal pricing')??null;
       if(disposed)return;setJob(j);await load();
+      if(!disposed)setMessage(m=>m==='Could not refresh pricing status. Retrying…'?'':m);
     }catch{if(!disposed)setMessage('Could not refresh pricing status. Retrying…');}
     finally{if(!disposed)timer=setTimeout(poll,5000);}}
     poll();return()=>{disposed=true;clearTimeout(timer);};
@@ -49,20 +50,21 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
   const visible=filtered.slice(currentPage*20,currentPage*20+20);
   const button='rounded-lg border border-line px-4 py-2 text-sm font-semibold disabled:opacity-40';
   return <section className="mt-4 rounded-xl border border-line bg-white p-4">
-    <h3 className="font-bold text-lg">Run pricing → View → Live</h3>
-    <p className="mt-1 text-sm text-muted">Select listings in the downloaded list below and run pricing. Open View to review the results, then select ready listings and press Live.</p>
+    <h3 className="font-bold text-lg">Run pricing → Review → Push live</h3>
+    <p className="mt-1 text-sm text-muted">Select listings in the downloaded list below and run pricing. Open Review to check the results, then select ready listings and press Push live.</p>
     <div className="mt-4 flex flex-wrap gap-2">
       <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!ids.length} onClick={()=>price()}>1. Run pricing{active(job)?'…':''}</button>
       <button className={button} disabled={busy||active(job)||!(ready.length+held.length)} onClick={()=>price([],true)}>Rerun pricing on all drafts ({ready.length+held.length})</button>
-      <button className={button} disabled={!review?.rows.length} onClick={()=>setView(!view)}>2. View ({review?.rows.filter(r=>!r.removed).length??0})</button>
-      <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!review?.publish_enabled||!selected.size} onClick={live}>3. Live{selected.size?` (${selected.size})`:''}</button>
+      <button className={button} disabled={!review?.rows.length} onClick={()=>setView(!view)} aria-expanded={view}>Review ({review?.rows.filter(r=>!r.removed).length??0})</button>
+      <button className={`${button} bg-[#1c1f23] text-white`} disabled={busy||active(job)||!review?.publish_enabled||!selected.size} onClick={live}>Push live{selected.size?` (${selected.size})`:''}</button>
     </div>
     {review&&<p className="mt-3 text-sm" role="status">{ready.length} ready to publish · {held.length} need attention · {rows.filter(r=>r.removed).length} deleted from review</p>}
+    {review&&review.publish_enabled&&!active(job)&&<p className="mt-2 text-sm text-muted">{!ready.length?'Push live is unavailable: no listings have passed review. Open Review to see what needs fixing.':!selected.size?'Open Review and select ready listings to enable Push live.':`${selected.size} selected listings will be published when you press Push live.`}</p>}
     {!ids.length&&!active(job)&&<p className="mt-2 text-sm text-muted">Choose at least one downloaded listing below to start pricing. After filling missing details, use Rerun pricing on all drafts to update every current draft, including held listings. Deleted drafts are excluded.</p>}
     {job&&<div className="mt-3 text-sm" role="status"><div>Latest pricing run #{job.id}: {job.status} · {job.progress_pct??0}%</div><div>{job.rows_inserted??0} priced · {job.rows_rejected??0} processing errors</div><p className="text-muted">Run progress is separate from publication readiness shown above.</p>
       <progress aria-label="Pricing progress" className="w-full mt-1" value={job.progress_pct??0} max={100}/>
       {job.error_message&&<p>{job.error_message}</p>}</div>}
-    {review&&!review.publish_enabled&&<p className="mt-3 text-sm text-[#785000]">Live is currently blocked while the outstanding pricing validation is resolved. You can price and review privately.</p>}
+    {review&&!review.publish_enabled&&<p className="mt-3 text-sm text-[#785000]">Push live is currently blocked while the outstanding pricing validation is resolved. You can price and review privately.</p>}
     {message&&<p className="mt-2 text-sm" role="status">{message}</p>}
     {view&&<div className="mt-4">
       <p className="text-sm text-muted mb-3">Tick the priced listings you want live. Delete removes a listing from this review; Undo restores it. Held listings cannot go live.</p>
@@ -74,9 +76,9 @@ export default function PortalPricingReview({ids,onPriced}:{ids:number[];onPrice
         {!!selected.size&&<button className={button} onClick={()=>setSelected(new Set())}>Clear selection</button>}
       </div>
       {filtered.length===0&&<p className="my-3 text-sm">{filter==='ready'?'No listings are ready yet. Choose Need attention to see the reason for each hold.':'No listings in this view.'}</p>}
-      <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Live</th><th className="text-left">Property</th><th>Asking</th><th>Valuation</th><th>Review</th></tr></thead>
+      <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th>Publish</th><th className="text-left">Property</th><th>Asking</th><th>Valuation</th><th>Review</th></tr></thead>
         <tbody>{visible.map(r=><tr key={r.id} className={`border-t border-line ${r.removed?'opacity-50':''}`}>
-          <td><input aria-label={`Select ${r.address} for Live`} type="checkbox" disabled={r.removed||r.held||!r.value||busy||active(job)} checked={selected.has(r.id)} onChange={e=>setSelected(s=>{const n=new Set(s);e.target.checked?n.add(r.id):n.delete(r.id);return n;})}/></td>
+          <td><input aria-label={`Select ${r.address} for Push live`} type="checkbox" disabled={r.removed||r.held||!r.value||busy||active(job)} checked={selected.has(r.id)} onChange={e=>setSelected(s=>{const n=new Set(s);e.target.checked?n.add(r.id):n.delete(r.id);return n;})}/></td>
           <td className="p-3">{r.image_url&&<img src={r.image_url} alt={`Photo of ${r.address}`} loading="lazy" className="mb-2 h-20 w-28 rounded object-cover"/>}{r.address}<div className="text-xs text-muted">{r.suburb} · Floor {r.floor??'—'} m² · Land {r.land??'—'} m²</div>{r.reason&&<div className="text-xs text-[#785000]">{r.reason}</div>}</td>
           <td className="p-2 whitespace-nowrap">{fmtMoney(r.asking)}</td><td className="p-2 whitespace-nowrap">{fmtMoney(r.value)}</td>
           <td>{!r.removed&&<button className={button} disabled={busy||active(job)} onClick={()=>price([r.id])}>Run pricing again</button>}<button className={button} disabled={busy||active(job)} onClick={()=>remove(r.id,!r.removed)}>{r.removed?'Undo delete':'Delete'}</button></td>
