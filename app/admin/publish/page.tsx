@@ -78,6 +78,31 @@ function Inner() {
   const [held, setHeld] = useState<Held[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [sourceJobs, setSourceJobs] = useState<{corelogic: IngestJob | null; oneroof: IngestJob | null}>({corelogic: null, oneroof: null});
+  const [oneRoofStarting, setOneRoofStarting] = useState(false);
+  const [oneRoofError, setOneRoofError] = useState<string | null>(null);
+  useEffect(() => {
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const ids = await api<{corelogic: number | null; oneroof: number | null}>("/api/admin/release/enrichment-jobs");
+        const [corelogic, oneroof] = await Promise.all([
+          ids.corelogic ? api<IngestJob>(`/api/admin/jobs/${ids.corelogic}`) : null,
+          ids.oneroof ? api<IngestJob>(`/api/admin/jobs/${ids.oneroof}`) : null,
+        ]);
+        if (!stopped) setSourceJobs({corelogic, oneroof});
+      } catch { /* Preserve last observed progress on a transient failure. */ }
+    };
+    poll();
+    const timer = setInterval(poll, 5000);
+    return () => { stopped = true; clearInterval(timer); };
+  }, []);
+  async function startOneRoof() {
+    setOneRoofStarting(true); setOneRoofError(null);
+    try { await api("/api/admin/release/oneroof-enrich", {method: "POST"}); }
+    catch (e: any) { setOneRoofError(e?.detail || e?.message || "OneRoof could not start"); }
+    finally { setOneRoofStarting(false); }
+  }
   const [stageJob, setStageJob] = useState<IngestJob | null>(null);
   const [stageMsg, setStageMsg] = useState<string | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
@@ -521,7 +546,20 @@ function Inner() {
           <StageButton label="Ask the portals"
             running={starting === "portals" || (stageJob?.stage === "portals" && stageJob?.status === "running")}
             onClick={() => runStage("portals")} />
-          {stageJob && <StageProgress job={stageJob} />}
+          {stageJob && stageJob.filename?.startsWith("enrich") !== true && <StageProgress job={stageJob} />}
+        </div>
+        <div className="grid gap-3 mt-3 md:grid-cols-2">
+          <div className="border border-line rounded-lg p-3">
+            <strong>CoreLogic enrichment</strong>
+            {sourceJobs.corelogic ? <StageProgress job={sourceJobs.corelogic} /> : <p>No run yet.</p>}
+          </div>
+          <div className="border border-line rounded-lg p-3">
+            <strong>OneRoof enrichment</strong>
+            <p className="text-xs text-muted my-2">Runs alongside CoreLogic. Fills missing facts from exact property matches, up to 200 listings per run. Re-run pricing afterwards.</p>
+            <StageButton label="Enrich (OneRoof)" running={oneRoofStarting || ['pending','running'].includes(sourceJobs.oneroof?.status || '')} onClick={startOneRoof} />
+            {sourceJobs.oneroof && <StageProgress job={sourceJobs.oneroof} />}
+            {oneRoofError && <p role="alert">{oneRoofError}</p>}
+          </div>
         </div>
         {restartMsg && (
           <div className="text-xs mt-2" style={{ color: "#2E353D" }}>{restartMsg}</div>
