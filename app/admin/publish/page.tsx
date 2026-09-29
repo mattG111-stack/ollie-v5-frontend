@@ -410,8 +410,7 @@ function Inner() {
               Reset all data (back to zero)
             </button>
             <span className="text-[11px] text-faint ml-2">Deletes every batch, listing and job — including published data. Keeps users &amp; billing.</span>
-            {stageMsg && <div className="text-xs mt-2 text-muted">{stageMsg}</div>}
-          </div>
+              </div>
         </div>
       </div>
     );
@@ -505,7 +504,7 @@ function Inner() {
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <button
             onClick={() => runStage("price")}
-            disabled={starting === "price" || Object.values(sourceJobs).some(j => j && ["pending", "running", "paused"].includes(j.status)) || (stageJob?.stage === "price" && stageJob?.status === "running")}
+            disabled={starting !== null || (stageJob?.stage === "price" && stageJob?.status === "running")}
             className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
             style={{ background: "#D4503E" }}
           >
@@ -519,6 +518,8 @@ function Inner() {
             </span>
           )}
         </div>
+        <p className="text-xs text-muted mt-2">Pricing uses the facts already saved in this batch. A paused enrichment does not prevent pricing. Review the results before publishing.</p>
+        {stageMsg && <div role="status" className="text-sm mt-2">{stageMsg}</div>}
 
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <StageButton label="Enrich (CoreLogic)"
@@ -556,7 +557,7 @@ function Inner() {
           </div>
           <div className="border border-line rounded-lg p-3">
             <strong>HouGarden enrichment</strong>
-            <p className="text-xs text-muted my-2">Starts after CoreLogic finishes, over the same batch. Fills remaining missing facts from exact property matches. Re-run pricing after both finish.</p>
+            <p className="text-xs text-muted my-2">Starts after CoreLogic finishes, over the same batch. Fills remaining missing facts from exact property matches. You can price saved facts now. If more facts are filled later, rerun pricing before publication.</p>
             <StageButton label="Queue HouGarden after CoreLogic" running={houGardenStarting || ['pending','running','paused'].includes(sourceJobs.hougarden?.status || '')} onClick={startHouGarden} />
             {sourceJobs.hougarden && <StageProgress job={sourceJobs.hougarden} />}
             {houGardenError && <p role="alert">{houGardenError}</p>}
