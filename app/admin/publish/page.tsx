@@ -504,7 +504,7 @@ function Inner() {
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <button
             onClick={() => runStage("price")}
-            disabled={starting === "price" || (stageJob?.stage === "price" && stageJob?.status === "running")}
+            disabled={starting === "price" || Object.values(sourceJobs).some(j => j && ["pending", "running"].includes(j.status)) || (stageJob?.stage === "price" && stageJob?.status === "running")}
             className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
             style={{ background: "#D4503E" }}
           >
