@@ -144,6 +144,7 @@ function Inner() {
     setStageMsg(`Starting ${stage}…`);
     try {
       const started = await api<StageStarted>(`/api/admin/release/${stage}`, { method: "POST" });
+      if (stage === "enrich") await api("/api/admin/release/oneroof-enrich", {method: "POST"});
       setStageMsg(`${stage === "enrich" ? "Enrich" : stage === "portals" ? "Portal lookup" : "Re-price"} running in the background — you can leave this page.`);
       if (pollRef.current) clearInterval(pollRef.current);
       const poll = async () => {
@@ -504,7 +505,7 @@ function Inner() {
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <button
             onClick={() => runStage("price")}
-            disabled={starting === "price" || Object.values(sourceJobs).some(j => j && ["pending", "running"].includes(j.status)) || (stageJob?.stage === "price" && stageJob?.status === "running")}
+            disabled={starting === "price" || Object.values(sourceJobs).some(j => j && ["pending", "running", "paused"].includes(j.status)) || (stageJob?.stage === "price" && stageJob?.status === "running")}
             className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
             style={{ background: "#D4503E" }}
           >
@@ -555,8 +556,8 @@ function Inner() {
           </div>
           <div className="border border-line rounded-lg p-3">
             <strong>OneRoof enrichment</strong>
-            <p className="text-xs text-muted my-2">Runs alongside CoreLogic. Fills missing facts from exact property matches, up to 200 listings per run. Re-run pricing afterwards.</p>
-            <StageButton label="Enrich (OneRoof)" running={oneRoofStarting || ['pending','running'].includes(sourceJobs.oneroof?.status || '')} onClick={startOneRoof} />
+            <p className="text-xs text-muted my-2">Starts after CoreLogic finishes, over the same batch. Fills remaining missing facts from exact property matches. Re-run pricing after both finish.</p>
+            <StageButton label="Queue OneRoof after CoreLogic" running={oneRoofStarting || ['pending','running','paused'].includes(sourceJobs.oneroof?.status || '')} onClick={startOneRoof} />
             {sourceJobs.oneroof && <StageProgress job={sourceJobs.oneroof} />}
             {oneRoofError && <p role="alert">{oneRoofError}</p>}
           </div>
