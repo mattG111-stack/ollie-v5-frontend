@@ -78,30 +78,30 @@ function Inner() {
   const [held, setHeld] = useState<Held[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [sourceJobs, setSourceJobs] = useState<{corelogic: IngestJob | null; oneroof: IngestJob | null}>({corelogic: null, oneroof: null});
-  const [oneRoofStarting, setOneRoofStarting] = useState(false);
-  const [oneRoofError, setOneRoofError] = useState<string | null>(null);
+  const [sourceJobs, setSourceJobs] = useState<{corelogic: IngestJob | null; hougarden: IngestJob | null}>({corelogic: null, hougarden: null});
+  const [houGardenStarting, setHouGardenStarting] = useState(false);
+  const [houGardenError, setHouGardenError] = useState<string | null>(null);
   useEffect(() => {
     let stopped = false;
     const poll = async () => {
       try {
-        const ids = await api<{corelogic: number | null; oneroof: number | null}>("/api/admin/release/enrichment-jobs");
-        const [corelogic, oneroof] = await Promise.all([
+        const ids = await api<{corelogic: number | null; hougarden: number | null}>("/api/admin/release/enrichment-jobs");
+        const [corelogic, hougarden] = await Promise.all([
           ids.corelogic ? api<IngestJob>(`/api/admin/jobs/${ids.corelogic}`) : null,
-          ids.oneroof ? api<IngestJob>(`/api/admin/jobs/${ids.oneroof}`) : null,
+          ids.hougarden ? api<IngestJob>(`/api/admin/jobs/${ids.hougarden}`) : null,
         ]);
-        if (!stopped) setSourceJobs({corelogic, oneroof});
+        if (!stopped) setSourceJobs({corelogic, hougarden});
       } catch { /* Preserve last observed progress on a transient failure. */ }
     };
     poll();
     const timer = setInterval(poll, 5000);
     return () => { stopped = true; clearInterval(timer); };
   }, []);
-  async function startOneRoof() {
-    setOneRoofStarting(true); setOneRoofError(null);
-    try { await api("/api/admin/release/oneroof-enrich", {method: "POST"}); }
-    catch (e: any) { setOneRoofError(e?.detail || e?.message || "OneRoof could not start"); }
-    finally { setOneRoofStarting(false); }
+  async function startHouGarden() {
+    setHouGardenStarting(true); setHouGardenError(null);
+    try { await api("/api/admin/release/hougarden-enrich", {method: "POST"}); }
+    catch (e: any) { setHouGardenError(e?.detail || e?.message || "HouGarden could not start"); }
+    finally { setHouGardenStarting(false); }
   }
   const [stageJob, setStageJob] = useState<IngestJob | null>(null);
   const [stageMsg, setStageMsg] = useState<string | null>(null);
@@ -144,7 +144,7 @@ function Inner() {
     setStageMsg(`Starting ${stage}…`);
     try {
       const started = await api<StageStarted>(`/api/admin/release/${stage}`, { method: "POST" });
-      if (stage === "enrich") await api("/api/admin/release/oneroof-enrich", {method: "POST"});
+      if (stage === "enrich") await api("/api/admin/release/hougarden-enrich", {method: "POST"});
       setStageMsg(`${stage === "enrich" ? "Enrich" : stage === "portals" ? "Portal lookup" : "Re-price"} running in the background — you can leave this page.`);
       if (pollRef.current) clearInterval(pollRef.current);
       const poll = async () => {
@@ -495,7 +495,7 @@ function Inner() {
           Loaded rows are priced on what the scrape carried. <strong>Enrich</strong> fills blank
           floor / land / CV from CoreLogic (re-run to resume if it stops), then <strong>Re-price</strong>{" "}
           re-values the batch on the filled numbers. <strong>Ask the portals</strong> then looks up
-          the deals on Trade Me, OneRoof, realestate.co.nz, homes.co.nz and CoreLogic — filling any
+          the deals on Trade Me, HouGarden, realestate.co.nz, homes.co.nz and CoreLogic — filling any
           field still blank and recording what each of them says the place is worth. All run in the
           background — this page can be closed and reopened.
         </p>
@@ -555,11 +555,11 @@ function Inner() {
             {sourceJobs.corelogic ? <StageProgress job={sourceJobs.corelogic} /> : <p>No run yet.</p>}
           </div>
           <div className="border border-line rounded-lg p-3">
-            <strong>OneRoof enrichment</strong>
+            <strong>HouGarden enrichment</strong>
             <p className="text-xs text-muted my-2">Starts after CoreLogic finishes, over the same batch. Fills remaining missing facts from exact property matches. Re-run pricing after both finish.</p>
-            <StageButton label="Queue OneRoof after CoreLogic" running={oneRoofStarting || ['pending','running','paused'].includes(sourceJobs.oneroof?.status || '')} onClick={startOneRoof} />
-            {sourceJobs.oneroof && <StageProgress job={sourceJobs.oneroof} />}
-            {oneRoofError && <p role="alert">{oneRoofError}</p>}
+            <StageButton label="Queue HouGarden after CoreLogic" running={houGardenStarting || ['pending','running','paused'].includes(sourceJobs.hougarden?.status || '')} onClick={startHouGarden} />
+            {sourceJobs.hougarden && <StageProgress job={sourceJobs.hougarden} />}
+            {houGardenError && <p role="alert">{houGardenError}</p>}
           </div>
         </div>
         {restartMsg && (
@@ -874,7 +874,7 @@ function PortalSources() {
   }, []);
   if (!st) return null;
   const NAMES: Record<string, string> = {
-    corelogic: "CoreLogic", homes: "homes.co.nz", oneroof: "OneRoof",
+    corelogic: "CoreLogic", homes: "homes.co.nz", oneroof: "OneRoof", hougarden: "HouGarden",
     trademe: "Trade Me", realestate: "realestate.co.nz",
   };
   return (
