@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import AppShell, { useIsMobile } from "@/components/AppShell";
+import { useAuth } from "@/lib/auth";
 import Sparkline from "@/components/Sparkline";
 import SaleHistoryChart from "@/components/SaleHistoryChart";
 import SuburbTrendChart from "@/components/SuburbTrendChart";
@@ -89,6 +90,7 @@ function Inner({ id }: { id: string }) {
     return k ? t(k) : en;
   };
   const isMobile = useIsMobile();
+  const { me } = useAuth();
   const [p, setP] = useState<ForSaleRow | null>(null);
   const [history, setHistory] = useState<HistoryResponse | null>(null);
   const [comps, setComps] = useState<ComparablesResponse | null>(null);
@@ -126,6 +128,23 @@ function Inner({ id }: { id: string }) {
   if (err) return <div style={{ padding: 40, color: C.danger, fontSize: 14 }}>{err}</div>;
   if (!p) return <div style={{ padding: 40, color: C.label, fontSize: 14 }}>Loading…</div>;
 
+  // An admin can remove ANY listing from here — not just from the review/deal
+  // screens. The backend needs role=admin AND status=approved; a 403 here means
+  // one of those is off on the account.
+  const isAdmin = me?.role === "admin";
+  async function removeListing() {
+    if (!p) return;
+    if (!confirm(`Remove ${p.address || "this listing"} from the batch?\n\n`
+                 + `It comes back if the weekly file is re-loaded.`)) return;
+    try {
+      await api(`/api/admin/listings/${p.id}`, { method: "DELETE" });
+      window.location.href = "/properties";
+    } catch (e: any) {
+      alert(e?.detail || e?.message
+            || "Could not remove — admin only. Check this account has role 'admin' and status 'approved'.");
+    }
+  }
+
   const score = p.opportunity_score_pct ?? 0;
   // Our valuation vs CV, as the backend worked it out. Recomputing it here from
   // cv_numeric looked equivalent and was not: the backend withholds this figure
@@ -145,15 +164,28 @@ function Inner({ id }: { id: string }) {
         >
           {t("prop.backToAll")}
         </Link>
-        {/* One-page, shareable: print or save as PDF for a client or investor. */}
-        <button
-          onClick={() => window.print()}
-          style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: C.ink,
-                   border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 14px",
-                   background: "#fff", cursor: "pointer" }}
-        >
-          ↓ Print / Save PDF report
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Admins can remove any listing straight from its page. */}
+          {isAdmin && (
+            <button
+              onClick={removeListing}
+              style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: "#fff",
+                       border: "1px solid #B0453A", borderRadius: 8, padding: "8px 14px",
+                       background: "#B0453A", cursor: "pointer" }}
+            >
+              Remove listing
+            </button>
+          )}
+          {/* One-page, shareable: print or save as PDF for a client or investor. */}
+          <button
+            onClick={() => window.print()}
+            style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: C.ink,
+                     border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 14px",
+                     background: "#fff", cursor: "pointer" }}
+          >
+            ↓ Print / Save PDF report
+          </button>
+        </div>
       </div>
       {/* Only shows on the printed/PDF page — a clean header for the report. */}
       <div className="print-only" style={{ marginBottom: 14, borderBottom: `2px solid ${C.ink}`, paddingBottom: 8 }}>
