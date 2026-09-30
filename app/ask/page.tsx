@@ -87,6 +87,9 @@ function Inner() {
   // Ollie takes as long as he needs now, and a wait with no end in sight and
   // nothing moving is indistinguishable from a hang — so the corner counts.
   const [progress, setProgress] = useState<{ pct: number; phase: string | null } | null>(null);
+  // Speak-to-type, using the browser's own speech recognition (no server, no cost).
+  const recRef = useRef<any>(null);
+  const [dictating, setDictating] = useState(false);
   // False once this page is gone. The poll loop below has no attempt ceiling —
   // deliberately — so this is the only thing that ends it early, and without it
   // the loop outlives the component and keeps polling for the life of the tab.
@@ -347,6 +350,33 @@ function Inner() {
   // the wrong person to go and buy something they do not need.
   const keyUnreadable = noKey && quota?.key_state === "unreadable";
 
+  const speechSupported = typeof window !== "undefined" &&
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+
+  // Speak instead of type. Uses the browser's built-in recognition — the words
+  // land in the same input, so it stays one composer, and it stops on its own.
+  function toggleDictation() {
+    if (dictating) { try { recRef.current?.stop(); } catch { /* already stopped */ } return; }
+    const SR = (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any });
+    const Rec = SR.SpeechRecognition || SR.webkitSpeechRecognition;
+    if (!Rec) return;
+    const rec = new Rec();
+    rec.lang = "en-NZ";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      let txt = "";
+      for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+      setInput(txt);
+    };
+    rec.onend = () => { setDictating(false); recRef.current = null; };
+    rec.onerror = () => { setDictating(false); recRef.current = null; };
+    recRef.current = rec;
+    setDictating(true);
+    setOrb("listening");
+    try { rec.start(); } catch { setDictating(false); }
+  }
+
   const composer = (
           <form
             aria-label={msgs.length ? "Ask a follow-up" : "Ask Ollie"}
@@ -386,6 +416,28 @@ function Inner() {
                 background: "transparent", color: D.ink,
               }}
             />
+            {speechSupported && (
+              <button
+                type="button"
+                onClick={toggleDictation}
+                aria-label={dictating ? "Stop dictation" : "Speak your question"}
+                title={dictating ? "Stop" : "Speak"}
+                disabled={!!noKey}
+                style={{
+                  width: 34, height: 34, flexShrink: 0, borderRadius: 999,
+                  border: "none", display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: noKey ? "default" : "pointer",
+                  background: dictating ? "#D4503E" : "rgba(255,255,255,.09)",
+                  transition: "background .2s ease",
+                }}
+              >
+                <svg width="14" height="16" viewBox="0 0 16 20" fill="none" aria-hidden>
+                  <rect x="5" y="1" width="6" height="11" rx="3" fill={dictating ? "#fff" : D.faint} />
+                  <path d="M3 9.5a5 5 0 0 0 10 0M8 15v4M5.5 19h5" stroke={dictating ? "#fff" : D.faint}
+                        strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
             <button
               type="submit"
               aria-label={t("ask.send")}
@@ -478,17 +530,28 @@ function Inner() {
           {/* His name. In the split it stays put, because the column would
               otherwise be an unlabelled graphic once a conversation starts. */}
           {(split || !msgs.length) && (
-            <h1
-              style={{
-                fontSize: split ? 38 : 44, fontWeight: 900, letterSpacing: "-.04em",
-                color: D.ink, textAlign: "center",
-                // Idle fills only the middle of the canvas, so an honest layout
-                // leaves a hundred empty pixels between him and his own name.
-                margin: `${-Math.round(orbSize * 0.24)}px 0 0`,
-              }}
-            >
-              {t("ask.title")}
-            </h1>
+            <>
+              <h1
+                style={{
+                  fontSize: split ? 38 : 44, fontWeight: 900, letterSpacing: "-.04em",
+                  color: D.ink, textAlign: "center",
+                  // Idle fills only the middle of the canvas, so an honest layout
+                  // leaves a hundred empty pixels between him and his own name.
+                  margin: `${-Math.round(orbSize * 0.24)}px 0 0`,
+                }}
+              >
+                {t("ask.title")}
+              </h1>
+              {/* Say what he can field, right under his name. */}
+              <p
+                style={{
+                  textAlign: "center", color: D.faint, fontWeight: 600,
+                  fontSize: split ? 15 : 17, letterSpacing: "-.01em", margin: "6px 0 0",
+                }}
+              >
+                {t("ask.subtitle")}
+              </p>
+            </>
           )}
 
           {/* The box, directly under him. It is a prompt, not a form: a full
