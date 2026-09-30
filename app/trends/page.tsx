@@ -135,13 +135,16 @@ function Inner() {
   const quick = [...options].sort((a, b) => b.sold - a.sold).slice(0, 12);
 
   useEffect(() => {
+    let alive = true;
+    const controller = new AbortController();
     setLoading(true);
     const q = new URLSearchParams({ suburb });
     if (ptype) q.set("ptype", ptype);
-    api<SuburbTrend>(`/api/dashboards/suburb-trend?${q}`)
-      .then(setData)
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
+    api<SuburbTrend>(`/api/dashboards/suburb-trend?${q}`, { signal: controller.signal })
+      .then((r) => { if (alive) setData(r); })
+      .catch(() => { if (alive) setData(null); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; controller.abort(); };
   }, [suburb, ptype]);
 
   return (
@@ -317,17 +320,21 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
   // narrow window is selected; taking them from the current reply would shrink
   // the options to the years already chosen and there would be no way back out.
   const [years, setYears] = useState<number[]>([]);
+  // Receiving the year options must not repeat the default statistics request.
+  const toYear = span != null ? years[0] : undefined;
+  const fromYear = toYear != null && span != null ? toYear - span + 1 : undefined;
 
   useEffect(() => {
     if (!suburb) return;
     let alive = true;
+    const controller = new AbortController();
     const q = new URLSearchParams({ suburb });
     if (ptype) q.set("ptype", ptype);
-    if (span != null && years.length) {
-      q.set("to_year", String(years[0]));
-      q.set("from_year", String(years[0] - span + 1));
+    if (toYear != null && fromYear != null) {
+      q.set("to_year", String(toYear));
+      q.set("from_year", String(fromYear));
     }
-    api<SuburbStats>(`/api/properties/suburb-stats?${q}`)
+    api<SuburbStats>(`/api/properties/suburb-stats?${q}`, { signal: controller.signal })
       .then((r) => {
         if (!alive) return;
         setS(r);
@@ -336,8 +343,8 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
         }
       })
       .catch(() => { if (alive) setS(null); });
-    return () => { alive = false; };
-  }, [suburb, ptype, span, years.length]);
+    return () => { alive = false; controller.abort(); };
+  }, [suburb, ptype, toYear, fromYear]);
 
   // Reset to the default window when the suburb changes — a span that made
   // sense in a suburb with ten years of sales is misleading in one with two.
