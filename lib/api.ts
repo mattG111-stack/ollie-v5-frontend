@@ -183,6 +183,8 @@ export async function api<T = unknown>(
   try {
     res = await fetch(`${API_BASE}${withPreview(path)}`, { ...init, headers });
   } catch (netErr: any) {
+    // A superseded view intentionally cancels its request; this is not an outage.
+    if (init.signal?.aborted) throw netErr;
     // The request never reached a response — DNS, TLS, the server being down.
     noteFailure(path, 0, netErr?.message || "network error");
     throw new ApiError(0, "Could not reach the server");
