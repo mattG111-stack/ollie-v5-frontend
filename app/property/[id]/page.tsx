@@ -137,13 +137,33 @@ function Inner({ id }: { id: string }) {
   const bannerSub = [p.suburb, p.district].filter(Boolean).join(" · ");
 
   return (
-    <div style={{ padding: isMobile ? "20px 16px 48px" : "34px 40px 60px", maxWidth: 1500, width: "100%" }}>
-      <Link
-        href="/properties"
-        style={{ fontFamily: MONO, fontSize: 13, color: C.label, fontWeight: 600 }}
-      >
-        {t("prop.backToAll")}
-      </Link>
+    <div className="report" style={{ padding: isMobile ? "20px 16px 48px" : "34px 40px 60px", maxWidth: 1500, width: "100%" }}>
+      <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <Link
+          href="/properties"
+          style={{ fontFamily: MONO, fontSize: 13, color: C.label, fontWeight: 600 }}
+        >
+          {t("prop.backToAll")}
+        </Link>
+        {/* One-page, shareable: print or save as PDF for a client or investor. */}
+        <button
+          onClick={() => window.print()}
+          style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: C.ink,
+                   border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 14px",
+                   background: "#fff", cursor: "pointer" }}
+        >
+          ↓ Print / Save PDF report
+        </button>
+      </div>
+      {/* Only shows on the printed/PDF page — a clean header for the report. */}
+      <div className="print-only" style={{ marginBottom: 14, borderBottom: `2px solid ${C.ink}`, paddingBottom: 8 }}>
+        <div style={{ fontWeight: 800, fontSize: 18, color: C.ink }}>
+          {p.address}{p.suburb ? `, ${p.suburb}` : ""}
+        </div>
+        <div style={{ fontSize: 12, color: C.label }}>
+          Ollie property report · {new Date().toLocaleDateString("en-NZ")}
+        </div>
+      </div>
 
       {/* The advertisement has come off the portal. This page is still reachable
           by bookmark, shared link or wish list — the lists already exclude it —

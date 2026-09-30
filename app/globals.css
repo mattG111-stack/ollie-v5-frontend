@@ -209,3 +209,18 @@ html, body { max-width: 100%; overflow-x: clip; }
 }
 
 :focus-visible { outline: 2px solid #454B54; outline-offset: 3px; }
+
+/* --- Shareable one-page report (Print / Save as PDF) --- */
+.print-only { display: none; }
+@media print {
+  /* Reveal only the report content; hide the app chrome and any no-print controls. */
+  body * { visibility: hidden !important; }
+  .report, .report * { visibility: visible !important; }
+  .report { position: absolute !important; left: 0; top: 0; width: 100% !important;
+            max-width: none !important; padding: 0 !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .report img { max-height: 170px; }
+  a[href]:after { content: ""; }            /* do not print raw URLs after links */
+  @page { margin: 14mm; }
+}
