@@ -107,6 +107,41 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
   const [msg, setMsg] = useState<string | null>(null);
   const [chosen, setChosen] = useState<Set<number>>(new Set());
   const [tab, setTab] = useState<Tab>("for_sale");
+  const [deleted, setDeleted] = useState<{ids:number[];decided_at:string}|null>(null);
+
+  async function selectAll() {
+    setBusy(true);
+    try {
+      const r = await api<{ids:number[]}>(`/api/admin/release/listings/selection?kind=${tab}`);
+      setChosen(new Set(r.ids));
+      setMsg(`${r.ids.length} unuploaded ${tab === "sold" ? "sold records" : "listings"} selected across all pages.`);
+    } catch(e:any) { setMsg(e?.detail || e?.message || "Could not select listings"); }
+    finally { setBusy(false); }
+  }
+
+  async function deleteSelected() {
+    if (!chosen.size || !confirm(`Delete ${chosen.size} selected unuploaded records from this queue? Uploaded and published listings are protected. You can undo this deletion here.`)) return;
+    setBusy(true);
+    try {
+      const r = await api<{ids:number[];decided_at:string}>("/api/admin/release/listings/delete-selected",
+        {method:"POST",body:JSON.stringify({kind:tab,ids:[...chosen]})});
+      setDeleted(r.ids.length ? r : null);
+      setMsg(`Deleted ${r.ids.length} from the queue. Any records already uploaded were skipped.`);
+      setOffset(0); await load();
+    } catch(e:any) { setMsg(e?.detail || e?.message || "Delete failed"); }
+    finally { setBusy(false); }
+  }
+
+  async function undoDelete() {
+    if (!deleted) return;
+    setBusy(true);
+    try {
+      const r = await api<{restored:number}>("/api/admin/release/listings/undo-delete",
+        {method:"POST",body:JSON.stringify(deleted)});
+      setDeleted(null); setMsg(`Restored ${r.restored} records.`); await load();
+    } catch(e:any) { setMsg(e?.detail || e?.message || "Undo failed"); }
+    finally { setBusy(false); }
+  }
 
   const load = useCallback(async () => {
     const path = tab === "sold" ? "sold" : "new";
@@ -287,6 +322,7 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
 
       {!sold && !readOnly && <PortalPricingReview ids={[...chosen]} onPriced={load} />}
 
+      {!readOnly && deleted && <button className="mt-3 text-xs border border-line rounded px-3 py-2" disabled={busy} onClick={undoDelete}>Undo last deletion ({deleted.ids.length})</button>}
       {pending === 0 ? (
         <div className="text-xs text-muted mt-4">
           Nothing waiting. {sold
@@ -298,11 +334,13 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
         <>
           {readOnly ? <p className="text-xs text-muted mt-4">Showing {rows.length} of {pending} awaiting review. <a className="underline" href="/admin/upload">Open review controls</a></p> : <div className="flex items-center gap-2 mt-4 flex-wrap">
             <span className="text-xs text-muted">
-              {chosen.size} of {rows.length} selected
+              {chosen.size} selected
               {pending > rows.length ? ` · ${pending} waiting in total` : ""}
             </span>
             <button className="text-xs border border-line rounded px-3 py-2" disabled={busy} onClick={() => setChosen(new Set(rows.filter(l => !l.price_flag).map(l => l.id)))}>Select this page</button>
             <button className="text-xs border border-line rounded px-3 py-2" disabled={busy || !chosen.size} onClick={() => setChosen(new Set())}>Clear selection</button>
+            <button className="text-xs border border-line rounded px-3 py-2" disabled={busy} onClick={selectAll}>Select all unuploaded ({pending})</button>
+            <button className="text-xs border border-line rounded px-3 py-2 disabled:opacity-50" disabled={busy || !chosen.size} onClick={deleteSelected}>Delete selected ({chosen.size})</button>
             {/* A portal advertises a listing; it does not publish a council
                 record. Without a CV a listing cannot be valued at all, so
                 approving one marked "no council record" was approving it into
