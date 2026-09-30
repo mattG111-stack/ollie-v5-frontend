@@ -24,8 +24,9 @@ export default function SignInPage() {
       const m = await signIn(email, password);
       // A promoter is not buying anything, so the paywall is not their next
       // step — send them straight to the dashboard they signed in for.
+      // Land on Ask Ollie — the conversational front door — for a paying user.
       router.push(m?.role === "promoter" ? "/promoter"
-                : m && m.has_access ? "/today" : "/onboarding");
+                : m && m.has_access ? "/ask" : "/onboarding");
     } catch (err: any) {
       setError(err?.detail || err?.message || t("auth.signInFailed"));
     } finally {
