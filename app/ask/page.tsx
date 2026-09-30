@@ -356,7 +356,9 @@ function Inner() {
     const h = new Date().getHours();
     const hello = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
     const when = h < 18 ? "today" : "tonight";
-    return `${hello} — what do you want to know about the property market ${when}?`;
+    const first = (me?.full_name || "").trim().split(/\s+/)[0];
+    const who = first ? `, ${first}` : "";
+    return `${hello}${who} — what do you want to know about the property market ${when}?`;
   })();
 
   const speechSupported = typeof window !== "undefined" &&
