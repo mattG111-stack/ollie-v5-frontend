@@ -231,6 +231,30 @@ export default function PropertiesTable({
           >
             {t("ptable.score70")}
           </FilterChip>
+          {/* Vendor / negotiation signal read from the listing text + figures. */}
+          <select
+            value={filters.vendor ?? ""}
+            onChange={(e) => setFilter("vendor", e.target.value || null)}
+            className="bg-white border border-line rounded-lg px-3 py-2 text-sm text-muted outline-none focus:border-blue cursor-pointer"
+            title="Find vendors likely to negotiate"
+          >
+            <option value="">Any vendor</option>
+            <option value="motivated">Motivated vendors</option>
+            <option value="mortgagee">Mortgagee sales</option>
+            <option value="urgent">Urgent / must sell</option>
+            <option value="present_all_offers">Present all offers</option>
+            <option value="price_cut">Price cut</option>
+            <option value="stale">Long on market</option>
+            <option value="negotiation">By negotiation</option>
+          </select>
+          {/* Leaky-home risk: reclad / monolithic / plaster clad / weathertight. */}
+          <FilterChip
+            active={filters.exclude_leaky === "true"}
+            onClick={() => setFilter("exclude_leaky", filters.exclude_leaky === "true" ? null : "true")}
+            color="#B0453A"
+          >
+            Hide leaky risk
+          </FilterChip>
           {Object.keys(filters).length > 0 && (
             <button
               onClick={() => {

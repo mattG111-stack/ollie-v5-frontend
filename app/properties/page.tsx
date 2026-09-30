@@ -177,6 +177,7 @@ function PropertiesWithSearch() {
     for (const key of [
       "search", "suburb", "district", "min_price", "max_price",
       "min_beds", "underpriced", "subdividable", "cashflow_positive",
+      "vendor", "exclude_leaky",
     ]) {
       const v = params?.get(key);
       if (v) filter[key] = v;
