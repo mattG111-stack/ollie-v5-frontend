@@ -174,6 +174,37 @@ function Inner() {
     }
   }
 
+  // Re-price the LIVE (active) batch — the listings customers see. Pricing used to
+  // be staged-only, so after filling details on already-live listings there was no
+  // way to push the numbers into the valuation on demand. Same polling as runStage.
+  async function runPriceLive() {
+    if (starting) return;
+    setStarting("price-live");
+    setStageMsg("Re-pricing the LIVE listings…");
+    try {
+      const started = await api<StageStarted>("/api/admin/release/price-live", { method: "POST" });
+      setStageMsg("Re-pricing live listings in the background — you can leave this page.");
+      if (pollRef.current) clearInterval(pollRef.current);
+      const poll = async () => {
+        const job = await api<IngestJob>(`/api/admin/jobs/${started.job_id}`).catch(() => null);
+        if (!job) return;
+        setStageJob(job);
+        if (job.status === "completed" || job.status === "failed") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          pollRef.current = null;
+          if (job.status === "completed") setLastPriced(job.rows_inserted ?? job.rows_total ?? 0);
+          await load();
+        }
+      };
+      await poll();
+      pollRef.current = setInterval(poll, 2000);
+    } catch (e: any) {
+      setStageMsg(`Live re-price couldn't start: ${e?.detail || e?.message || "request failed"}`);
+    } finally {
+      setStarting(null);
+    }
+  }
+
   // Take a stuck stage off whatever is holding it and start it again.
   //
   // Deliberately a separate button rather than making Enrich force its way in:
@@ -538,6 +569,17 @@ function Inner() {
             {starting === "price" || (stageJob?.stage === "price" && stageJob?.status === "running")
               ? "Re-running pricing…"
               : `↻ Re-run pricing on all ${(s.forsale_rows ?? 0).toLocaleString()} listings`}
+          </button>
+          {/* Re-price the LIVE batch — the listings customers see. Use this after
+              filling details on already-live listings, so the filled numbers flow
+              into the valuation without waiting for the hourly self-heal. */}
+          <button
+            onClick={runPriceLive}
+            disabled={starting !== null || (stageJob?.stage === "price" && stageJob?.status === "running")}
+            className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
+            style={{ background: "#0A8754" }}
+          >
+            {starting === "price-live" ? "Re-pricing live…" : "↻ Re-price LIVE listings"}
           </button>
           {lastPriced != null && !(stageJob?.stage === "price" && stageJob?.status === "running") && (
             <span className="font-display text-lg font-bold" style={{ color: "#0A8754" }}>
