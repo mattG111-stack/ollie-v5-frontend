@@ -350,6 +350,15 @@ function Inner() {
   // the wrong person to go and buy something they do not need.
   const keyUnreadable = noKey && quota?.key_state === "unreadable";
 
+  // A warm, time-aware greeting in the bar — morning / afternoon / evening, and
+  // "today" by day, "tonight" once it's evening.
+  const greeting = (() => {
+    const h = new Date().getHours();
+    const hello = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+    const when = h < 18 ? "today" : "tonight";
+    return `${hello} — what do you want to know about the property market ${when}?`;
+  })();
+
   const speechSupported = typeof window !== "undefined" &&
     ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
 
@@ -405,7 +414,7 @@ function Inner() {
               placeholder={
                 keyUnreadable ? t("ask.placeholderKeyUnreadable")
                 : noKey ? t("ask.placeholderNoKey")
-                : msgs.length ? "Ask a follow-up about this answer…" : t("ask.placeholder")
+                : msgs.length ? "Ask a follow-up about this answer…" : greeting
               }
               disabled={!!noKey}
               onFocus={() => { if (!busy) setOrb("listening"); }}
