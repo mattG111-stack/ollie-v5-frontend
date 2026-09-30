@@ -247,6 +247,33 @@ function Inner() {
     }
   }
 
+  // Find and remove double-ups among the new listings. Always a dry run first —
+  // it says how many it would remove and only deletes after you agree, because
+  // this deletes rows. Keyed on the address, so a house re-posted under a new
+  // slug or carried forward and spelled differently collapses to one; only the
+  // new (staged/live) batch is touched, never the established book.
+  async function dedupe() {
+    setStageMsg("Checking for duplicates…");
+    try {
+      const dry = await api<{ groups: number; duplicates: number; note: string }>(
+        "/api/admin/release/dedupe?dry_run=true", { method: "POST" });
+      if (!dry.duplicates) {
+        setStageMsg("No duplicate listings found.");
+        return;
+      }
+      if (!confirm(`${dry.duplicates} duplicate listing(s) across ${dry.groups} address(es) will be removed (the most complete copy of each is kept). Delete them now?`)) {
+        setStageMsg(`${dry.duplicates} duplicate(s) found — nothing deleted.`);
+        return;
+      }
+      const done = await api<{ removed: number; groups: number }>(
+        "/api/admin/release/dedupe?dry_run=false", { method: "POST" });
+      setStageMsg(`Removed ${done.removed} duplicate listing(s) across ${done.groups} address(es).`);
+      await load();
+    } catch (e: any) {
+      setStageMsg(`Dedupe failed: ${e?.detail || e?.message || "request failed"}`);
+    }
+  }
+
   // Finish the batch and move it to preview. Deliberately NOT a confirm: it
   // changes nothing a customer sees, and a dialog in front of a harmless step
   // teaches people to click through the one in front of the harmful step.
@@ -548,6 +575,14 @@ function Inner() {
           <StageButton label="Ask the portals"
             running={starting === "portals" || (stageJob?.stage === "portals" && stageJob?.status === "running")}
             onClick={() => runStage("portals")} />
+          {/* Find & remove double-ups among the new listings. Always previews the
+              count and asks before it deletes. Keyed on the address, so it catches
+              the ones the slug dedupe misses (a re-post, or a carry-forward spelled
+              differently) and clears a new-file row that duplicates one already on
+              the platform — without touching the established book. */}
+          <StageButton label="Find & remove duplicates"
+            running={false}
+            onClick={dedupe} />
           {stageJob && stageJob.filename?.startsWith("enrich") !== true && <StageProgress job={stageJob} />}
         </div>
         <div className="grid gap-3 mt-3 md:grid-cols-2">
