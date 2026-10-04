@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { comparisonColumns } from "@/lib/comparison-columns";
 import { parseAnswerMap } from "@/lib/answer-map";
 const AnswerLocationMap = dynamic(() => import("./SuburbTrendsMap"), { ssr: false });
 import ReactMarkdown from "react-markdown";
@@ -171,6 +172,6 @@ export default function AssistantAnswer({ content }: { content: string }) {
           : <span>{children}</span>,
         table: ({ children }) => <div className="assistant-answer-table" tabIndex={0} role="region" aria-label="Answer table"><table>{children}</table></div>,
       }}
-    >{content}</ReactMarkdown>
+    >{comparisonColumns(content)}</ReactMarkdown>
   </div>;
 }
