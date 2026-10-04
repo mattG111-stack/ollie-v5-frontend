@@ -4,6 +4,11 @@ import Link from "next/link";
 import OllieDecision from "./OllieDecision";
 import { api, type ForSaleRow } from "../lib/api";
 
+export function roundEstimate(property: ForSaleRow): ForSaleRow {
+  const value = property.fair_value;
+  return {...property, fair_value: typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.ceil(value / 10000) * 10000 : value};
+}
+
 export function propertyIds(answer: string): number[] {
   return [...new Set([...answer.matchAll(/\]\(\/property\/(\d+)\)/g)].map(m => Number(m[1])).filter(n => Number.isSafeInteger(n) && n > 0))].slice(0, 4);
 }
@@ -28,7 +33,7 @@ export default function OllieEvidence({ answer, onAsk, disabled = false }: { ans
     if (!key) {setLoading(false); return;}
     setLoading(true);
     Promise.all(key.split(",").map(async id => {
-      try {return {id:Number(id), property:await api<ForSaleRow>(`/api/properties/${id}`)};}
+      try {return {id:Number(id), property:roundEstimate(await api<ForSaleRow>(`/api/properties/${id}`))};}
       catch {return {id:Number(id)};}
     })).then(result => {if(active) {setRows(result); setLoading(false);setChecked(new Date().toLocaleTimeString("en-NZ",{hour:"2-digit",minute:"2-digit"}));}});
     return () => {active=false;};
