@@ -112,11 +112,31 @@ function AnswerMap({ raw }: { raw: string }) {
 export default function AssistantAnswer({ content }: { content: string }) {
   const sections = content.startsWith("## Suburb comparison\n") ? content.split(/(?=^### Around )/m) : [];
   if (sections.length >= 3) {
+    const suburbs = sections.slice(1).map(section => {
+      const lines = section.split("\n");
+      const name = lines[0].replace(/^### Around /, "").trim();
+      const rows = lines.filter(line => line.startsWith("| ") && line.endsWith(" |"));
+      const start = rows.findIndex(line => line.startsWith("| Suburb snapshot |"));
+      const metrics: Record<string, string> = {};
+      for (const line of rows.slice(start + 1, start + 6)) {
+        const cells = line.split("|").map(cell => cell.trim());
+        if (cells[1] && cells[2]) metrics[cells[1]] = cells[2];
+      }
+      const remainder = section.replace(/Recorded sales: [^\n]+\n/, "").replace(/\| Suburb snapshot \| Result \|\n\|---\|---\|\n(?:\|[^\n]+\|\n?){5}/, "");
+      return { name, metrics, remainder };
+    });
+    const metricNames = Object.keys(suburbs[0].metrics);
+    const comparison = [
+      "| Metric | " + suburbs.map(s => s.name).join(" | ") + " |",
+      "|---|" + suburbs.map(() => "---|").join(""),
+      ...metricNames.map(metric => "| " + metric + " | " + suburbs.map(s => s.metrics[metric] ?? "Unavailable").join(" | ") + " |")
+    ].join("\n");
     return <div className="assistant-comparison">
       <AssistantAnswer content={sections[0]} />
-      <div className="assistant-comparison-grid">{sections.slice(1).map((section, i) =>
+      <AssistantAnswer content={(sections[1].match(/^Recorded sales: .+$/m)?.[0] ?? "") + "\n\n" + comparison} />
+      <div className="assistant-comparison-grid">{suburbs.map((suburb, i) =>
         <section key={i} style={{ minWidth: 0, padding: 16, border: "1px solid #dedfe1", borderRadius: 12 }}>
-          <AssistantAnswer content={section} />
+          <AssistantAnswer content={suburb.remainder} />
         </section>
       )}</div>
       <style>{`.assistant-comparison-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.assistant-comparison-grid figure{margin-left:0;margin-right:0}@media(max-width:767px){.assistant-comparison-grid{grid-template-columns:1fr}}`}</style>
