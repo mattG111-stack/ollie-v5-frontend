@@ -1,3 +1,8 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { parseAnswerMap } from "@/lib/answer-map";
+const AnswerLocationMap = dynamic(() => import("./SuburbTrendsMap"), { ssr: false });
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { isValidElement, type ReactNode } from "react";
@@ -94,7 +99,16 @@ function AnswerChart({ raw }: { raw: string }) {
   </figure>;
 }
 
-/** Render model text as markup, never executable HTML or remote media. */
+function AnswerMap({ raw }: { raw: string }) {
+  const map = parseAnswerMap(raw);
+  if (!map) return <p role="status">A verified location is not available for this map.</p>;
+  return <figure aria-label={`Map of ${map.suburb}`}>
+    <figcaption>{map.suburb} · For-sale listings and recorded sales</figcaption>
+    <AnswerLocationMap suburb={map.suburb} height="420px" />
+  </figure>;
+}
+
+/** Render model text as markup; map tiles use the app's existing map component. */
 export default function AssistantAnswer({ content }: { content: string }) {
   return <div className="assistant-answer">
     <ReactMarkdown
@@ -110,6 +124,10 @@ export default function AssistantAnswer({ content }: { content: string }) {
       }}
       components={{
         pre: ({ children }) => {
+          if (isValidElement<{ className?: string; children?: ReactNode }>(children)
+              && children.props.className === "language-apex-map") {
+            return <AnswerMap raw={String(children.props.children ?? "")} />;
+          }
           if (isValidElement<{ className?: string; children?: ReactNode }>(children)
               && children.props.className === "language-apex-chart") {
             return <AnswerChart raw={String(children.props.children ?? "")} />;
