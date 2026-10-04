@@ -110,6 +110,18 @@ function AnswerMap({ raw }: { raw: string }) {
 
 /** Render model text as markup; map tiles use the app's existing map component. */
 export default function AssistantAnswer({ content }: { content: string }) {
+  const sections = content.startsWith("## Suburb comparison\n") ? content.split(/(?=^### Around )/m) : [];
+  if (sections.length >= 3) {
+    return <div className="assistant-comparison">
+      <AssistantAnswer content={sections[0]} />
+      <div className="assistant-comparison-grid">{sections.slice(1).map((section, i) =>
+        <section key={i} style={{ minWidth: 0, padding: 16, border: "1px solid #dedfe1", borderRadius: 12 }}>
+          <AssistantAnswer content={section} />
+        </section>
+      )}</div>
+      <style>{`.assistant-comparison-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.assistant-comparison-grid figure{margin-left:0;margin-right:0}@media(max-width:767px){.assistant-comparison-grid{grid-template-columns:1fr}}`}</style>
+    </div>;
+  }
   return <div className="assistant-answer">
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
