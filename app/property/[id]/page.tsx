@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import AppShell, { useIsMobile } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import Sparkline from "@/components/Sparkline";
+import AskingPriceHistory from "@/components/AskingPriceHistory";
 import SaleHistoryChart from "@/components/SaleHistoryChart";
 import SuburbTrendChart from "@/components/SuburbTrendChart";
 import SubdivisionCalc from "@/components/SubdivisionCalc";
@@ -1171,6 +1172,7 @@ function Inner({ id }: { id: string }) {
       {/* ───────── WEEKLY SNAPSHOTS ───────── */}
       <Card style={{ marginTop: 24 }}>
         <CardTitle>{t("prop.weeklySnapshots")}</CardTitle>
+        <AskingPriceHistory history={history} />
         {history && history.points.length > 1 ? (
           <>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
