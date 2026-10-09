@@ -52,7 +52,7 @@ export default function SignUpPage() {
             <Field label="Company" name="company" />
             <Field label="Email" name="email" type="email" required />
             <Field label="Phone" name="phone" type="tel" required />
-            <Field label="Password" name="password" type="password" required minLength={8} />
+            <Field label="Password" name="password" type="password" required minLength={7} />
             {error && (
               <div className="text-xs text-danger bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
@@ -99,6 +99,8 @@ function Field({
         type={type}
         required={required}
         minLength={minLength}
+        pattern={type === "password" ? "(?=(?:[^A-Za-z]*[A-Za-z]){6})(?=.*[A-Z])(?=.*[0-9]).*" : undefined}
+        title={type === "password" ? "At least six letters, including one uppercase, and one number." : undefined}
         className="bg-paper border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue"
       />
     </label>

@@ -194,7 +194,7 @@ function Inner() {
             <input
               type="password"
               required
-              minLength={8}
+              minLength={7} pattern="(?=(?:[^A-Za-z]*[A-Za-z]){6})(?=.*[A-Z])(?=.*[0-9]).*" title="At least six letters, including one uppercase, and one number."
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder={t("adm.passwordHint")}
@@ -350,7 +350,7 @@ function Inner() {
                       <div className="flex items-end gap-3 flex-wrap">
                         <div className="w-72">
                           <Field label={t("adm.newPassword")} required>
-                            <input type="password" minLength={8} value={pw} autoFocus
+                            <input type="password" minLength={7} pattern="(?=(?:[^A-Za-z]*[A-Za-z]){6})(?=.*[A-Z])(?=.*[0-9]).*" title="At least six letters, including one uppercase, and one number." value={pw} autoFocus
                               onChange={(e) => setPw(e.target.value)}
                               placeholder={t("adm.passwordHint")}
                               className="w-full bg-white border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue" />
