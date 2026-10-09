@@ -61,6 +61,7 @@ export default function SignInPage() {
               {busy ? t("auth.signingIn") : t("auth.signIn")}
             </button>
           </form>
+          <Link href="/forgot-password" className="block text-center text-sm text-blue font-medium mt-4">Forgot password?</Link>
           <div className="text-center text-sm text-muted mt-5">
             {t("auth.newHere")}{" "}
             <Link href="/sign-up" className="text-blue hover:text-blue-dark font-medium">
