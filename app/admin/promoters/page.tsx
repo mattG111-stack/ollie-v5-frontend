@@ -191,7 +191,7 @@ function Inner() {
         <div className="flex items-center gap-3 mt-3">
           <button
             onClick={create}
-            disabled={busy || !email.trim() || password.length < 8}
+            disabled={busy || !email.trim() || !/(?=(?:[^A-Za-z]*[A-Za-z]){6})(?=.*[A-Z])(?=.*[0-9])/.test(password)}
             className="px-4 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50"
             style={{ background: "#0A8754" }}
           >
