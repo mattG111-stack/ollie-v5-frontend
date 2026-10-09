@@ -44,6 +44,7 @@ export default function ForgotPasswordPage() {
           <label>Confirm new password<input className={input} type="password" autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
         </>}
         <button disabled={busy} className="bg-blue text-white rounded-lg py-3 disabled:opacity-50">{busy ? "Please wait…" : sent ? "Save new password" : "Send reset code"}</button>
+        {!sent && <button type="button" disabled={busy} className="text-blue" onClick={() => { setSent(true); setError(""); }}>I already have a reset code</button>}
         {sent && <button type="button" disabled={busy} className="text-blue" onClick={() => { setSent(false); setMessage(""); setError(""); }}>Request another code or change email</button>}
       </form>}
       {error && <p role="alert" className="text-red-700 mt-4">{error}</p>}
