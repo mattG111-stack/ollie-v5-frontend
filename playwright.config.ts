@@ -1,5 +1,5 @@
 import { existsSync, readdirSync } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
@@ -36,6 +36,7 @@ function chromiumOnDisk(): string | undefined {
  * answering 402 and a real browser obeying the redirect. Every layer that bug
  * passed through has to be in the test or the test cannot see it.
  */
+const backendDir = resolve(process.env.E2E_BACKEND_DIR || "../olliev6");
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,          // one seeded database, shared
@@ -71,7 +72,7 @@ export default defineConfig({
       // had to change in Procfile, railpack.json and nixpacks.toml; this is the
       // fourth place it is written down and the easiest one to forget.
       command: "python3 scripts/seed_e2e.py && python3 -m uvicorn main:app --host 127.0.0.1 --port 8100",
-      cwd: "/home/user/olliev6",
+      cwd: backendDir,
       port: 8100,
       reuseExistingServer: false,
       timeout: 120_000,
@@ -85,7 +86,7 @@ export default defineConfig({
         // so nothing here is shaped like a credential.
         E2E_PASSWORD: process.env.E2E_PASSWORD || "not-a-secret-e2e",
         SEED_ADMIN_PASSWORD: process.env.E2E_PASSWORD || "not-a-secret-e2e",
-        PYTHONPATH: "/home/user/olliev6",
+        PYTHONPATH: backendDir,
       },
     },
     {

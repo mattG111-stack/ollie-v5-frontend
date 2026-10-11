@@ -545,55 +545,20 @@ function Inner() {
         </div>
       )}
 
-      {/* Stages — enrich then re-price, each re-runnable, before publishing */}
-      <div className="bg-white border border-line rounded-card shadow-soft p-4 mt-5">
-        <div className="font-display font-semibold text-sm">Stages</div>
-        <p className="text-xs text-muted mt-1">
-          Loaded rows are priced on what the scrape carried. <strong>Enrich</strong> fills blank
-          floor / land / CV from CoreLogic (re-run to resume if it stops), then <strong>Re-price</strong>{" "}
-          re-values the batch on the filled numbers. <strong>Ask the portals</strong> then looks up
-          the deals on Trade Me, HouGarden, realestate.co.nz, homes.co.nz and CoreLogic — filling any
-          field still blank and recording what each of them says the place is worth. All run in the
-          background — this page can be closed and reopened.
-        </p>
-        {/* Prominent re-run pricing action — re-values every staged listing on
-            the current pipeline. Red so it's unmistakable, and it shows the
-            listing count up front plus a repriced count once it finishes. */}
-        <div className="flex flex-wrap items-center gap-3 mt-3">
-          <button
-            onClick={() => runStage("price")}
-            disabled={starting !== null || (stageJob?.stage === "price" && stageJob?.status === "running")}
-            className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
-            style={{ background: "#D4503E" }}
-          >
-            {starting === "price" || (stageJob?.stage === "price" && stageJob?.status === "running")
-              ? "Re-running pricing…"
-              : `↻ Re-run pricing on all ${(s.forsale_rows ?? 0).toLocaleString()} listings`}
-          </button>
-          {/* Re-price the LIVE batch — the listings customers see. Use this after
-              filling details on already-live listings, so the filled numbers flow
-              into the valuation without waiting for the hourly self-heal. */}
-          <button
-            onClick={runPriceLive}
-            disabled={starting !== null || (stageJob?.stage === "price" && stageJob?.status === "running")}
-            className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
-            style={{ background: "#0A8754" }}
-          >
-            {starting === "price-live" ? "Re-pricing live…" : "↻ Re-price LIVE listings"}
-          </button>
-          {lastPriced != null && !(stageJob?.stage === "price" && stageJob?.status === "running") && (
-            <span className="font-display text-lg font-bold" style={{ color: "#0A8754" }}>
-              ✓ {lastPriced.toLocaleString()} listings repriced
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-muted mt-2">Pricing uses the facts already saved in this batch. A paused enrichment does not prevent pricing. Review the results before publishing.</p>
-        {stageMsg && <div role="status" className="text-sm mt-2">{stageMsg}</div>}
-
+      <nav aria-label="Publication steps" className="flex flex-wrap gap-3 mt-5 text-sm font-semibold">
+        <a href="#clean-batch">1. Clean</a><span aria-hidden="true">→</span>
+        <a href="#price-batch">2. Price</a><span aria-hidden="true">→</span>
+        <a href="#review-batch">3. Review</a><span aria-hidden="true">→</span>
+        <a href="#publish-batch">4. Push live</a>
+      </nav>
+      <div className="bg-white border border-line rounded-card shadow-soft p-4 mt-3">
+        <h2 id="clean-batch" className="font-display font-semibold">1. Clean the uploaded batch</h2>
+        <p className="text-sm text-muted mt-1">Fill missing facts with CoreLogic, then HouGarden. Saved facts remain available if a source pauses or fails.</p>
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <StageButton label="Enrich (CoreLogic)"
             running={starting === "enrich" || (stageJob?.stage === "enrich" && stageJob?.status === "running")}
             onClick={() => runStage("enrich")} />
+          <details className="w-full"><summary className="cursor-pointer text-sm">Troubleshooting and extra checks</summary>
           {/* The way out of a run that is neither finished nor going anywhere.
               The button above refuses while one is in flight — two enrichers on
               one batch is what kills the container — so without this the only
@@ -625,6 +590,7 @@ function Inner() {
           <StageButton label="Find & remove duplicates"
             running={false}
             onClick={dedupe} />
+          </details>
           {stageJob && stageJob.filename?.startsWith("enrich") !== true && <StageProgress job={stageJob} />}
         </div>
         <div className="grid gap-3 mt-3 md:grid-cols-2">
@@ -643,6 +609,43 @@ function Inner() {
         {restartMsg && (
           <div className="text-xs mt-2" style={{ color: "#2E353D" }}>{restartMsg}</div>
         )}
+        <h2 id="price-batch" className="font-display font-semibold mt-6">2. Price the uploaded batch</h2>
+        {/* Prominent re-run pricing action — re-values every staged listing on
+            the current pipeline. Red so it's unmistakable, and it shows the
+            listing count up front plus a repriced count once it finishes. */}
+        <div className="flex flex-wrap items-center gap-3 mt-3">
+          <button
+            onClick={() => runStage("price")}
+            disabled={starting !== null || (stageJob?.stage === "price" && stageJob?.status === "running")}
+            className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
+            style={{ background: "#D4503E" }}
+          >
+            {starting === "price" || (stageJob?.stage === "price" && stageJob?.status === "running")
+              ? "Re-running pricing…"
+              : `↻ Re-run pricing on all ${(s.forsale_rows ?? 0).toLocaleString()} listings`}
+          </button>
+          {lastPriced != null && !(stageJob?.stage === "price" && stageJob?.status === "running") && (
+            <span className="font-display text-lg font-bold" style={{ color: "#0A8754" }}>
+              ✓ {lastPriced.toLocaleString()} listings repriced
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-muted mt-2">Pricing uses the facts already saved in this batch. A paused enrichment does not prevent pricing. Review the results before publishing.</p>
+        {stageMsg && <div role="status" className="text-sm mt-2">{stageMsg}</div>}
+
+        <details className="mt-3"><summary className="cursor-pointer text-sm">Advanced: reprice existing live listings</summary>
+          {/* Re-price the LIVE batch — the listings customers see. Use this after
+              filling details on already-live listings, so the filled numbers flow
+              into the valuation without waiting for the hourly self-heal. */}
+          <button
+            onClick={runPriceLive}
+            disabled={starting !== null || (stageJob?.stage === "price" && stageJob?.status === "running")}
+            className="px-5 py-3 text-sm font-bold text-white rounded-lg shadow-soft disabled:opacity-60"
+            style={{ background: "#0A8754" }}
+          >
+            {starting === "price-live" ? "Re-pricing live…" : "↻ Re-price LIVE listings"}
+          </button>
+        </details>
         <PortalSources />
       </div>
 
@@ -676,11 +679,14 @@ function Inner() {
       </div>
 
       {/* Review grid — inspect the batch before it goes live */}
+      <h2 id="review-batch" className="font-display font-semibold mt-6">3. Review the results</h2>
+      <p className="text-sm text-muted mb-3">Check prices, missing facts and held reasons before publishing.</p>
       <StagedReviewGrid />
 
       {/* One button, for the step you are actually on. Showing both would make
           the harmless one and the irreversible one look like a pair. */}
-      <div className="mt-6 flex items-center gap-3">
+      <h2 id="publish-batch" className="font-display font-semibold mt-6">4. Push live</h2>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         {s.stage === "preview" ? (
           <button
             onClick={publish}
@@ -688,7 +694,7 @@ function Inner() {
             className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-50"
             style={{ background: "#0A8754" }}
           >
-            {busy ? "Going live…" : `Go live — hold back ${s.held_total} flagged`}
+            {busy ? "Going live…" : `Push live — ${s.held_total} held back`}
           </button>
         ) : (
           <button
@@ -697,7 +703,7 @@ function Inner() {
             className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-50"
             style={{ background: "#1D4ED8" }}
           >
-            {busy ? "Preparing…" : "Finish and preview"}
+            {busy ? "Preparing…" : "Review customer preview"}
           </button>
         )}
         {s.stage === "preview" && (

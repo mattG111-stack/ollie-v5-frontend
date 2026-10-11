@@ -6,7 +6,16 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 const compiled = new URL('../.assistant-render-test.mjs', import.meta.url);
-const source = await readFile(new URL('../components/AssistantAnswer.tsx', import.meta.url), 'utf8');
+let source = await readFile(new URL('../components/AssistantAnswer.tsx', import.meta.url), 'utf8');
+// Compile the two pure helpers; Next's client-only map is excluded from SSR.
+const helpers = ['comparison-columns', 'answer-map'];
+for (const name of helpers) {
+  const helper = await readFile(new URL(`../lib/${name}.ts`, import.meta.url), 'utf8');
+  await writeFile(new URL(`../.${name}-test.mjs`, import.meta.url), ts.transpileModule(helper, {compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText);
+  source = source.replace(`@/lib/${name}`, `./.${name}-test.mjs`);
+}
+source = source.replace('import dynamic from "next/dynamic";', '')
+  .replace(/const AnswerLocationMap = dynamic[^;]+;/, 'const AnswerLocationMap = () => null;');
 await writeFile(compiled, ts.transpileModule(source, { compilerOptions: {
   jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020,
 }}).outputText);
@@ -65,4 +74,4 @@ try {
     const css = await readFile(new URL('../app/globals.css', import.meta.url), 'utf8');
     await writeFile(process.env.ASSISTANT_PREVIEW, `<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}\nbody{background:#16191f;color:#eee;font-family:Arial;padding:24px}.assistant-answer{max-width:700px;margin:auto}svg{font-family:Arial}</style>${graph}${lineHtml}${html}</html>`);
   }
-} finally { await unlink(compiled); }
+} finally { await unlink(compiled); for (const name of helpers) await unlink(new URL(`../.${name}-test.mjs`, import.meta.url)); }

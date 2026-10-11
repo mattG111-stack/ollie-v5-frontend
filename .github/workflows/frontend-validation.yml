@@ -1,0 +1,19 @@
+name: Frontend release checks
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - name: Component and workflow checks
+        run: for script in scripts/test-*.mjs; do node "$script" || exit 1; done
+      - run: npm run build

@@ -133,6 +133,7 @@ export default function StagedReviewGrid({ region = "Auckland" }: { region?: str
   const [data, setData] = useState<StagedGrid | null>(null);
   const [loading, setLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [page, setPage] = useState(0);
   const [rowBusy, setRowBusy] = useState<number | null>(null);
   const [rowMsg, setRowMsg] = useState<{ id: number; text: string } | null>(null);
 
@@ -222,6 +223,11 @@ export default function StagedReviewGrid({ region = "Auckland" }: { region?: str
     return [...data.rows].sort((a, b) => cmp(a[sortKey], b[sortKey], dir));
   }, [data, sortKey, dir]);
 
+  useEffect(() => { setPage(0); }, [filter, sortKey, dir, data]);
+  const pageCount = Math.max(1, Math.ceil(sorted.length / 50));
+  const currentPage = Math.min(page, pageCount - 1);
+  const visibleRows = sorted.slice(currentPage * 50, (currentPage + 1) * 50);
+
   function onSort(key: keyof StagedGridRow) {
     if (key === sortKey) setDir((d) => (d === -1 ? 1 : -1));
     else { setSortKey(key); setDir(-1); }
@@ -276,6 +282,11 @@ export default function StagedReviewGrid({ region = "Auckland" }: { region?: str
       </div>
 
       <div className="bg-white border border-line rounded-card shadow-soft overflow-hidden">
+        <nav aria-label="Review listing pages" className="flex items-center gap-3 p-3 text-sm">
+          <button disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)} className="border rounded px-3 py-1 disabled:opacity-40">Previous</button>
+          <span>{sorted.length ? currentPage * 50 + 1 : 0}–{Math.min((currentPage + 1) * 50, sorted.length)} of {sorted.length.toLocaleString()} listings</span>
+          <button disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)} className="border rounded px-3 py-1 disabled:opacity-40">Next</button>
+        </nav>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm tnum">
             <thead>
@@ -305,7 +316,7 @@ export default function StagedReviewGrid({ region = "Auckland" }: { region?: str
               </tr>
             </thead>
             <tbody>
-              {sorted.map((r) => (
+              {visibleRows.map((r) => (
                 <tr key={r.id} className={`border-b border-line/60 hover:bg-[#FAFAFA] ${r.is_held ? "bg-[#FEF6F4]" : ""}`}>
                   {COLS.map((c) => (
                     <td
