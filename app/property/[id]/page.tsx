@@ -1,4 +1,5 @@
 "use client";
+import ContextQuestions from "@/components/ContextQuestions";
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -188,6 +189,7 @@ function Inner({ id }: { id: string }) {
           </button>
         </div>
       </div>
+      <ContextQuestions context={{kind:"property",id:p.id,address:p.address,suburb:p.suburb}} />
       {/* Only shows on the printed/PDF page — a clean header for the report. */}
       <div className="print-only" style={{ marginBottom: 14, borderBottom: `2px solid ${C.ink}`, paddingBottom: 8 }}>
         <div style={{ fontWeight: 800, fontSize: 18, color: C.ink }}>

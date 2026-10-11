@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,unlink} from 'node:fs/promises';
+import ts from 'typescript';
+import {renderToStaticMarkup} from 'react-dom/server';
+const helper=new URL('../.context-helper-test.mjs',import.meta.url),component=new URL('../.context-component-test.mjs',import.meta.url);
+const compile=s=>ts.transpileModule(s,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText;
+await writeFile(helper,compile(await readFile(new URL('../lib/context-questions.ts',import.meta.url),'utf8')));
+let source=(await readFile(new URL('../components/ContextQuestions.tsx',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
+await writeFile(component,compile(`import {contextQuestions} from './.context-helper-test.mjs';
+export const requests=[],routes=[];
+const useEffect=()=>{};const useRef=v=>({current:v});const useState=v=>[v,()=>{}];
+const useRouter=()=>({prefetch:()=>{},push:path=>routes.push(path)});const useAuth=()=>({me:{id:7}});const Link='a';
+const api=async(path,options)=>{requests.push(JSON.parse(options.body));return {ask_id:123};};
+`+source));
+const memory=new Map();globalThis.sessionStorage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)};
+try {
+ const {contextQuestions}=await import(helper.href);
+ const {default:Panel,requests,routes}=await import(component.href);
+ const context={kind:'property',id:42,address:'2/10 Test Road',suburb:'Riverhead'};
+ const tree=Panel({context});const html=renderToStaticMarkup(tree);
+ assert.equal((html.match(/<button/g)||[]).length,3);assert.equal(requests.length,0);
+ const button=tree.props.children[1].props.children[0];
+ await Promise.all([button.props.onClick(),button.props.onClick()]);
+ assert.equal(requests.length,1);assert.deepEqual(requests[0].history,[]);
+ assert.match(requests[0].question,/2\/10 Test Road/);assert.match(requests[0].question,/"id":42/);
+ assert.deepEqual(routes,['/ask']);assert.equal(JSON.parse(memory.get('apex:ask:7')).id,123);
+ await Panel({context}).props.children[1].props.children[0].props.onClick();
+ assert.equal(requests.length,1,'existing job must not be overwritten');
+ for(const suburb of ['Riverhead','Kumeu']) assert.ok(contextQuestions({kind:'suburb',suburb,propertyType:'House'}).every(q=>q.question.includes(suburb)&&q.question.includes('House')));
+ const questions=contextQuestions({kind:'subdivision',filters:{suburb:'Glen Eden',max_price:'1000000'}});
+ assert.equal(questions.length,3);assert.ok(questions.every(q=>q.question.includes('Glen Eden')&&q.question.includes('1000000')));
+ assert.match(questions[0].question,/net gain descending/);
+ console.log('PASS: three context questions, no requests on render, exact unit/filter context, single request on double click, existing job preserved and resumable answer handoff.');
+}finally{await unlink(helper);await unlink(component);delete globalThis.sessionStorage;}
