@@ -1,4 +1,5 @@
 "use client";
+import ContextQuestions from "@/components/ContextQuestions";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -253,6 +254,7 @@ export default function DealFinder({
         </div>
       </div>
 
+      {filter.subdividable === "true" && <ContextQuestions context={{kind:"subdivision",filters:{search,district,suburb,min_beds:minBeds,max_price:maxPrice,zoning}}} />}
       {children}
 
       {/* ── Hero: the single sharpest deal ── */}

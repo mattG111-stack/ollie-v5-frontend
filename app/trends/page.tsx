@@ -1,4 +1,5 @@
 "use client";
+import ContextQuestions from "@/components/ContextQuestions";
 
 import { SERIES as MD_SERIES, marketVerdict } from "@/lib/marketDirection";
 import type { MetricKey } from "@/lib/marketDirection";
@@ -159,6 +160,7 @@ function Inner() {
         </p>
       </div>
 
+      <ContextQuestions context={{kind:"suburb",suburb,propertyType:ptype}} />
       <div className="bg-white border border-line rounded-card shadow-soft p-5 mb-5">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-[11px] uppercase tracking-wider text-faint font-semibold mr-2">{t("trends.suburb")}</span>
