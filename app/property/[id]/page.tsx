@@ -9,9 +9,9 @@ import { useAuth } from "@/lib/auth";
 import Sparkline from "@/components/Sparkline";
 import AskingPriceHistory from "@/components/AskingPriceHistory";
 import SaleHistoryChart from "@/components/SaleHistoryChart";
-import SuburbTrendChart from "@/components/SuburbTrendChart";
+const SuburbTrendChart = dynamic(() => import("@/components/SuburbTrendChart"), { ssr: false });
 import SubdivisionCalc from "@/components/SubdivisionCalc";
-import DomTrendChart from "@/components/DomTrendChart";
+const DomTrendChart = dynamic(() => import("@/components/DomTrendChart"), { ssr: false });
 import LocationMap from "@/components/LocationMap";
 import PhotoStrip from "@/components/PhotoStrip";
 import SchoolsNearby from "@/components/SchoolsNearby";
@@ -1053,7 +1053,7 @@ function Inner({ id }: { id: string }) {
           {t("prop.howFastSelling", { suburb: p.suburb ?? "" })}
         </CardTitle>
         <div style={{ marginTop: 16 }}>
-          <DomTrendChart suburb={p.suburb} />
+          <WhenVisible minHeight={260}><DomTrendChart suburb={p.suburb} /></WhenVisible>
         </div>
       </Card>
 
@@ -1217,10 +1217,10 @@ function Inner({ id }: { id: string }) {
       </Card>
 
       {/* ───────── SUBURB TREND ───────── */}
-      <SuburbTrendChart
+      <WhenVisible minHeight={260}><SuburbTrendChart
         yearly={p.valuation_trend_yearly_json}
         suburb={p.suburb}
-      />
+      /></WhenVisible>
 
       {/* ───────── LIGHTBOX ───────── */}
       {lightbox != null && shots[lightbox] && (
