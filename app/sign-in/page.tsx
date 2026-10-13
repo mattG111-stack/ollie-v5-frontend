@@ -3,7 +3,7 @@ import { ApexLogo } from "@/components/ApexLogo";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useT } from "@/lib/i18n";
 
@@ -15,6 +15,14 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("apex:session-notice")) setNotice("Your session has ended. Please sign in again.");
+      sessionStorage.removeItem("apex:session-notice");
+    } catch {}
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +53,7 @@ export default function SignInPage() {
           <p className="text-sm text-muted mt-1 mb-5">
             {t("auth.demoNote")}
           </p>
+          {notice && <p role="status" className="text-sm mb-4">{notice}</p>}
           <form onSubmit={submit} className="flex flex-col gap-4">
             <Field label={t("auth.email")} type="email" value={email} onChange={setEmail} />
             <Field label={t("auth.password")} type="password" value={password} onChange={setPassword} />

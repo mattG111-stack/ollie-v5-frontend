@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (getToken() !== token) return null;
       setMe(null);
       if (err?.status === 401) {
+        try { sessionStorage.setItem("apex:session-notice", "ended"); } catch {}
         setToken(null);
         clearedRejectedSession = true;
       }
