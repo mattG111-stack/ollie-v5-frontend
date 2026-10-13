@@ -107,6 +107,7 @@ export default function DealFinder({
   const [zoning, setZoning] = useState(filter.zoning ?? "");
   const [shown, setShown] = useState(PAGE);
   const [loading, setLoading] = useState(true);
+  const [listTotal, setListTotal] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -144,18 +145,20 @@ export default function DealFinder({
     setShown(PAGE);
     const listQ = new URLSearchParams({ ...qs, page: "1", page_size: "200" });
     const sumQ = new URLSearchParams(qs);
-    Promise.all([
-      api<ForSaleList>(`/api/properties?${listQ}`),
-      api<Summary>(`/api/properties/summary?${sumQ}`),
-    ])
-      .then(([list, sum]) => {
+    setListTotal(null);
+    // Statistics must not hold up the listings or turn a usable list into an error.
+    api<ForSaleList>(`/api/properties?${listQ}`)
+      .then((list) => {
         if (cancelled) return;
         setRows(list.rows);
-        setSummary(sum);
-        setHero(list.rows.find((r) => r.id === sum.top_id) ?? list.rows[0] ?? null);
+        setListTotal(list.total);
+        setHero(list.rows[0] ?? null);
       })
       .catch(() => { if (!cancelled) setError("We could not load these listings. Please try again."); })
       .finally(() => { if (!cancelled) setLoading(false); });
+    api<Summary>(`/api/properties/summary?${sumQ}`)
+      .then((sum) => { if (!cancelled) setSummary(sum); })
+      .catch(() => { /* Leave unavailable statistics blank; listings remain usable. */ });
     return () => { cancelled = true; };
   }, [qs, retry]);
 
@@ -238,7 +241,7 @@ export default function DealFinder({
           <p style={{ fontSize: 16, color: C.label, maxWidth: 640, marginTop: 14, lineHeight: 1.5 }}>{blurb}</p>
         </div>
         <div style={{ display: "flex", gap: 10, textAlign: "right" }}>
-          <Tile label={t("deal.listings")} value={summary ? (summary.total ?? 0).toLocaleString() : "—"} />
+          <Tile label={t("deal.listings")} value={listTotal != null ? listTotal.toLocaleString() : "—"} />
           {metric === "lots" ? (
             <Tile
               label={t("deal.medianLots")}
@@ -514,7 +517,7 @@ export default function DealFinder({
             {metric === "lots" ? t("deal.sortedByLots") : t("deal.sortedByMargin")}
           </span>
           <span style={{ fontFamily: MONO, fontSize: 12.5, color: C.faint }}>
-            {loading ? t("deal.loading") : `${summary?.total.toLocaleString() ?? 0} ${t("deal.listings").toLowerCase()}`}
+            {loading ? t("deal.loading") : `${listTotal?.toLocaleString() ?? "—"} ${t("deal.listings").toLowerCase()}`}
           </span>
         </div>
       </div>
@@ -552,7 +555,7 @@ export default function DealFinder({
               padding: "13px 28px",
             }}
           >
-            {t("deal.loadMore", { total: summary?.total.toLocaleString() ?? "" })}
+            {t("deal.loadMore", { total: listTotal?.toLocaleString() ?? "" })}
           </button>
         </div>
       )}
