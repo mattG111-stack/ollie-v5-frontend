@@ -832,6 +832,7 @@ function Inner({ id }: { id: string }) {
       {/* ───────── SUBDIVISION ───────── */}
       {(p.sections != null && p.sections >= 2) || p.max_addl_lots ? (
         <Card style={{ marginTop: 24 }}>
+          {!(p.sections != null && p.sections >= 2) && <>
           <CardTitle>{t("prop.subdivFeasibility")}</CardTitle>
           <div
             style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
@@ -863,6 +864,7 @@ function Inner({ id }: { id: string }) {
           </div>
           <Note warn>{t("prop.subdivWarn")}</Note>
 
+          </>}
           {/* Shown for any site that splits into 2+ sections, not only the
               already-profitable ones — a developer's own numbers are most
               useful on the marginal cases the defaults reject. */}
@@ -1017,10 +1019,10 @@ function Inner({ id }: { id: string }) {
                   }
                 />
               )}
-              {comps.median_days_on_market != null && (
+              {comps.mean_days_on_market != null && (
                 <Row
-                  label={t("prop.daysToSellMedian", { n: comps.comps_with_dom })}
-                  value={t("prop.daysUnit", { n: Math.round(comps.median_days_on_market) })}
+                  label={`Average selling time — these sales (${comps.comps_with_dom} with timing)`}
+                  value={t("prop.daysUnit", { n: Math.round(comps.mean_days_on_market) })}
                   last
                 />
               )}
@@ -1047,14 +1049,12 @@ function Inner({ id }: { id: string }) {
         </Card>
       )}
 
-      {/* ───────── MARKET VELOCITY ───────── */}
       <Card style={{ marginTop: 24 }}>
-        <CardTitle sub={t("prop.velocitySub")}>
-          {t("prop.howFastSelling", { suburb: p.suburb ?? "" })}
-        </CardTitle>
-        <div style={{ marginTop: 16 }}>
+        <details>
+          <summary style={{ cursor: "pointer", fontWeight: 700 }}>Monthly selling-time trend</summary>
+          <Note>This chart shows monthly medians across the suburb, a different sample from the nearby-sales average above.</Note>
           <WhenVisible minHeight={260}><DomTrendChart suburb={p.suburb} /></WhenVisible>
-        </div>
+        </details>
       </Card>
 
       {/* ───────── SCHOOLS ───────── */}
