@@ -6,6 +6,7 @@ import DealFunnel from "@/components/DealFunnel";
 import PortalFindings from "@/components/PortalFindings";
 import RunLog from "@/components/RunLog";
 import StagedReviewGrid from "@/components/StagedReviewGrid";
+import DataQualityReport from "@/components/DataQualityReport";
 import { api, IngestJob, setPreview, StageStarted } from "@/lib/api";
 
 type Staged = {
@@ -449,6 +450,7 @@ function Inner() {
         <Header />
         <RestoreBanner />
         <LiveNow />
+        <DataQualityReport />
         <div className="bg-white border border-line rounded-card shadow-soft p-6 mt-4">
           <div className="font-display font-semibold">Nothing staged</div>
           <p className="text-sm text-muted mt-1">
@@ -479,6 +481,7 @@ function Inner() {
       <Header />
       <RestoreBanner />
       <LiveNow />
+      <DataQualityReport />
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
