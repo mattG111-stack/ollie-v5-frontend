@@ -7,6 +7,7 @@ import PortalFindings from "@/components/PortalFindings";
 import RunLog from "@/components/RunLog";
 import StagedReviewGrid from "@/components/StagedReviewGrid";
 import DataQualityReport from "@/components/DataQualityReport";
+import BrowserEnrichment from "@/components/BrowserEnrichment";
 import { api, IngestJob, setPreview, StageStarted } from "@/lib/api";
 
 type Staged = {
@@ -557,6 +558,7 @@ function Inner() {
       <div className="bg-white border border-line rounded-card shadow-soft p-4 mt-3">
         <h2 id="clean-batch" className="font-display font-semibold">1. Clean the uploaded batch</h2>
         <p className="text-sm text-muted mt-1">Fill missing facts with CoreLogic, then HouGarden. Saved facts remain available if a source pauses or fails.</p>
+        <BrowserEnrichment batchId={s.forsale_batch_id} />
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <StageButton label="Enrich (CoreLogic)"
             running={starting === "enrich" || (stageJob?.stage === "enrich" && stageJob?.status === "running")}
