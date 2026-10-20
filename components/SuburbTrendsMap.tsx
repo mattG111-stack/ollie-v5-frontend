@@ -49,7 +49,7 @@ const RANGES = [
 ] as const;
 const DEFAULT_MONTHS = 6;
 
-export default function SuburbTrendsMap({ suburb, height = "70vh" }: { suburb: string; height?: string }) {
+export default function SuburbTrendsMap({ suburb, ptype, height = "70vh" }: { suburb: string; ptype?: string; height?: string }) {
   const { t } = useT();
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -57,6 +57,9 @@ export default function SuburbTrendsMap({ suburb, height = "70vh" }: { suburb: s
   const layerRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [counts, setCounts] = useState<Counts>(ZERO);
+  const [loading,setLoading] = useState(false);
+  const [error,setError] = useState(false);
+  const [retry,setRetry] = useState(0);
   const [months, setMonths] = useState<number>(DEFAULT_MONTHS);
 
   useEffect(() => {
@@ -79,14 +82,19 @@ export default function SuburbTrendsMap({ suburb, height = "70vh" }: { suburb: s
     if (!ready || !suburb) return;
     const L = LRef.current, map = mapRef.current;
     let alive = true;
+    const controller = new AbortController();
+    if (layerRef.current) { map.removeLayer(layerRef.current); layerRef.current=null; }
+    setCounts({...ZERO});setLoading(true);setError(false);
     (async () => {
+      try {
+      const type = ptype ? `&ptype=${encodeURIComponent(ptype)}` : "";
       const q = encodeURIComponent(suburb);
       // months=0 means "all of it" — send no window rather than a zero the
       // backend would reject.
       const win = months > 0 ? `&sold_months=${months}` : "&sold_months=120";
       const [sale, sold] = await Promise.all([
-        api<Resp>(`/api/properties/map?dataset=for_sale&suburb=${q}`).catch(() => ({ points: [] })),
-        api<Resp>(`/api/properties/map?dataset=sold&suburb=${q}${win}`).catch(() => ({ points: [] })),
+        api<Resp>(`/api/properties/map?dataset=for_sale&suburb=${q}${type}`, {signal:controller.signal}),
+        api<Resp>(`/api/properties/map?dataset=sold&suburb=${q}${win}${type}`, {signal:controller.signal}),
       ]);
       if (!alive) return;
       if (layerRef.current) map.removeLayer(layerRef.current);
@@ -122,7 +130,7 @@ export default function SuburbTrendsMap({ suburb, height = "70vh" }: { suburb: s
           const priceLine = `${priceBody}${p.sold_date ? ` · ${fmtDayDate(p.sold_date)}` : ""}`;
           const tag = p.underpriced ? t("ptable.underpriced") : p.subdividable ? t("nav.subdividable") : "";
           m.bindPopup(
-            `<div style="min-width:150px"><b>${p.address ?? ""}</b><br/>${priceLine}` +
+            `<div style="min-width:150px"><b>${String(p.address ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]!))}</b><br/>${priceLine}` +
             (tag ? `<br/><span style="font-size:11px;font-weight:700;color:${color}">${tag}</span>` : "") +
             (isSold ? "" : `<br/><a href="/property/${p.id}" style="display:inline-block;margin-top:6px;color:#2E353D;font-weight:700;font-size:12px;text-decoration:none">${t("map.viewProperty")} →</a>`) +
             `</div>`
@@ -137,12 +145,15 @@ export default function SuburbTrendsMap({ suburb, height = "70vh" }: { suburb: s
       layerRef.current = group;
       setCounts(tally);
       if (bounds.length) map.fitBounds(bounds as any, { padding: [30, 30], maxZoom: 15 });
+      } catch { if (alive) setError(true); }
+      finally { if (alive) setLoading(false); }
     })();
-    return () => { alive = false; };
-  }, [ready, suburb, months, t]);
+    return () => { alive = false; controller.abort(); };
+  }, [ready, suburb, ptype, months, t, retry]);
 
   return (
     <div style={{ position: "relative" }}>
+      {(loading || error) && <div className="absolute bottom-3 left-3 bg-white rounded p-2 text-sm" style={{zIndex:600}}>{loading ? "Loading map…" : <span role="alert">Map could not load. <button className="underline" onClick={()=>setRetry(n=>n+1)}>Try again</button></span>}</div>}
       <div ref={elRef} style={{ height, width: "100%", borderRadius: 12, overflow: "hidden", background: "#e8edf2" }} />
       {/* Key — TOP RIGHT, fully opaque with a real shadow so it reads over any
           tile. (It was 95%-white in a bottom corner, where the dots sat on

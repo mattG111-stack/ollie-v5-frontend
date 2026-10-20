@@ -199,7 +199,7 @@ function Inner() {
       {/* Map (for-sale + sold houses) + what moves value */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
         <div className="bg-white border border-line rounded-card shadow-soft p-3">
-          <SuburbTrendsMap suburb={suburb} />
+          <SuburbTrendsMap key={`${suburb}:${ptype}`} suburb={suburb} ptype={ptype} />
         </div>
         <SuburbStatsPanel key={`${suburb}:${ptype}`}
           suburb={suburb}
