@@ -77,6 +77,7 @@ export default function AdminPublishPage() {
 
 function Inner() {
   const [s, setS] = useState<Staged | null>(null);
+  const [browserRevision,setBrowserRevision]=useState(0);
   const [held, setHeld] = useState<Held[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -558,7 +559,7 @@ function Inner() {
       <div className="bg-white border border-line rounded-card shadow-soft p-4 mt-3">
         <h2 id="clean-batch" className="font-display font-semibold">1. Clean the uploaded batch</h2>
         <p className="text-sm text-muted mt-1">Fill missing facts with CoreLogic, then HouGarden. Saved facts remain available if a source pauses or fails.</p>
-        <BrowserEnrichment batchId={s.forsale_batch_id} />
+        <BrowserEnrichment batchId={s.forsale_batch_id} onChanged={()=>{setBrowserRevision(v=>v+1);void load();}} />
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <StageButton label="Enrich (CoreLogic)"
             running={starting === "enrich" || (stageJob?.stage === "enrich" && stageJob?.status === "running")}
@@ -686,7 +687,7 @@ function Inner() {
       {/* Review grid — inspect the batch before it goes live */}
       <h2 id="review-batch" className="font-display font-semibold mt-6">3. Review the results</h2>
       <p className="text-sm text-muted mb-3">Check prices, missing facts and held reasons before publishing.</p>
-      <StagedReviewGrid />
+      <StagedReviewGrid refreshKey={browserRevision} />
 
       {/* One button, for the step you are actually on. Showing both would make
           the harmless one and the irreversible one look like a pair. */}

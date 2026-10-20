@@ -125,7 +125,7 @@ function toCsv(rows: StagedGridRow[]): string {
   return `${header}\n${body}\n`;
 }
 
-export default function StagedReviewGrid({ region = "Auckland" }: { region?: string }) {
+export default function StagedReviewGrid({ region = "Auckland", refreshKey = 0 }: { region?: string; refreshKey?: number }) {
   const [filter, setFilter] = useState("all");
   // Default sort: margin descending — the deal-finding sort for houses.
   const [sortKey, setSortKey] = useState<keyof StagedGridRow>("margin_dollars");
@@ -145,7 +145,7 @@ export default function StagedReviewGrid({ region = "Auckland" }: { region?: str
       .catch(() => { if (live) setData(null); })
       .finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
-  }, [region, filter, reloadKey]);
+  }, [region, filter, reloadKey, refreshKey]);
 
   // Per-row manual actions for excluded/held listings: pull fresh CoreLogic data,
   // or re-value on current numbers (which lifts the hold if it now clears the
@@ -251,7 +251,7 @@ export default function StagedReviewGrid({ region = "Auckland" }: { region?: str
         <h2 className="font-display font-semibold text-sm">Staged rows — inspect before publish</h2>
         <button
           onClick={downloadCsv}
-          disabled={!sorted.length}
+          disabled={loading||!sorted.length}
           className="px-3 py-1.5 text-xs font-semibold border border-line rounded-md hover:border-blue disabled:opacity-40"
         >
           Download CSV ({sorted.length.toLocaleString()})

@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 const fieldLabels:Record<string,string>={property_type:"Property type",sale_method:"Sale method",floor_area_m2:"Floor area (m²)",land_area_m2:"Land area (m²)",cv_numeric:"Council valuation",beds:"Bedrooms",baths:"Bathrooms",cars:"Parking spaces"};
 type SourceReview = {finding_id:number;property_id:number;address:string;issues:string;source_url:string;previous:Record<string,unknown>;proposed:Record<string,unknown>;evidence:string;observed_at:string};
 type Queue = {batch_id:number;corelogic_job_id:number;scope_total:number;observed:number;remaining:number;source_review_count:number;source_reviews:SourceReview[];listings:{id:number;address:string;suburb:string;source_url:string|null;property_type:string|null;missing:string[]}[]};
-export default function BrowserEnrichment({batchId}:{batchId:number|null}) {
+export default function BrowserEnrichment({batchId,onChanged}:{batchId:number|null;onChanged?:()=>void}) {
   const [queue,setQueue]=useState<Queue|null>(null);
   const [input,setInput]=useState("");
   const [busy,setBusy]=useState(false);
@@ -18,6 +18,7 @@ export default function BrowserEnrichment({batchId}:{batchId:number|null}) {
     try {
       const r=await api<{status:string;changed:string[];held:boolean;hold_reason:string|null}>("/api/admin/release/browser-enrichment/review",{method:"POST",body:JSON.stringify({batch_id:batchId,finding_id:review.finding_id})});
       setMessage(r.status==="already_applied"?"This correction was already saved.":`${r.changed.length} reviewed facts corrected and repriced. ${r.held?`Still held: ${r.hold_reason}`:"Ready for the normal publication checks."} Nothing was published.`);
+      if(r.status==="applied")onChanged?.();
       setReview(null);setQueue(await api<Queue>(`/api/admin/release/browser-enrichment?batch_id=${batchId}`));
     } catch(e:any){setError(e.detail||e.message||"Could not apply the reviewed correction");}
     finally{setBusy(false);}
@@ -36,6 +37,7 @@ export default function BrowserEnrichment({batchId}:{batchId:number|null}) {
       if(!Array.isArray(observations)||!observations.length||observations.length>10)throw Error("Supply 1–10 browser observations");
       const result=await api<{filled:number;results:{property_id:number;status:string;filled:number;conflicts:string[]}[]}>("/api/admin/release/browser-enrichment",{method:"POST",body:JSON.stringify({batch_id:batchId,observations})});
       setMessage(`${result.filled} missing facts saved. ${result.results.filter(r=>r.status==='review').length} listings need source review. ${result.filled?'Updated facts were repriced.':'No facts changed, so no repricing was needed.'} Nothing was published.`);
+      if(result.filled||result.results.some(r=>r.status==="review"))onChanged?.();
       setInput("");
       setQueue(await api<Queue>(`/api/admin/release/browser-enrichment?batch_id=${batchId}`));
     }catch(e:any){setError((e.detail||e.message||"Save failed")+". Earlier saved rows are retained; retrying the same observations is safe.");}
