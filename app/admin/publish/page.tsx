@@ -6,6 +6,7 @@ import DealFunnel from "@/components/DealFunnel";
 import PortalFindings from "@/components/PortalFindings";
 import RunLog from "@/components/RunLog";
 import StagedReviewGrid from "@/components/StagedReviewGrid";
+import HouGardenBenchmark from "@/components/HouGardenBenchmark";
 import DataQualityReport from "@/components/DataQualityReport";
 import BrowserEnrichment from "@/components/BrowserEnrichment";
 import { api, IngestJob, setPreview, StageStarted } from "@/lib/api";
@@ -177,16 +178,16 @@ function Inner() {
     }
   }
 
-  // Re-price the LIVE (active) batch — the listings customers see. Pricing used to
+  // Price a private review copy of the approved book. Pricing used to
   // be staged-only, so after filling details on already-live listings there was no
   // way to push the numbers into the valuation on demand. Same polling as runStage.
   async function runPriceLive() {
     if (starting) return;
     setStarting("price-live");
-    setStageMsg("Re-pricing the LIVE listings…");
+    setStageMsg("Creating a private review copy and pricing it…");
     try {
       const started = await api<StageStarted>("/api/admin/release/price-live", { method: "POST" });
-      setStageMsg("Re-pricing live listings in the background — you can leave this page.");
+      setStageMsg("Pricing a private review copy. Review and publish when it finishes; customer data stays unchanged.");
       if (pollRef.current) clearInterval(pollRef.current);
       const poll = async () => {
         const job = await api<IngestJob>(`/api/admin/jobs/${started.job_id}`).catch(() => null);
@@ -454,6 +455,7 @@ function Inner() {
         <RestoreBanner />
         <LiveNow />
         <DataQualityReport />
+        <HouGardenBenchmark />
         <div className="bg-white border border-line rounded-card shadow-soft p-6 mt-4">
           <div className="font-display font-semibold">Nothing staged</div>
           <p className="text-sm text-muted mt-1">
@@ -485,6 +487,7 @@ function Inner() {
       <RestoreBanner />
       <LiveNow />
       <DataQualityReport />
+        <HouGardenBenchmark />
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">

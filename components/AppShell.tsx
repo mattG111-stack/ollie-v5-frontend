@@ -135,7 +135,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading || authError) return;
-    if (!me) router.replace("/sign-in");
+    if (!me) {
+      try { sessionStorage.setItem("apex:return-to", window.location.pathname + window.location.search + window.location.hash); } catch {}
+      router.replace("/sign-in");
+    }
     else if (isPromoter) {
       if (!pathname.startsWith("/promoter")) router.replace("/promoter");
     }
