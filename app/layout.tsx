@@ -16,6 +16,8 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Apex Property",
+  applicationName: "Apex Property",
+  appleWebApp: { capable: true, title: "Apex Property", statusBarStyle: "default" },
   description: "Comp-priced Auckland property listings with deal-finding tools.",
 };
 
