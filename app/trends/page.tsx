@@ -104,6 +104,8 @@ function Inner() {
   const [ptype, setPtype] = useState("");
   const [data, setData] = useState<SuburbTrend | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const { options, loading: optsLoading } = useSuburbs();
 
   // Land on the preferred suburb, MATCHED LOOSELY AND ADOPTED EXACTLY.
@@ -138,15 +140,15 @@ function Inner() {
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
-    setLoading(true);
+    setLoading(true); setData(null); setError(false);
     const q = new URLSearchParams({ suburb });
     if (ptype) q.set("ptype", ptype);
     api<SuburbTrend>(`/api/dashboards/suburb-trend?${q}`, { signal: controller.signal })
       .then((r) => { if (alive) setData(r); })
-      .catch(() => { if (alive) setData(null); })
+      .catch(() => { if (alive) { setData(null); setError(true); } })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; controller.abort(); };
-  }, [suburb, ptype]);
+  }, [suburb, ptype, retry]);
 
   return (
     <div className="px-7 py-6">
@@ -197,15 +199,16 @@ function Inner() {
       {/* Map (for-sale + sold houses) + what moves value */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
         <div className="bg-white border border-line rounded-card shadow-soft p-3">
-          <SuburbTrendsMap suburb={suburb} />
+          <SuburbTrendsMap key={`${suburb}:${ptype}`} suburb={suburb} ptype={ptype} />
         </div>
-        <SuburbStatsPanel
+        <SuburbStatsPanel key={`${suburb}:${ptype}`}
           suburb={suburb}
           ptype={ptype}
           trend={data?.points?.map((p) => p.median_asking).filter((v): v is number => v != null)}
         />
       </div>
 
+      {error && <div role="alert" className="text-sm text-red-700">Trends could not load. <button onClick={() => setRetry(n => n + 1)} className="underline">Try again</button></div>}
       {loading && <div className="text-sm text-muted">{t("trends.loading")}</div>}
 
       {!loading && data && (
@@ -314,6 +317,9 @@ function Kpi({ label, value }: { label: string; value: string }) {
 function SuburbStatsPanel({ suburb, ptype, trend }:
   { suburb: string; ptype?: string; trend?: number[] }) {
   const [s, setS] = useState<SuburbStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
   // How many years back from the newest one to include. null = whatever the
   // server defaults to (the newest year present), which is what the first load
   // asks for — the year list is not known until a reply arrives.
@@ -328,6 +334,7 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
 
   useEffect(() => {
     if (!suburb) return;
+    setS(null); setLoading(true); setError(false);
     let alive = true;
     const controller = new AbortController();
     const q = new URLSearchParams({ suburb });
@@ -344,9 +351,10 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
           setYears((prev) => (r.years_available.length > prev.length ? r.years_available : prev));
         }
       })
-      .catch(() => { if (alive) setS(null); });
+      .catch(() => { if (alive) { setS(null); setError(true); } })
+      .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; controller.abort(); };
-  }, [suburb, ptype, toYear, fromYear]);
+  }, [suburb, ptype, toYear, fromYear, retry]);
 
   // Reset to the default window when the suburb changes — a span that made
   // sense in a suburb with ten years of sales is misleading in one with two.
@@ -397,6 +405,8 @@ function SuburbStatsPanel({ suburb, ptype, trend }:
           : "…"}
       </div>
 
+      {loading && <p role="status" className="text-sm text-muted mt-3">Loading {suburb} statistics…</p>}
+      {error && <p role="alert" className="text-sm text-red-700 mt-3">Statistics could not load. <button className="underline" onClick={() => setRetry(n => n + 1)}>Try again</button></p>}
       {/* Three from 640px, two on a normal phone, ONE on a small one.
 
           The middle step was already here: at 390px three tiles are 110px each

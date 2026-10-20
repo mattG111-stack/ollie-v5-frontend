@@ -6,6 +6,7 @@ import DealFunnel from "@/components/DealFunnel";
 import PortalFindings from "@/components/PortalFindings";
 import RunLog from "@/components/RunLog";
 import StagedReviewGrid from "@/components/StagedReviewGrid";
+import HouGardenBenchmark from "@/components/HouGardenBenchmark";
 import DataQualityReport from "@/components/DataQualityReport";
 import BrowserEnrichment from "@/components/BrowserEnrichment";
 import { api, IngestJob, setPreview, StageStarted } from "@/lib/api";
@@ -100,6 +101,13 @@ function Inner() {
     const timer = setInterval(poll, 5000);
     return () => { stopped = true; clearInterval(timer); };
   }, []);
+  async function prepareReviewCopy() {
+    if (starting) return;
+    setStarting("review-copy");setMsg(null);
+    try { await api("/api/admin/release/review-copy", {method:"POST"}); await load(); }
+    catch(e:any) { setMsg(e?.detail || e?.message || "Could not prepare the review copy"); }
+    finally { setStarting(null); }
+  }
   async function startHouGarden() {
     setHouGardenStarting(true); setHouGardenError(null);
     try { await api("/api/admin/release/hougarden-enrich", {method: "POST"}); }
@@ -177,16 +185,16 @@ function Inner() {
     }
   }
 
-  // Re-price the LIVE (active) batch — the listings customers see. Pricing used to
+  // Price a private review copy of the approved book. Pricing used to
   // be staged-only, so after filling details on already-live listings there was no
   // way to push the numbers into the valuation on demand. Same polling as runStage.
   async function runPriceLive() {
     if (starting) return;
     setStarting("price-live");
-    setStageMsg("Re-pricing the LIVE listings…");
+    setStageMsg("Creating a private review copy and pricing it…");
     try {
       const started = await api<StageStarted>("/api/admin/release/price-live", { method: "POST" });
-      setStageMsg("Re-pricing live listings in the background — you can leave this page.");
+      setStageMsg("Pricing a private review copy. Review and publish when it finishes; customer data stays unchanged.");
       if (pollRef.current) clearInterval(pollRef.current);
       const poll = async () => {
         const job = await api<IngestJob>(`/api/admin/jobs/${started.job_id}`).catch(() => null);
@@ -454,8 +462,10 @@ function Inner() {
         <RestoreBanner />
         <LiveNow />
         <DataQualityReport />
+        <HouGardenBenchmark />
         <div className="bg-white border border-line rounded-card shadow-soft p-6 mt-4">
-          <div className="font-display font-semibold">Nothing staged</div>
+          <div className="font-display font-semibold">Approved data is live</div>
+          {(s.live_total ?? 0) > 0 && <><p className="text-sm text-muted mt-2">To enrich or reprice existing listings, prepare a private review copy. Customers keep seeing the approved data until you publish.</p><button onClick={prepareReviewCopy} disabled={!!starting} className="mt-3 border border-line rounded px-4 py-2 font-semibold disabled:opacity-50">{starting === "review-copy" ? "Preparing review copy…" : "Prepare data for review"}</button></>}
           <p className="text-sm text-muted mt-1">
             Upload this week&rsquo;s sold + for-sale CSVs on the{" "}
             <a href="/admin/upload" className="text-blue">Upload page</a>. They land here staged (not live) for review, then you publish.
@@ -485,6 +495,7 @@ function Inner() {
       <RestoreBanner />
       <LiveNow />
       <DataQualityReport />
+        <HouGardenBenchmark />
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">

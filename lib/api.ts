@@ -194,7 +194,7 @@ export async function api<T = unknown>(
     if (res.status === 401 && !opts.background && typeof window !== "undefined"
         && getToken() === token
         && !path.startsWith("/api/auth/sign-in")) {
-      try { sessionStorage.setItem("apex:session-notice", "ended"); } catch {}
+      try { sessionStorage.setItem("apex:session-notice", "ended"); sessionStorage.setItem("apex:return-to", window.location.pathname + window.location.search + window.location.hash); } catch {}
       setToken(null);
       if (!window.location.pathname.startsWith("/sign-in")) {
         window.location.href = "/sign-in";

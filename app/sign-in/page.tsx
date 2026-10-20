@@ -4,6 +4,7 @@ import { ApexLogo } from "@/components/ApexLogo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { safeReturnPath } from "@/lib/session-return";
 import { useAuth } from "@/lib/auth";
 import { useT } from "@/lib/i18n";
 
@@ -33,8 +34,14 @@ export default function SignInPage() {
       // A promoter is not buying anything, so the paywall is not their next
       // step — send them straight to the dashboard they signed in for.
       // Land on Ask Ollie — the conversational front door — for a paying user.
+      let returnTo = "/ask";
+      try {
+        const saved = sessionStorage.getItem("apex:return-to");
+        sessionStorage.removeItem("apex:return-to");
+        returnTo = safeReturnPath(saved);
+      } catch {}
       router.push(m?.role === "promoter" ? "/promoter"
-                : m && m.has_access ? "/ask" : "/onboarding");
+                : m && m.has_access ? returnTo : "/onboarding");
     } catch (err: any) {
       setError(err?.detail || err?.message || t("auth.signInFailed"));
     } finally {
