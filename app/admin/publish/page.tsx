@@ -290,18 +290,19 @@ function Inner() {
     setStageMsg("Checking for duplicates…");
     try {
       const dry = await api<{ groups: number; duplicates: number; note: string }>(
-        "/api/admin/release/dedupe?dry_run=true", { method: "POST" });
+        "/api/admin/release/dedupe?dry_run=true&exclude_only=true", { method: "POST" });
       if (!dry.duplicates) {
         setStageMsg("No duplicate listings found.");
         return;
       }
-      if (!confirm(`${dry.duplicates} duplicate listing(s) across ${dry.groups} address(es) will be removed (the most complete copy of each is kept). Delete them now?`)) {
-        setStageMsg(`${dry.duplicates} duplicate(s) found — nothing deleted.`);
+      if (!confirm(`${dry.duplicates} duplicate listing(s) across ${dry.groups} address(es) will be excluded from publication (the most complete copy is kept). All records and facts are retained. Exclude the extra copies?`)) {
+        setStageMsg(`${dry.duplicates} duplicate(s) found — nothing excluded.`);
         return;
       }
-      const done = await api<{ removed: number; groups: number }>(
-        "/api/admin/release/dedupe?dry_run=false", { method: "POST" });
-      setStageMsg(`Removed ${done.removed} duplicate listing(s) across ${done.groups} address(es).`);
+      const done = await api<{ excluded: number; groups: number }>(
+        "/api/admin/release/dedupe?dry_run=false&exclude_only=true", { method: "POST" });
+      setStageMsg(`Excluded ${done.excluded} duplicate listing(s) across ${done.groups} address(es).`);
+      setBrowserRevision(v => v + 1);
       await load();
     } catch (e: any) {
       setStageMsg(`Dedupe failed: ${e?.detail || e?.message || "request failed"}`);
@@ -593,7 +594,7 @@ function Inner() {
               the ones the slug dedupe misses (a re-post, or a carry-forward spelled
               differently) and clears a new-file row that duplicates one already on
               the platform — without touching the established book. */}
-          <StageButton label="Find & remove duplicates"
+          <StageButton label="Check & exclude duplicates"
             running={false}
             onClick={dedupe} />
           </details>
