@@ -101,6 +101,13 @@ function Inner() {
     const timer = setInterval(poll, 5000);
     return () => { stopped = true; clearInterval(timer); };
   }, []);
+  async function prepareReviewCopy() {
+    if (starting) return;
+    setStarting("review-copy");setMsg(null);
+    try { await api("/api/admin/release/review-copy", {method:"POST"}); await load(); }
+    catch(e:any) { setMsg(e?.detail || e?.message || "Could not prepare the review copy"); }
+    finally { setStarting(null); }
+  }
   async function startHouGarden() {
     setHouGardenStarting(true); setHouGardenError(null);
     try { await api("/api/admin/release/hougarden-enrich", {method: "POST"}); }
@@ -457,7 +464,8 @@ function Inner() {
         <DataQualityReport />
         <HouGardenBenchmark />
         <div className="bg-white border border-line rounded-card shadow-soft p-6 mt-4">
-          <div className="font-display font-semibold">Nothing staged</div>
+          <div className="font-display font-semibold">Approved data is live</div>
+          {(s.live_total ?? 0) > 0 && <><p className="text-sm text-muted mt-2">To enrich or reprice existing listings, prepare a private review copy. Customers keep seeing the approved data until you publish.</p><button onClick={prepareReviewCopy} disabled={!!starting} className="mt-3 border border-line rounded px-4 py-2 font-semibold disabled:opacity-50">{starting === "review-copy" ? "Preparing review copy…" : "Prepare data for review"}</button></>}
           <p className="text-sm text-muted mt-1">
             Upload this week&rsquo;s sold + for-sale CSVs on the{" "}
             <a href="/admin/upload" className="text-blue">Upload page</a>. They land here staged (not live) for review, then you publish.
