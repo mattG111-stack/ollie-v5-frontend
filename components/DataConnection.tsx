@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 type CollectionRun = {id:number; kind:"for_sale"|"sold"; status:string; started_at:string|null; finished_at:string|null; observed:number; new?:number; pending?:number; discovery_pending?:number; excluded?:number; failed_sources?:number; record_errors?:number};
-type Status = {configured:boolean; enabled:boolean; proxy_configured:boolean; review_required:boolean; message:string; latest_runs?:CollectionRun[]};
+type Status = {configured:boolean; enabled:boolean; availability_enabled?:boolean; portal_daily_enabled?:boolean; proxy_configured:boolean; review_required:boolean; message:string; latest_runs?:CollectionRun[]};
 type Counts = {for_sale:{today:number;week:number};sold:{today:number;week:number};week_starts:string;definition:string;daily?:{date:string;for_sale:number;sold:number}[]};
 export default function DataConnection() {
   const [counts,setCounts]=useState<Counts|null>(null);
@@ -20,6 +20,11 @@ export default function DataConnection() {
   return <section className="mt-8 border border-line rounded-xl p-5">
     <h2 className="font-display text-lg font-bold">Data connection</h2>
     <p className="text-sm mt-2">Trade Me Property · OneRoof · homes.co.nz</p>
+    {status && <div role="status" className="mt-3 rounded-lg border border-line p-3 text-sm">
+      <p className="font-semibold">{status.enabled ? "Portal collection enabled" : "Portal collection disabled"}</p>
+      <p>{status.message}</p>
+      <p className="mt-1 text-xs text-muted">Availability checks: {status.availability_enabled ? "enabled" : "disabled"}. Automatic portal pass: {status.portal_daily_enabled ? "enabled" : "disabled"}. These are API configuration flags, not proof of worker progress.</p>
+    </div>}
     <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3" aria-label="Properties downloaded">
       {([['For sale today',counts?.for_sale.today],['For sale this week',counts?.for_sale.week],['Sold today',counts?.sold.today],['Sold this week',counts?.sold.week]] as const).map(([label,value])=><div key={label} className="rounded-xl border border-line p-3"><div className="text-xs text-muted">{label}</div><div className="mt-1 text-2xl font-bold tabular-nums">{value==null?'—':value.toLocaleString()}</div></div>)}
     </div>
@@ -32,11 +37,11 @@ export default function DataConnection() {
       <p className="text-xs text-muted mt-2">Distinct homes first downloaded that day, including records later excluded. Sold counts include unvalidated downloads; they are not a count of approved comparable sales.</p>
     </details>}
     {countsError&&<p className="text-xs mt-1" role="status">Download counts could not refresh; showing the last available totals.</p>}
-    <p role="status" className="text-sm mt-2">{error || (!status ? "Checking collection history…" : status.latest_runs?.length ? "Latest recorded worker runs" : "No collection runs recorded yet.")}</p>
+    <p role="status" className="text-sm mt-2">{error || (!status ? "Checking collection history…" : status.latest_runs?.length ? "Historical worker evidence — dates shown below" : "No collection runs recorded yet.")}</p>
     {!!status?.latest_runs?.length && <ul className="text-sm mt-3 space-y-3">{status.latest_runs.map(run => <li key={run.id}>
       <strong>{run.kind === "sold" ? "Sold properties" : "For-sale listings"}</strong>
-      <span> · {run.status === "complete" ? "Batch completed" : run.status === "failed" ? "Attempt failed" : run.status === "partial" ? "Partial results saved" : run.status === "running" ? "Last recorded as running" : "Status unknown"}</span>
-      <div className="text-xs text-muted">{run.observed} source records observed{run.new != null ? ` · ${run.new} ${run.kind === "sold" ? "validated sales saved" : "new listings for review"}` : ""}{run.pending != null ? ` · ${run.pending} URLs queued` : ""}{run.discovery_pending ? " · Search discovery incomplete" : ""}{run.failed_sources ? ` · ${run.failed_sources} sources waiting to retry` : ""}{run.record_errors ? ` · ${run.record_errors} details excluded; evidence retained` : ""}</div>
+      <span> · {run.status === "complete" ? "Batch completed" : run.status === "failed" ? "Attempt failed" : run.status === "partial" ? "Partial results saved" : run.status === "running" ? "Unfinished historical run — current progress unverified" : "Status unknown"}</span>
+      <div className="text-xs text-muted">{run.observed} source records observed{run.new != null ? ` · ${run.new} ${run.kind === "sold" ? "validated sales saved" : "new listings for review"}` : ""}{run.pending != null ? ` · ${run.pending} URLs queued` : ""}{run.discovery_pending ? " · Search discovery incomplete" : ""}{run.failed_sources ? ` · ${run.failed_sources} sources failed in this attempt` : ""}{run.record_errors ? ` · ${run.record_errors} details excluded; evidence retained` : ""}</div>
       {run.started_at && <div className="text-xs text-muted">Started {new Date(run.started_at).toLocaleString()}{run.finished_at ? ` · Finished ${new Date(run.finished_at).toLocaleString()}` : ""}</div>}
     </li>)}</ul>}
     <p className="text-xs text-muted mt-3">New for-sale listings wait in Review &amp; publish. Validated, merged sold transactions save automatically. Missing information can be filled from another source; conflicting facts require review. Undisclosed sale prices are not used for valuations.</p>
