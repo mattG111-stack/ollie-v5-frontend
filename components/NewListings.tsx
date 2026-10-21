@@ -81,6 +81,12 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
   const pageSize = readOnly ? 20 : 200;
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [collectionEnabled, setCollectionEnabled] = useState(false);
+  useEffect(() => { let cancelled = false;
+    api<{enabled:boolean}>("/api/admin/release/scraper", {}, {background:true})
+      .then(s => { if (!cancelled) setCollectionEnabled(s.enabled); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   const [startingFill, setStartingFill] = useState(false);
   const [fillJob, setFillJob] = useState<FillJob | null>(null);
   const [progressOffline, setProgressOffline] = useState(false);
@@ -288,7 +294,8 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
         </div>
         {!readOnly && <button
           onClick={sweep}
-          disabled={busy}
+          disabled={busy || !collectionEnabled}
+          title={!collectionEnabled ? "Portal collection is disabled or its status is unavailable" : undefined}
           className="ml-auto text-xs font-semibold px-3 py-1.5 rounded-lg border border-line hover:border-blue disabled:opacity-50"
         >
           {busy ? "Checking…" : "Check now"}
@@ -325,10 +332,9 @@ export default function NewListings({ readOnly = false }: { readOnly?: boolean }
       {!readOnly && deleted && <button className="mt-3 text-xs border border-line rounded px-3 py-2" disabled={busy} onClick={undoDelete}>Undo last deletion ({deleted.ids.length})</button>}
       {pending === 0 ? (
         <div className="text-xs text-muted mt-4">
-          Nothing waiting. {sold
-            ? "Sales are swept once a week — a week-old sale is still a comp."
-            : "This runs once a day on its own."}{" "}
-          “Check now” asks the portals immediately.
+          Nothing waiting. {collectionEnabled
+            ? "Use Check now to request collection. Schedule and historical evidence are shown in Data connection."
+            : "Portal collection is disabled or its status is unavailable. Saved data and CSV imports remain available."}
         </div>
       ) : (
         <>
