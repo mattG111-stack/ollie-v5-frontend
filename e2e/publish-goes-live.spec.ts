@@ -62,6 +62,7 @@ test.describe("publishing a load puts it live", () => {
   });
 
   test("preview then go live, and the site is serving the new data", async ({ page }) => {
+    test.setTimeout(90_000);
     const seen = trackResponses(page);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -76,6 +77,13 @@ test.describe("publishing a load puts it live", () => {
     expect(beforeData.items ?? beforeData.rows ?? beforeData).toHaveLength(0);
     await page.goto("/admin/publish", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3_000);
+
+    const started = page.waitForResponse((response) =>
+      response.request().method() === "POST" && new URL(response.url()).pathname === "/api/admin/release/price");
+    await page.getByRole("button", { name: /re-run pricing on all/i }).click();
+    expect((await started).ok(), "pricing must start on the staged batch").toBeTruthy();
+    await expect(page.getByText(/\d+ listings repriced/))
+      .toBeVisible({ timeout: 45_000 });
 
     const preview = page.getByRole("button", { name: /review customer preview/i }).first();
     if (await preview.isVisible().catch(() => false)) {
