@@ -156,12 +156,18 @@ test("a wish list can be created and removed", async ({ page }) => {
 
   const name = `E2E watch ${Date.now().toString().slice(-5)}`;
   const nameField = page.getByPlaceholder(/name/i).or(page.locator('input[type="text"]')).first();
-  if (!(await nameField.count())) test.skip(true, "no wish-list form on the page");
+  await expect(nameField, "the wish-list form must be available").toBeVisible();
 
   await nameField.fill(name);
   await page.getByRole("button", { name: /save|create|add/i }).first().click();
   await page.waitForTimeout(1_800);
   await expect(page.locator("body"), "the new wish list did not appear").toContainText(name);
+  const card = page.locator(".rounded-card").filter({ has: page.getByText(name, { exact: true }) });
+  const deleted = page.waitForResponse((response) =>
+    response.request().method() === "DELETE" && response.url().includes("/api/wishlists/"));
+  await card.getByTitle(/delete/i).click();
+  expect((await deleted).ok(), "wish-list deletion was rejected").toBeTruthy();
+  await expect(page.getByText(name, { exact: true })).toHaveCount(0);
 });
 
 // ── Ask Ollie ────────────────────────────────────────────────────────────────
@@ -204,8 +210,11 @@ test.describe("admin user management", () => {
       .or(page.getByPlaceholder(/email/i)).first();
     await expect(emailField, "the create-user form did not open").toHaveCount(1);
     await emailField.fill(email);
-    await page.locator('input[type="password"]').first().fill(PW);
+    await page.locator('input[type="password"]').first().fill(`${PW}A1`);
+    const created = page.waitForResponse((response) =>
+      response.request().method() === "POST" && new URL(response.url()).pathname === "/api/admin/users");
     await page.getByRole("button", { name: /add|create/i }).first().click();
+    expect((await created).status(), "the create-user API must accept the form").toBe(201);
     await page.waitForTimeout(2_200);
     await expect(page.locator("body"), "the created user is not in the list")
       .toContainText(email);

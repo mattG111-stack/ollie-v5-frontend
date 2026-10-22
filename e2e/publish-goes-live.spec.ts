@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ADMIN, signIn, trackResponses } from "./helpers";
+import { ADMIN, CUSTOMER, apiToken, signIn, trackResponses } from "./helpers";
 
 /**
  * Press the buttons. In a browser. All the way to live.
@@ -52,7 +52,7 @@ test.describe("publishing a load puts it live", () => {
 
     // Either button, or the "nothing staged" state — but not a blank page.
     const anyButton = page.getByRole("button", {
-      name: /finish and preview|go live|reset/i,
+      name: /review customer preview|push live/i,
     }).first();
     await expect(
       anyButton,
@@ -62,35 +62,59 @@ test.describe("publishing a load puts it live", () => {
   });
 
   test("preview then go live, and the site is serving the new data", async ({ page }) => {
+    test.setTimeout(90_000);
     const seen = trackResponses(page);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
 
     await signIn(page, ADMIN);
+    const customerToken = await apiToken(CUSTOMER);
+    const customerHeaders = { Authorization: `Bearer ${customerToken}` };
+    const waitingListings = "/api/properties?search=Waiting%20Road&page_size=20";
+    const before = await page.request.get(waitingListings, { headers: customerHeaders });
+    expect(before.ok()).toBeTruthy();
+    const beforeData = await before.json();
+    expect(beforeData.items ?? beforeData.rows ?? beforeData).toHaveLength(0);
     await page.goto("/admin/publish", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(3_000);
 
-    const preview = page.getByRole("button", { name: /finish and preview/i }).first();
+    const started = page.waitForResponse((response) =>
+      response.request().method() === "POST" && new URL(response.url()).pathname === "/api/admin/release/price");
+    await page.getByRole("button", { name: /re-run pricing on all/i }).click();
+    expect((await started).ok(), "pricing must start on the staged batch").toBeTruthy();
+    await expect(page.getByText(/\d+ listings repriced/))
+      .toBeVisible({ timeout: 45_000 });
+
+    const preview = page.getByRole("button", { name: /review customer preview/i }).first();
     if (await preview.isVisible().catch(() => false)) {
       await preview.click();
       await page.waitForTimeout(4_000);
     }
 
-    const live = page.getByRole("button", { name: /go live/i }).first();
+    const live = page.getByRole("button", { name: /push live/i }).first();
     await expect(
       live,
       "after pressing Finish and preview, the Go live button never appeared — "
         + "which is exactly what 'it will not publish' looks like from the outside",
     ).toBeVisible({ timeout: 15_000 });
+    page.once("dialog", (dialog) => dialog.accept());
+    const published = page.waitForResponse((response) =>
+      response.request().method() === "POST" && new URL(response.url()).pathname === "/api/admin/release/publish");
     await live.click();
-    await page.waitForTimeout(5_000);
+    expect((await published).ok(), "the publish request must succeed").toBeTruthy();
+    const after = await page.request.get(waitingListings, { headers: customerHeaders });
+    expect(after.ok()).toBeTruthy();
+    const afterData = await after.json();
+    const rows = afterData.items ?? afterData.rows ?? afterData;
+    expect(rows.map((row: { address: string }) => row.address).sort())
+      .toEqual(["1 Waiting Road", "2 Waiting Road"]);
 
     const bad = seen.filter((s) => s.status >= 500);
     expect(bad, `publishing made a request that failed: ${JSON.stringify(bad)}`)
       .toEqual([]);
     expect(errors, `the page threw in the browser: ${errors.join(" | ")}`).toEqual([]);
 
-    // The proof is on the history screen: the batch reads active, not waiting.
+    // Check the history too; customer visibility above is the publication proof.
     await page.goto("/admin/upload", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2_500);
     await expect(

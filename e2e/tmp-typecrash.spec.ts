@@ -9,7 +9,7 @@ async function asCustomer(page: Page) {
   }, [token, "user"]);
 }
 
-for (const path of ["/properties?view=list", "/underpriced", "/subdividable"]) {
+for (const path of ["/properties?view=list"]) {
   test(`type filter on ${path}`, async ({ page }) => {
     const errs: string[] = [];
     const crashes: string[] = [];
@@ -31,7 +31,7 @@ for (const path of ["/properties?view=list", "/underpriced", "/subdividable"]) {
       if (/house/i.test(opts) && /apartment/i.test(opts)) { typeSel = i; break; }
     }
     console.log(`${path}: selects=${n} typeSelectIndex=${typeSel}`);
-    if (typeSel < 0) { console.log(`${path}: NO TYPE FILTER FOUND`); return; }
+    expect(typeSel, `${path}: property type filter must be present`).toBeGreaterThanOrEqual(0);
 
     const opts = await selects.nth(typeSel).locator("option").allInnerTexts();
     const values = await selects.nth(typeSel).locator("option").evaluateAll(
@@ -49,5 +49,36 @@ for (const path of ["/properties?view=list", "/underpriced", "/subdividable"]) {
     console.log(`${path}: PAGE CRASHES: ${JSON.stringify(crashes)}`);
     expect(crashes, `the page threw: ${crashes.join(" | ")}`).toHaveLength(0);
     expect(errs, `server errors: ${errs.join(", ")}`).toHaveLength(0);
+  });
+}
+
+// Deal finders expose district, bedroom and budget controls rather than a
+// property-type picker. Exercise those actual controls instead of silently
+// returning when a selector for a different screen cannot be found.
+for (const path of ["/underpriced", "/subdividable"]) {
+  test(`supported deal filters on ${path}`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(String(error)));
+    await asCustomer(page);
+    await page.goto(path, { waitUntil: "domcontentloaded" });
+    const filters = [
+      { option: "Auckland City", parameter: "district" },
+      { option: "3", parameter: "min_beds" },
+      { option: "1000000", parameter: "max_price" },
+    ];
+    for (const { option, parameter } of filters) {
+      const select = page.locator("select").filter({
+        has: page.locator(`option[value="${option}"]`),
+      });
+      await expect(select, `${parameter} filter must be present`).toHaveCount(1);
+      const requested = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname === "/api/properties" && url.searchParams.get(parameter) === option;
+      });
+      await select.selectOption(option);
+      expect((await requested).status(), `${parameter} request failed`).toBe(200);
+      await expect(select).toHaveValue(option);
+    }
+    expect(errors, "a deal filter crashed the page").toEqual([]);
   });
 }

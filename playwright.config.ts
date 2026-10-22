@@ -71,7 +71,7 @@ export default defineConfig({
       // would go dark again, in the exact way described above. The same word
       // had to change in Procfile, railpack.json and nixpacks.toml; this is the
       // fourth place it is written down and the easiest one to forget.
-      command: "python3 scripts/seed_e2e.py && python3 -m uvicorn main:app --host 127.0.0.1 --port 8100",
+      command: `python3 ${JSON.stringify(resolve("e2e/backend_stack.py"))}`,
       cwd: backendDir,
       port: 8100,
       reuseExistingServer: false,
