@@ -12,7 +12,7 @@ import { ADMIN, CUSTOMER, PW, TRIAL, signIn, stayPut, trackResponses } from "./h
 test.describe("sign-in and routing", () => {
   test("a paying customer lands in the product", async ({ page }) => {
     await signIn(page, CUSTOMER);
-    await expect(page).toHaveURL(/\/(today|properties)/);
+    await expect(page).toHaveURL(/\/(ask|today|properties)(?:[/?#]|$)/);
   });
 
   test("and stays there — nothing may bounce them while they read", async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe("sign-in and routing", () => {
 
   test("email case does not matter", async ({ page }) => {
     await signIn(page, CUSTOMER.toUpperCase());
-    await expect(page).toHaveURL(/\/(today|properties)/);
+    await expect(page).toHaveURL(/\/(ask|today|properties)(?:[/?#]|$)/);
   });
 
   test("a signed-out visitor is sent to sign-in, not shown an error", async ({ page }) => {

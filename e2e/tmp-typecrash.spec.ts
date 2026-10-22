@@ -31,7 +31,7 @@ for (const path of ["/properties?view=list", "/underpriced", "/subdividable"]) {
       if (/house/i.test(opts) && /apartment/i.test(opts)) { typeSel = i; break; }
     }
     console.log(`${path}: selects=${n} typeSelectIndex=${typeSel}`);
-    if (typeSel < 0) { console.log(`${path}: NO TYPE FILTER FOUND`); return; }
+    expect(typeSel, `${path}: property type filter must be present`).toBeGreaterThanOrEqual(0);
 
     const opts = await selects.nth(typeSel).locator("option").allInnerTexts();
     const values = await selects.nth(typeSel).locator("option").evaluateAll(
