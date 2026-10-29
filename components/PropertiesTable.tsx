@@ -1,4 +1,5 @@
 "use client";
+import PriceChangeBadge from "@/components/PriceChangeBadge";
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -467,6 +468,7 @@ function PropertyRow({ row: r }: { row: ForSaleRow }) {
         <div className="text-[11px] text-faint">
           {r.suburb} · {typeLabel(r.property_type)}
         </div>
+        <PriceChangeBadge change={r.asking_price_change} />
       </td>
       <td className="px-3 py-2.5 text-right tabular-nums">{r.beds ?? "—"}</td>
       <td className="px-3 py-2.5 text-right tabular-nums">{r.baths ?? "—"}</td>

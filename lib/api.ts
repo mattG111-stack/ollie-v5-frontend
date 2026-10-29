@@ -258,6 +258,22 @@ export interface Me {
   llm_key_managed: boolean;
 }
 
+export interface AskingPriceChange {
+  previous_price: number;
+  current_price: number;
+  change_dollars: number;
+  change_pct: number;
+  previous_recorded_at: string;
+  recorded_at: string;
+  source_url: string;
+}
+export interface AskingObservation {
+  recorded_at: string;
+  recorded_date: string;
+  asking_price: number;
+  source_url: string;
+}
+
 export interface ForSaleRow {
   related_listings?: Array<{ id: number; asking_price: number | null; floor_area_m2: number | null; days_on_market: number | null }>;
   id: number;
@@ -278,6 +294,7 @@ export interface ForSaleRow {
   land_value_numeric: number | null;
   improvement_value_numeric: number | null;
   asking_price: number | null;
+  asking_price_change?: AskingPriceChange | null;
   /** Where asking_price came from: "advertised" when the vendor named it,
    *  otherwise a sentence naming the derivation. Never show the price without
    *  it — a derived figure that reads as an advertised one is the whole risk. */
@@ -677,6 +694,7 @@ export interface HistoryResponse {
   address: string | null;
   suburb: string | null;
   points: HistoryPoint[];
+  asking_observations?: AskingObservation[];
 }
 
 export interface ComparableSale {

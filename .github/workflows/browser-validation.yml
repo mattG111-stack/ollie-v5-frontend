@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: mattG111-stack/olliev6
-          ref: 9b72fd4fd22aa67d791c53530610f503e0fc4891
+          ref: 4925da2048a796252c0335c4003b10ec4a965e02
           path: backend
           persist-credentials: false
       - uses: actions/setup-python@v5

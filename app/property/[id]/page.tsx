@@ -1,4 +1,5 @@
 "use client";
+import PriceChangeBadge from "@/components/PriceChangeBadge";
 import ContextQuestions from "@/components/ContextQuestions";
 
 import Link from "next/link";
@@ -277,6 +278,7 @@ function Inner({ id }: { id: string }) {
               >
                 {p.address}
               </h1>
+              <PriceChangeBadge change={p.asking_price_change} />
               <div style={{ fontSize: 15, color: "#8A94A6", marginTop: 10 }}>{bannerSub}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 18 }}>
                 {/* A house going to auction has no asking price. Saying
