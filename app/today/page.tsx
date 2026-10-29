@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PersonalBrief from "@/components/PersonalBrief";
+import HomeTabs from "@/components/HomeTabs";
 import AppShell from "@/components/AppShell";
 import { PriceMover, TodayBrief, api } from "@/lib/api";
 import { fmtMoneyShort, fmtPct } from "@/lib/format";
@@ -17,6 +18,7 @@ export default function TodayPage() {
     <header className="mb-5">
       <div className="text-[11px] uppercase tracking-widest text-blue font-semibold">{new Date().toLocaleDateString("en-NZ", {timeZone:"Pacific/Auckland",day:"numeric",month:"long"})}</div>
       <h1 className="font-display text-2xl font-semibold mt-1.5">{t("nav.today")}</h1>
+      <HomeTabs active="/today" embedded />
       <p className="text-sm text-muted mt-1">Your opportunities, saved searches and local market in one place.</p>
     </header>
     <PersonalBrief />
