@@ -331,7 +331,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <TopBar initials={initials} onMenu={() => setNavOpen(true)} showMenu={isMobile}
                   pollMatches={!isPromoter} bare={onOllie} />
         )}
-        {!isPromoter && (pathname === "/today" || pathname === "/ask") && <HomeTabs active={pathname} />}
+        {!isPromoter && pathname === "/ask" && <HomeTabs active={pathname} />}
         {children}
       </main>
     </div>
