@@ -147,9 +147,9 @@ export default function PromoterKit({ link }: { link: string }) {
         {BRAND_FILES.length > 0 ? (
           <div className="flex flex-wrap gap-3">
             {BRAND_FILES.map((f) => (
-              <a key={f} href={`/brand/${f}`} download
+              <a key={f} href={f} download
                  className="flex items-center gap-3 border border-line rounded-lg px-4 py-3 hover:border-blue">
-                <img src={`/brand/${f}`} alt="" style={{ height: 26, maxWidth: 150 }} />
+                <img src={f} alt="" style={{ height: 26, maxWidth: 150 }} />
                 <span className="text-xs font-mono text-muted">{f}</span>
               </a>
             ))}
