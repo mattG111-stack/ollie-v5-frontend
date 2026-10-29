@@ -37,9 +37,23 @@ function BriefContent() {
   }, []);
 
   return <>
+    <MarketOpportunities />
     <PersonalBrief market={<AucklandMarketCard data={data} error={err} />} />
     <Inner data={data} />
   </>;
+}
+
+function MarketOpportunities() {
+  return <section aria-label="Market opportunities">
+      <header className="mb-4"><h2 className="font-display text-xl font-semibold">Market opportunities</h2><p className="text-sm text-muted">Market-wide figures for listings currently available in Olie.</p></header>
+
+      {/* MONEY ON THE TABLE — leads the page. Counts alone don't say whether
+          it is worth opening; the dollar figures do. */}
+      <div className="mb-5">
+        <HeadlineDeals />
+      </div>
+
+  </section>;
 }
 
 function AucklandMarketCard({data,error}: {data: TodayBrief | null; error: string | null}) {
@@ -98,14 +112,6 @@ function Inner({data}: {data: TodayBrief | null}) {
 
   return (
     <div>
-      <header className="mb-4"><h2 className="font-display text-xl font-semibold">Market opportunities</h2><p className="text-sm text-muted">Market-wide figures for listings currently available in Olie.</p></header>
-
-      {/* MONEY ON THE TABLE — leads the page. Counts alone don't say whether
-          it is worth opening; the dollar figures do. */}
-      <div className="mb-5">
-        <HeadlineDeals />
-      </div>
-
       {pulse && <section aria-label="Market history" className="bg-white border border-line rounded-card shadow-soft p-5 mb-5">
         <h2 className="font-display font-semibold text-sm mb-3">Market history</h2>
         <MarketHistoryChart />
