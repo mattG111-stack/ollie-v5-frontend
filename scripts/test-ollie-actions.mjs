@@ -24,8 +24,9 @@ try {
  assert.equal(f.filter(a=>a.title==='Compare these properties').length,1);
  assert.ok(!followUps('[A](/property/12)').some(a=>a.title==='Compare these properties'));
  assert.ok(!followUps('No matching properties').some(a=>a.title==='Compare these properties'));
- const rental='Ollie covers buying, selling, property values and sales analytics. Rental data is coming soon. For now, ask me about properties for sale, recent sales or market trends.';
+ const rental='Olie covers buying, selling, property values and sales analytics. Rental data is coming soon. For now, ask me about properties for sale, recent sales or market trends.';
  const alternatives=followUps(rental);
+ assert.deepEqual(followUps(rental.replace('Olie covers','Ollie covers')),alternatives);
  assert.deepEqual(alternatives.map(a=>a.title),['Find properties for sale','Explore recent sales','Check a property']);
  assert.ok(alternatives.every(a=>a.question.startsWith('Switch to ')));
  assert.deepEqual(followUps(rental.replace(' Rental','\n\nRental')),alternatives);
