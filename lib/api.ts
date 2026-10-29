@@ -1004,6 +1004,7 @@ export interface PreferenceOptions {
 }
 
 export interface PreferencePreviewRow {
+  asking_price_change?: AskingPriceChange | null;
   id: number;
   address: string | null;
   suburb: string | null;
