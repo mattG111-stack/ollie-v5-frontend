@@ -15,6 +15,7 @@ import {
 import { C, D } from "@/components/apex";
 import { useT } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { takeOlieQuestion } from "@/lib/ollie-compose";
 
 /**
  * Ask anything — a full page rather than a floating panel.
@@ -177,7 +178,12 @@ function Inner() {
   }
 
   // Pick a question back up on the way in.
+  const entryHandled = useRef(false);
   useEffect(() => {
+    if (!pendingKey || entryHandled.current) return;
+    entryHandled.current = true;
+    const composed = takeOlieQuestion(pendingKey);
+    if (composed) { void send(composed); return; }
     let parked: { id: number; question: string; modelContent?: string; history?: unknown; notice?: string } | null = null;
     try {
       const raw = pendingKey ? sessionStorage.getItem(pendingKey) : null;
