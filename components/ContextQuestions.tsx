@@ -18,7 +18,7 @@ export default function ContextQuestions({context}: {context: QuestionContext}) 
     locked.current=true;setBusy(true);setError("");
     const key=`apex:ask:${me.id}`;
     try {
-      if(sessionStorage.getItem(key)) throw new Error('An answer is already in progress. Open Ollie to continue it first.');
+      if(sessionStorage.getItem(key)) throw new Error('An answer is already in progress. Open Olie to continue it first.');
       // Check recovery storage before starting a billable request.
       sessionStorage.setItem('apex:ask-storage-check','1');sessionStorage.removeItem('apex:ask-storage-check');
       const {ask_id}=await api<AskStarted>('/api/assistant/ask',{method:'POST',body:JSON.stringify({question,history:[]})});
@@ -30,9 +30,9 @@ export default function ContextQuestions({context}: {context: QuestionContext}) 
     }
   }
   return <section aria-label="Questions for this page" className="no-print my-5 rounded-xl border border-line bg-white p-4">
-    <h2 className="font-semibold">Ask Ollie about this</h2>
+    <h2 className="font-semibold">Ask Olie about this</h2>
     <div className="flex flex-wrap gap-2 mt-3">{contextQuestions(context).map(action=><button key={action.title} type="button" disabled={!me || busy} onClick={()=>ask(action.question,action.title)} className="rounded-lg border border-line px-3 py-2 text-sm text-left hover:border-blue disabled:opacity-50">{action.title}</button>)}</div>
-    <p className="text-xs text-muted mt-2">{busy ? 'Opening your answer…' : 'Selecting a question uses your normal Ollie allowance. No answers run until you choose.'}</p>
-    {error && <p role="alert" className="text-sm mt-2">{error} <Link href="/ask" className="underline">Open Ollie</Link></p>}
+    <p className="text-xs text-muted mt-2">{busy ? 'Opening your answer…' : 'Selecting a question uses your normal Olie allowance. No answers run until you choose.'}</p>
+    {error && <p role="alert" className="text-sm mt-2">{error} <Link href="/ask" className="underline">Open Olie</Link></p>}
   </section>;
 }

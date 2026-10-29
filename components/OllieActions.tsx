@@ -23,7 +23,7 @@ export function starters(prefs: Preferences | null) {
 }
 
 export function followUps(answer: string) {
-  const rentalReply = "Ollie covers buying, selling, property values and sales analytics. Rental data is coming soon. For now, ask me about properties for sale, recent sales or market trends.";
+  const rentalReply = "Olie covers buying, selling, property values and sales analytics. Rental data is coming soon. For now, ask me about properties for sale, recent sales or market trends.";
   if (answer.trim().replace(/\s+/g, " ") === rentalReply) return [
     { title: "Find properties for sale", question: "Switch to buying a property. Ask me for my preferred area, budget and minimum bedrooms before searching properties for sale." },
     { title: "Explore recent sales", question: "Switch to recent property sales. Ask which suburb and property type I want to explore, then show recorded sales with dates and sample sizes." },
@@ -72,7 +72,7 @@ export default function OllieActions({ prefs, answer, disabled, onAsk }: { prefs
   </div>;
   return <section aria-label="Start with a property decision" style={{ width: "100%" }}>
     <h2 style={{ color: "#26292D", fontSize: 22, margin: "0 0 8px" }}>Find something worth investigating.</h2>
-    <p style={{ color: "#595E65", fontSize: 14, margin: "0 0 18px", lineHeight: 1.5 }}>Start with your goal. Ollie can bring together listings, sales evidence and the questions still worth asking.</p>
+    <p style={{ color: "#595E65", fontSize: 14, margin: "0 0 18px", lineHeight: 1.5 }}>Start with your goal. Olie can bring together listings, sales evidence and the questions still worth asking.</p>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))", gap: 10 }}>
       {starters(prefs ?? null).map(action => <button key={action.title} type="button" disabled={disabled} aria-expanded={intent === starters(prefs ?? null).findIndex(item => item.title === action.title)} onClick={() => {
         if (intent === null) {

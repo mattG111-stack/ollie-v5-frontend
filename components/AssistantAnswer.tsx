@@ -39,7 +39,7 @@ export function parseChart(raw: string): Chart | null {
 
 function AnswerChart({ raw }: { raw: string }) {
   const chart = parseChart(raw);
-  if (!chart) return <p role="status">This chart could not be displayed. Please ask Ollie for the figures in a table.</p>;
+  if (!chart) return <p role="status">This chart could not be displayed. Please ask Olie for the figures in a table.</p>;
   const { data, unit } = chart;
   const format = (n: number, compact = false) => {
     const value = new Intl.NumberFormat("en-NZ", { minimumFractionDigits: 0,

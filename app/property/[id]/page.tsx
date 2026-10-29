@@ -197,7 +197,7 @@ function Inner({ id }: { id: string }) {
           {p.address}{p.suburb ? `, ${p.suburb}` : ""}
         </div>
         <div style={{ fontSize: 12, color: C.label }}>
-          Ollie property report · {new Date().toLocaleDateString("en-NZ")}
+          Olie property report · {new Date().toLocaleDateString("en-NZ")}
         </div>
       </div>
 
