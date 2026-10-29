@@ -15,15 +15,15 @@ test.describe("sign-in and routing", () => {
     await expect(page).toHaveURL(/\/today(?:[/?#]|$)/);
   });
 
-  test("Today opens first, with an explicit Ask Olie tab", async ({ page }) => {
+  test("Today opens first, with an Ask Olie question bar", async ({ page }) => {
     await signIn(page, CUSTOMER);
     await expect(page).toHaveURL(/\/today$/);
-    const tabs = page.getByRole("navigation", { name: "Today and Ask Olie" });
-    await expect(tabs.getByRole("link", { name: /today/i })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("form", { name: "Ask Olie from Today" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Your daily brief" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Your watchlist" })).toBeVisible();
-    await tabs.getByRole("link", { name: "Ask Olie", exact: true }).click();
+    await page.getByRole("link", { name: "Ask Olie", exact: true }).click();
     await expect(page).toHaveURL(/\/ask$/);
+    const tabs = page.getByRole("navigation", { name: "Today and Ask Olie" });
     await expect(tabs.getByRole("link", { name: "Ask Olie", exact: true })).toHaveAttribute("aria-current", "page");
     await tabs.getByRole("link", { name: /today/i }).click();
     await expect(page).toHaveURL(/\/today$/);
