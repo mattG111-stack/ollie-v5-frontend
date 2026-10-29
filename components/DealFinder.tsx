@@ -1,4 +1,5 @@
 "use client";
+import PriceChangeBadge from "@/components/PriceChangeBadge";
 import ContextQuestions from "@/components/ContextQuestions";
 
 import Link from "next/link";
@@ -340,6 +341,7 @@ export default function DealFinder({
               <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1.05, maxWidth: 420 }}>
                 {hero.address}
               </div>
+              <PriceChangeBadge change={hero.asking_price_change} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 18 }}>
                 {[
                   hero.beds != null ? t("deal.bd", { n: hero.beds }) : null,
@@ -719,6 +721,7 @@ function DealCard({
       {/* One container, not four grid tracks: list / estimate / buy / margin
           must reflow as a unit, or a narrow window wraps the margin onto its own
           row and leaves a dead band through the middle of the card. */}
+      <PriceChangeBadge change={r.asking_price_change} />
       <div className="deal-card__figures">
         <Money label={t("deal.listPrice")} value={askingText(r.asking_price, r.listing_type, t, true)} muted strike />
         <Money label={t("deal.estValue")} value={fmtMoneyShort(r.fair_value)} />
