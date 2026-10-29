@@ -69,14 +69,7 @@ export default function PersonalBrief() {
           </>}
         </>}
       </section>
-      <section aria-label="Ask Olie" className="rounded-card bg-[#16181A] text-white p-6 flex flex-col items-start justify-center">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="w-10 h-10 mb-5 text-[#EF8F82]"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 3V11.5a10 10 0 0 1 20 0Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M7 10h8M7 14h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-        <h3 className="font-display text-2xl font-semibold mb-3">Ask Olie</h3>
-        <p className="text-sm leading-relaxed text-white/75 max-w-sm mb-6">Ask about a property, compare suburbs or explore opportunities. Olie brings your property questions together in one place.</p>
-        <Link href="/ask" className="inline-flex items-center rounded-xl bg-white text-[#16181A] px-5 py-3 text-sm font-semibold hover:bg-gray-100">Open Ask Olie →</Link>
-      </section>
-    </div>
-      <section className="bg-white border border-line rounded-card p-5 mt-4" aria-label="Your watchlist">
+      <section className="bg-white border border-line rounded-card p-5" aria-label="Your watchlist">
         <h3 className="font-semibold mb-2">Your watchlist</h3>
         <p className="text-xs text-muted mb-3">Updates to your saved searches.</p>
         {searchError?<Retry text="Your saved searches could not load." retry={()=>setRetry(n=>n+1)}/>:!searches?<p className="text-sm text-muted">Loading saved searches…</p>:searches.length===0?<p className="text-sm text-muted">Save a search to keep track of matching properties.</p>:<div className="space-y-2">{searches.slice(0,3).map(s=><Link href="/wishlists" key={s.id} className="block rounded-xl border border-line p-3 hover:border-gray-400">
@@ -84,6 +77,7 @@ export default function PersonalBrief() {
         </Link>)}</div>}
         <Link href="/wishlists" className="inline-block text-sm text-blue underline mt-3">Open wish lists →</Link>
       </section>
+    </div>
     <section aria-label="Your areas" className="bg-white border border-line rounded-card p-5 mt-4">
       <h3 className="font-semibold mb-2">Your areas</h3>
       {areas.length?<div className="grid gap-3 sm:grid-cols-2">{areas.map(a=><Link key={a.name} href={`/trends?${new URLSearchParams({suburb:a.name})}`} className="block border border-line rounded-xl p-3 hover:border-gray-400">
