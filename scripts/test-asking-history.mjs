@@ -32,6 +32,7 @@ try {
   assert.match(render(History,{history:{asking_observations:history.asking_observations.slice(0,1)}}),/no change can be calculated yet/);
   assert.match(render(History,{history:{points:[{asking_price:500000}]}}),/No recorded asking-price history/);
   assert.match(render(History,{history:{asking_observations:[...history.asking_observations,{recorded_at:'2026-10-22',asking_price:100000}]}}),/Large difference — needs review/);
+  assert.doesNotMatch(render(History,{history:{asking_observations:[...history.asking_observations,{recorded_at:'2026-10-22',asking_price:100000}]}}),/Total recorded movement/);
   for(const name of ['DealFinder','PropertiesTable'])
     assert.match(await readFile(new URL(`../components/${name}.tsx`,import.meta.url),'utf8'),/PriceChangeBadge change=/);
   console.log('PASS: retained asking observations, reductions/increases, NZ dates, repeated unchanged prices, invalid/inconsistent suppression, outlier warning and listing badges.');

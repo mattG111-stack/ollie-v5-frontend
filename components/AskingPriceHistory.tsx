@@ -9,10 +9,11 @@ export default function AskingPriceHistory({ history }: { history: HistoryRespon
   const priced = points.filter(p => typeof p.asking_price === "number" && Number.isFinite(p.asking_price) && p.asking_price > 0);
   const first = priced[0]?.asking_price;
   const last = priced[priced.length-1]?.asking_price;
+  const needsReview = priced.some((p,i) => i > 0 && Math.abs(p.asking_price / priced[i-1].asking_price - 1) > .5);
   return <section aria-label="Asking price history" style={{marginTop:20}}>
     <h3>Asking price over time</h3>
     <p>Approved advertised prices, retained across uploads. Dates show when Apex received the price, not the exact date the seller changed it. Apex valuations and estimated buy prices are separate.</p>
-    {first != null && last != null && priced.length > 1 && <p><strong>Total recorded movement: {change(last-first,first)}</strong></p>}
+    {needsReview ? <p>Large recorded differences need review before an overall price change can be stated.</p> : first != null && last != null && priced.length > 1 && <p><strong>Total recorded movement: {change(last-first,first)}</strong></p>}
     {points.length ? <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",textAlign:"left"}}>
       <thead><tr><th>Recorded date</th><th>Asking price</th><th>Change from previous record</th></tr></thead>
       <tbody>{points.map((p,i) => {
