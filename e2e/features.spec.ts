@@ -171,7 +171,7 @@ test("a wish list can be created and removed", async ({ page }) => {
 });
 
 // ── Ask Ollie ────────────────────────────────────────────────────────────────
-test("Ask Ollie says a key is needed rather than offering a dead box",
+test("Ask Olie says a key is needed rather than offering a dead box",
   async ({ page }) => {
     // This test skipped itself on every run — "no question box" — and the
     // selector was wrong in a way that would have been worse than skipping:

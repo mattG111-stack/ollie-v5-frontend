@@ -128,7 +128,7 @@ function Inner() {
   }
 
   async function clearKey() {
-    if (!window.confirm("Remove the account key? Ask Ollie stops working for everyone who has not added their own key.")) return;
+    if (!window.confirm("Remove the account key? Ask Olie stops working for everyone who has not added their own key.")) return;
     setBusy(true); setErr(null); setOk(null);
     try {
       setS(await api<KeyStatus>("/api/admin/assistant/key", { method: "DELETE" }));
@@ -141,7 +141,7 @@ function Inner() {
   return (
     <div className="px-7 py-6 max-w-4xl">
       <div className="text-[11px] uppercase tracking-widest text-blue font-semibold">ADMIN · ASSISTANT</div>
-      <h1 className="font-display text-2xl font-semibold mt-1.5">Ask Ollie — API key</h1>
+      <h1 className="font-display text-2xl font-semibold mt-1.5">Ask Olie — API key</h1>
       <p className="text-sm text-muted mt-1 mb-5">
         One key for the whole account. Everyone who has not added their own key in
         Settings uses this one, capped per person per day so the bill stays
@@ -300,7 +300,7 @@ function Inner() {
           <div className="min-w-0">
             <h2 className="font-display font-semibold text-sm">Who is asking what</h2>
             <p className="text-xs text-muted mt-1">
-              Every question put to Ollie, newest first. Admin only — what someone
+              Every question put to Olie, newest first. Admin only — what someone
               asks says what they are looking at, and that is theirs.
             </p>
           </div>

@@ -303,7 +303,7 @@ function Inner() {
         {(who?.rows.length ?? 0) === 0 ? (
           <div className="bg-white border border-line rounded-card shadow-soft p-5 text-sm text-muted">
             Nothing to show yet. This fills in from what people save to a wish
-            list, what they ask Ollie, and where they spend their time.
+            list, what they ask Olie, and where they spend their time.
           </div>
         ) : (
           <div className="bg-white border border-line rounded-card shadow-soft overflow-x-auto">

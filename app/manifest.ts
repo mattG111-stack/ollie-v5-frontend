@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Apex Property",
-    short_name: "Apex Property",
-    description: "Property insights, deals and suburb trends from Apex.",
+    name: "Olie.co.nz",
+    short_name: "Olie.co.nz",
+    description: "Property insights, deals and suburb trends. Powered by Apex.",
     start_url: "/today",
     scope: "/",
     display: "standalone",

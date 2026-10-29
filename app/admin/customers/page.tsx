@@ -64,7 +64,7 @@ function Inner() {
             Who our customers are
           </h1>
           <p style={{ fontSize: 14, color: C.label, margin: "7px 0 0" }}>
-            Built from what people tell Ollie they&rsquo;re hunting. No names on this page.
+            Built from what people tell Olie they&rsquo;re hunting. No names on this page.
           </p>
         </div>
         <div style={{ fontFamily: MONO, fontSize: 11.5, color: C.mono, fontWeight: 600 }}>

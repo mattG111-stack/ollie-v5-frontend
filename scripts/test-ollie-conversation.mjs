@@ -36,7 +36,7 @@ try{
  assert.match(html,/Ask a follow-up about this answer/);
  }
  configure([[],'','',false,null,false,'',{configured:true},{remaining:7},'idle',null,null,false,390]);
- assert.match(renderToStaticMarkup(React.createElement(Inner)),/aria-label="Ask Ollie"/);
+ assert.match(renderToStaticMarkup(React.createElement(Inner)),/aria-label="Ask Olie"/);
  const render=(messages,notice='')=>{
    configure([messages,'',notice,false,null,false,'',{configured:true},{remaining:7},'idle',null,null,false,390]);
    return renderToStaticMarkup(React.createElement(Inner));
@@ -46,8 +46,8 @@ try{
  assert.match(missing,/role="status"/);
  assert.ok(missing.indexOf('Original filters are missing')>missing.indexOf('FOLLOWUP_ANSWER'));
  assert.ok(missing.indexOf('Original filters are missing')<missing.indexOf('aria-label="Ask a follow-up"'));
- assert.match(render(Array.from({length:22},(_,i)=>({role:i%2?'assistant':'user',content:String(i)}))),/Ollie uses the latest 20 messages/);
- assert.doesNotMatch(render(Array.from({length:20},(_,i)=>({role:i%2?'assistant':'user',content:String(i)}))),/Ollie uses the latest 20 messages/);
+ assert.match(render(Array.from({length:22},(_,i)=>({role:i%2?'assistant':'user',content:String(i)}))),/Olie uses the latest 20 messages/);
+ assert.doesNotMatch(render(Array.from({length:20},(_,i)=>({role:i%2?'assistant':'user',content:String(i)}))),/Olie uses the latest 20 messages/);
  console.log('PASS: context notices appear below answers before the composer only for missing or truncated history.');
  console.log('PASS: one composer below the latest exchange on mobile and desktop; chronological questions; initial composer retained.');
 }finally{await unlink(temp);}

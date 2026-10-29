@@ -253,7 +253,7 @@ export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
                 style={{width:"100%",boxSizing:"border-box",resize:"vertical",padding:12,borderRadius:10,border:`1px solid ${LINE}`,background:PANEL,color:D.ink,font:"inherit",fontWeight:400}} />
             </label>)}
           </div>
-          <p style={{color:DIM,fontSize:12,lineHeight:1.5}}>Budget, area and bedrooms guide the search. Written requirements guide Ollie’s explanation; features absent from our records still need checking.</p>
+          <p style={{color:DIM,fontSize:12,lineHeight:1.5}}>Budget, area and bedrooms guide the search. Written requirements guide Olie’s explanation; features absent from our records still need checking.</p>
           <Primary onClick={()=>setStep("confirm")}>Review my brief</Primary>
           <div style={{textAlign:"center",marginTop:14}}><Quiet onClick={()=>setStep("where")}>Back to budget &amp; areas</Quiet></div>
         </>
@@ -264,12 +264,12 @@ export default function OllieHunt({ prefs, onDone, onDismiss }: HuntProps) {
           <Heading>Have I got that right?</Heading>
           <p style={{lineHeight:1.7}}>You’re looking for {goals.length ? goals.map(g=>t(`hunt.goal.${g}`)).join(" or ").toLowerCase() : "a property"} in {suburbs.length ? suburbs.join(", ") : prefs.districts?.length ? prefs.districts.join(", ") : "Auckland"}, {maxPrice ? `with a maximum budget of ${fmtMoneyShort(maxPrice)}` : "with no maximum budget set"}{minPrice ? ` and a minimum of ${fmtMoneyShort(minPrice)}` : ""}{minBeds ? `, and at least ${minBeds} bedrooms` : ""}.</p>
           <BriefSummary brief={brief} />
-          <p style={{color:DIM,fontSize:13,lineHeight:1.6}}>Must-haves and deal-breakers stay firm. Nice-to-haves can be weighed against your trade-offs. Ollie will distinguish recorded matches from things you need to verify.</p>
+          <p style={{color:DIM,fontSize:13,lineHeight:1.6}}>Must-haves and deal-breakers stay firm. Nice-to-haves can be weighed against your trade-offs. Olie will distinguish recorded matches from things you need to verify.</p>
           <Primary onClick={save} disabled={saving}>{saving ? "Saving your brief…" : "Yes, save my brief"}</Primary>
           <div style={{textAlign:"center",marginTop:14}}><Quiet onClick={()=>setStep("needs")} disabled={saving}>Edit my answers</Quiet></div>
         </>
       )}
-      {step === "ready" && <p style={{color:DIM,fontSize:13,lineHeight:1.5}}>The preview below uses search criteria only. Your written needs are saved for Ollie; this count does not verify every must-have.</p>}
+      {step === "ready" && <p style={{color:DIM,fontSize:13,lineHeight:1.5}}>The preview below uses search criteria only. Your written needs are saved for Olie; this count does not verify every must-have.</p>}
       {step === "ready" && (
         <Ready
           preview={preview}

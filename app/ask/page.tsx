@@ -390,7 +390,7 @@ function Inner() {
 
   const composer = (
           <form
-            aria-label={msgs.length ? "Ask a follow-up" : "Ask Ollie"}
+            aria-label={msgs.length ? "Ask a follow-up" : "Ask Olie"}
             onSubmit={(e) => { e.preventDefault(); send(input); }}
             style={{
               width: "100%",
@@ -647,7 +647,7 @@ function Inner() {
           {huntOpen && prefs && (
             <div id="ollie-preferences-editor" style={{ width: "100%", maxWidth: split ? "none" : 760,
                           marginBottom: 22 }}>
-              <button type="button" onClick={() => setHuntOpen(false)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:`1px solid ${D.line}`,background:"none",color:D.ink,cursor:"pointer"}}>Back to Ollie</button>
+              <button type="button" onClick={() => setHuntOpen(false)} style={{marginBottom:12,padding:"8px 12px",borderRadius:8,border:`1px solid ${D.line}`,background:"none",color:D.ink,cursor:"pointer"}}>Back to Olie</button>
               <OllieHunt
                 prefs={prefs}
                 onDone={setPrefs}
@@ -668,7 +668,7 @@ function Inner() {
             </div>
           )}
 
-          <details aria-label="Recent Ollie answers" onToggle={e => { if (e.currentTarget.open && !busy && !recentLoading) void loadRecent(); }} style={{ width: "100%", maxWidth: 760, margin: "18px 0" }}>
+          <details aria-label="Recent Olie answers" onToggle={e => { if (e.currentTarget.open && !busy && !recentLoading) void loadRecent(); }} style={{ width: "100%", maxWidth: 760, margin: "18px 0" }}>
             <summary style={{padding:"10px 0",color:D.faint,cursor:"pointer",fontSize:13}}>Previous questions & answers</summary>
             {recentLoading && <p role="status">Loading recent answers…</p>}
             <p style={{ color: D.faint, fontSize: 12 }}>Reopen an answer without using another question.</p>
