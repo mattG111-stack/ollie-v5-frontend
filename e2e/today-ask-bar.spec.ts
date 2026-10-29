@@ -42,7 +42,7 @@ test("blocked storage keeps the question on Today without creating a paid job",a
   });
   await page.getByRole('textbox',{name:'Ask Olie a property question'}).fill('Check Riverhead');
   await page.getByRole('button',{name:'Send question to Olie'}).click();
-  await expect(page.getByRole('alert')).toContainText('This browser could not pass your question');
+  await expect(page.getByRole('region',{name:"Ask Olie from today's brief"}).getByRole('alert')).toContainText('This browser could not pass your question');
   await expect(page).toHaveURL(/\/today$/);
   await expect(page.getByRole('textbox',{name:'Ask Olie a property question'})).toHaveValue('Check Riverhead');
   expect(starts).toBe(0);
