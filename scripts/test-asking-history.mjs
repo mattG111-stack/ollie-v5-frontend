@@ -27,6 +27,7 @@ try {
     {recorded_at:'2026-10-15T00:00:00Z',recorded_date:'2026-10-15',asking_price:950000},
   ]};
   const html=render(History,{history});
+  assert.match(html,/8 Oct 2026/);
   assert.match(html,/−\$50,000 \(-5.0%\)/);assert.match(html,/Unchanged/);
   assert.match(html,/not the exact date the seller changed it/);
   assert.match(render(History,{history:{asking_observations:history.asking_observations.slice(0,1)}}),/no change can be calculated yet/);

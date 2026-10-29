@@ -21,8 +21,13 @@ export default function AskingPriceHistory({ history }: { history: HistoryRespon
         const prev=points[i-1]?.asking_price;
         const valid=typeof value==="number" && Number.isFinite(value) && value>0;
         const prior=typeof prev==="number" && Number.isFinite(prev) && prev>0;
-        return <tr key={`${p.recorded_at}-${i}`}>
-          <td style={{padding:"10px 0"}}>{p.recorded_date || "Date unavailable"}</td>
+        const date = new Date(p.recorded_at);
+        const rowKey = `${date.getTime()}-${i}`;
+        const recordedDate = Number.isFinite(date.getTime()) ? date.toLocaleDateString("en-NZ", {
+          day: "numeric", month: "short", year: "numeric", timeZone: "Pacific/Auckland",
+        }) : "Date unavailable";
+        return <tr key={rowKey}>
+          <td style={{padding:"10px 0"}}>{recordedDate}</td>
           <td>{valid ? money(value!) : "Not recorded"}</td>
           <td>{!i ? "First record" : valid && prior ? value===prev ? "Unchanged" : Math.abs(value! / prev! - 1) > .5 ? "Large difference — needs review" : change(value!-prev!,prev!) : "Not comparable"}</td>
         </tr>;
