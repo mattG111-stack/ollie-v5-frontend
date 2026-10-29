@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { api, Preferences, PreferencePreview, SuburbTrend } from "@/lib/api";
 import { fmtMoneyShort } from "@/lib/format";
 import PriceChangeBadge from "./PriceChangeBadge";
@@ -10,7 +10,7 @@ type Area = { name:string; data:SuburbTrend|null };
 
 /** All reads use the existing customer-visible APIs. Nothing asks the model,
  * changes preferences, marks searches seen, or publishes data on arrival. */
-export default function PersonalBrief() {
+export default function PersonalBrief({ market }: { market: ReactNode }) {
   const [prefs,setPrefs]=useState<Preferences|null>(null);
   const [preview,setPreview]=useState<PreferencePreview|null>(null);
   const [searches,setSearches]=useState<SavedSearch[]|null>(null);
@@ -69,7 +69,9 @@ export default function PersonalBrief() {
           </>}
         </>}
       </section>
-      <section className="bg-white border border-line rounded-card p-5" aria-label="Your watchlist">
+      {market}
+    </div>
+      <section className="bg-white border border-line rounded-card p-5 mt-4" aria-label="Your watchlist">
         <h3 className="font-semibold mb-2">Your watchlist</h3>
         <p className="text-xs text-muted mb-3">Updates to your saved searches.</p>
         {searchError?<Retry text="Your saved searches could not load." retry={()=>setRetry(n=>n+1)}/>:!searches?<p className="text-sm text-muted">Loading saved searches…</p>:searches.length===0?<p className="text-sm text-muted">Save a search to keep track of matching properties.</p>:<div className="space-y-2">{searches.slice(0,3).map(s=><Link href="/wishlists" key={s.id} className="block rounded-xl border border-line p-3 hover:border-gray-400">
@@ -77,7 +79,6 @@ export default function PersonalBrief() {
         </Link>)}</div>}
         <Link href="/wishlists" className="inline-block text-sm text-blue underline mt-3">Open wish lists →</Link>
       </section>
-    </div>
     <section aria-label="Your areas" className="bg-white border border-line rounded-card p-5 mt-4">
       <h3 className="font-semibold mb-2">Your areas</h3>
       {areas.length?<div className="grid gap-3 sm:grid-cols-2">{areas.map(a=><Link key={a.name} href={`/trends?${new URLSearchParams({suburb:a.name})}`} className="block border border-line rounded-xl p-3 hover:border-gray-400">
