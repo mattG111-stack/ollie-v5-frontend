@@ -21,14 +21,12 @@ export default function TodayPage() {
       <p className="text-sm text-muted mt-1">Your opportunities, saved searches and local market in one place.</p>
     </header>
     <TodayAskBar />
-    <PersonalBrief />
-    <Inner />
+    <BriefContent />
   </div></AppShell>;
 }
 
-function Inner() {
+function BriefContent() {
   const { t } = useT();
-  const typeLabel = useTypeLabel();
   const [data, setData] = useState<TodayBrief | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -38,45 +36,20 @@ function Inner() {
       .catch((e) => setErr(e?.detail || e?.message || t("today.failedLoad")));
   }, []);
 
-  if (err) {
-    return (
-      <div className="p-8">
-        <div className="bg-danger/10 border border-danger/30 text-danger rounded-lg p-4 text-sm">
-          <div className="font-semibold mb-1">{t("today.couldntLoad")}</div>
-          <div className="text-xs">{err}</div>
-        </div>
-      </div>
-    );
-  }
+  return <>
+    <PersonalBrief market={<AucklandMarketCard data={data} error={err} />} />
+    <Inner data={data} />
+  </>;
+}
 
-  if (!data) {
-    return <div className="p-8 text-muted text-sm">{t("today.loading")}</div>;
-  }
-
-  const pulse = data.market_pulse;
-  const changes = data.week_changes;
-
-  return (
-    <div>
-      <header className="mb-4"><h2 className="font-display text-xl font-semibold">Auckland market</h2><p className="text-sm text-muted">Market-wide figures for listings currently available in Olie.</p></header>
-
-      {/* MONEY ON THE TABLE — leads the page. Counts alone don't say whether
-          it is worth opening; the dollar figures do. */}
-      <div className="mb-5">
-        <HeadlineDeals />
-      </div>
-
-      {/* MARKET PULSE STRIP */}
-      {pulse && (
-        <div className="bg-white border border-line rounded-card shadow-soft p-5 mb-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display font-semibold text-sm">{t("today.marketPulse")}</h2>
-            <span className="text-xs text-muted">Compared with the previous market update</span>
-          </div>
-          {/* Market pulse now carries the two opportunity counts on the same line
-              (Underpriced / Subdividable) so the deal signals sit beside the
-              market context instead of in a separate row below. */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+function AucklandMarketCard({data,error}: {data: TodayBrief | null; error: string | null}) {
+  const {t} = useT();
+  const pulse = data?.market_pulse;
+  return <section aria-label="Auckland market" className="min-w-0 bg-white border border-line rounded-card p-5">
+    <h3 className="font-semibold mb-2">Auckland market</h3>
+    <p className="text-xs text-muted mb-4">Market-wide figures for listings currently available in Olie.</p>
+    {error?<p role="alert" className="text-sm text-danger">{t("today.couldntLoad")} {error}</p>:!data?<p className="text-sm text-muted">{t("today.loading")}</p>:!pulse?<p className="text-sm text-muted">Market snapshot is not available yet.</p>:<>
+          <div className="grid grid-cols-2 gap-4">
             <Kpi
               label={t("today.activeListings")}
               value={(pulse.total_listings ?? 0).toLocaleString()}
@@ -109,13 +82,34 @@ function Inner() {
             />
           </div>
 
-          {/* The same figures over time — the tiles say "now", this says which
-              way the market is moving. */}
-          <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid #EEF2F7" }}>
-            <MarketHistoryChart />
-          </div>
-        </div>
-      )}
+      <p className="text-xs text-muted mt-4">Compared with the previous market update</p>
+      <Link href="/trends" className="inline-block text-sm text-blue underline mt-3">Explore suburb trends →</Link>
+    </>}
+  </section>;
+}
+
+function Inner({data}: {data: TodayBrief | null}) {
+  const {t} = useT();
+  const typeLabel = useTypeLabel();
+  if (!data) return null;
+
+  const pulse = data.market_pulse;
+  const changes = data.week_changes;
+
+  return (
+    <div>
+      <header className="mb-4"><h2 className="font-display text-xl font-semibold">Market opportunities</h2><p className="text-sm text-muted">Market-wide figures for listings currently available in Olie.</p></header>
+
+      {/* MONEY ON THE TABLE — leads the page. Counts alone don't say whether
+          it is worth opening; the dollar figures do. */}
+      <div className="mb-5">
+        <HeadlineDeals />
+      </div>
+
+      {pulse && <section aria-label="Market history" className="bg-white border border-line rounded-card shadow-soft p-5 mb-5">
+        <h2 className="font-display font-semibold text-sm mb-3">Market history</h2>
+        <MarketHistoryChart />
+      </section>}
 
       {/* WEEK CHANGES + PRICE MOVERS */}
       {changes && (
