@@ -33,8 +33,8 @@ export default function SignInPage() {
       const m = await signIn(email, password);
       // A promoter is not buying anything, so the paywall is not their next
       // step — send them straight to the dashboard they signed in for.
-      // Land on Ask Ollie — the conversational front door — for a paying user.
-      let returnTo = "/ask";
+      // Fresh sign-ins open the daily brief; interrupted workflows retain their destination.
+      let returnTo = "/today";
       try {
         const saved = sessionStorage.getItem("apex:return-to");
         sessionStorage.removeItem("apex:return-to");

@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { LANGUAGES, useT } from "@/lib/i18n";
 import { ApexLogo } from "./ApexLogo";
+import HomeTabs from "./HomeTabs";
 import CrashReporter from "./CrashReporter";
 import usePageTracking from "./usePageTracking";
 import { C, MONO } from "./apex";
@@ -23,8 +24,8 @@ interface Nav {
 }
 
 const overview: Nav[] = [
-  { href: "/ask", label: "nav.askApex" },
   { href: "/today", label: "nav.today" },
+  { href: "/ask", label: "nav.askApex" },
   { href: "/properties", label: "nav.allProperties" },
   { href: "/wishlists", label: "nav.wishlists" },
   { href: "/trends", label: "nav.suburbTrends" },
@@ -330,6 +331,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <TopBar initials={initials} onMenu={() => setNavOpen(true)} showMenu={isMobile}
                   pollMatches={!isPromoter} bare={onOllie} />
         )}
+        {!isPromoter && (pathname === "/today" || pathname === "/ask") && <HomeTabs active={pathname} />}
         {children}
       </main>
     </div>

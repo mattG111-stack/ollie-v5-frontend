@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import PersonalBrief from "@/components/PersonalBrief";
 import AppShell from "@/components/AppShell";
 import { PriceMover, TodayBrief, api } from "@/lib/api";
 import { fmtMoneyShort, fmtPct } from "@/lib/format";
@@ -11,11 +12,16 @@ import HeadlineDeals from "@/components/HeadlineDeals";
 import { useT, useTypeLabel } from "@/lib/i18n";
 
 export default function TodayPage() {
-  return (
-    <AppShell>
-      <Inner />
-    </AppShell>
-  );
+  const { t } = useT();
+  return <AppShell><div className="px-4 sm:px-7 py-6">
+    <header className="mb-5">
+      <div className="text-[11px] uppercase tracking-widest text-blue font-semibold">{new Date().toLocaleDateString("en-NZ", {timeZone:"Pacific/Auckland",day:"numeric",month:"long"})}</div>
+      <h1 className="font-display text-2xl font-semibold mt-1.5">{t("nav.today")}</h1>
+      <p className="text-sm text-muted mt-1">Your opportunities, saved searches and local market in one place.</p>
+    </header>
+    <PersonalBrief />
+    <Inner />
+  </div></AppShell>;
 }
 
 function Inner() {
@@ -49,18 +55,8 @@ function Inner() {
   const changes = data.week_changes;
 
   return (
-    <div className="px-4 sm:px-7 py-6">
-      <div className="flex items-end justify-between mb-5">
-        <div>
-          <div className="text-[11px] uppercase tracking-widest text-blue font-semibold">
-            {t("today.eyebrow", { date: new Date().toLocaleDateString("en-NZ", { day: "numeric", month: "long" }) })}
-          </div>
-          <h1 className="font-display text-2xl font-semibold mt-1.5">{t("today.title")}</h1>
-          <p className="text-sm text-muted mt-1 max-w-xl">
-            {t("today.intro", { n: (data.counts.total_for_sale ?? 0).toLocaleString() })}
-          </p>
-        </div>
-      </div>
+    <div>
+      <header className="mb-4"><h2 className="font-display text-xl font-semibold">Auckland market</h2><p className="text-sm text-muted">Market-wide figures for listings currently available in Olie.</p></header>
 
       {/* MONEY ON THE TABLE — leads the page. Counts alone don't say whether
           it is worth opening; the dollar figures do. */}
@@ -73,7 +69,7 @@ function Inner() {
         <div className="bg-white border border-line rounded-card shadow-soft p-5 mb-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display font-semibold text-sm">{t("today.marketPulse")}</h2>
-            <span className="text-xs text-muted">{t("today.vsLastWeek")}</span>
+            <span className="text-xs text-muted">Compared with the previous market update</span>
           </div>
           {/* Market pulse now carries the two opportunity counts on the same line
               (Underpriced / Subdividable) so the deal signals sit beside the
@@ -123,19 +119,19 @@ function Inner() {
       {changes && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
           <Link
-            href="/admin/compare"
+            href="/properties"
             className="bg-white border border-line rounded-card shadow-soft p-5 hover:shadow-lg transition-shadow"
           >
-            <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">{t("today.newThisWeek")}</div>
+            <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">New in the latest market update</div>
             <div className="font-display text-3xl font-bold tnum">+{(changes.new_listings ?? 0).toLocaleString()}</div>
             <div className="text-xs text-muted mt-1">
               {t("today.newSub", { removed: (changes.removed_listings ?? 0).toLocaleString(), still: (changes.still_on_market ?? 0).toLocaleString() })}
             </div>
-            <div className="text-xs text-blue mt-3">View full compare →</div>
+            <div className="text-xs text-blue mt-3">View listings →</div>
           </Link>
 
           <Link
-            href="/admin/compare"
+            href="/properties"
             className="bg-white border border-line rounded-card shadow-soft p-5 hover:shadow-lg transition-shadow"
           >
             <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">{t("today.medianAskingChange")}</div>
@@ -152,14 +148,14 @@ function Inner() {
             >
               {pulse?.median_asking_change_pct == null ? "—" : `${pulse.median_asking_change_pct > 0 ? "+" : ""}${(pulse.median_asking_change_pct * 100).toFixed(2)}%`}
             </div>
-            <div className="text-xs text-muted mt-1">{t("today.acrossBothWeeks")}</div>
-            <div className="text-xs text-blue mt-3">View full compare →</div>
+            <div className="text-xs text-muted mt-1">Matched listings in the last two market updates.</div>
+            <div className="text-xs text-blue mt-3">View listings →</div>
           </Link>
 
           <div className="bg-white border border-line rounded-card shadow-soft p-5">
-            <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">{t("today.snapshotRhythm")}</div>
-            <div className="font-display text-3xl font-bold">{t("today.weekly")}</div>
-            <div className="text-xs text-muted mt-1">{t("today.comparingSnapshots")}</div>
+            <div className="text-[11px] uppercase tracking-wider text-faint font-semibold mb-1">Data updates</div>
+            <div className="font-display text-3xl font-bold">Market updates</div>
+            <div className="text-xs text-muted mt-1">Changes appear as new market data is added.</div>
             <div className="text-xs text-muted mt-3">
               {t("today.snapshotSub", { n: (data.counts.total_for_sale ?? 0).toLocaleString() })}
             </div>

@@ -107,6 +107,9 @@ function Inner() {
   // because the answer they've just given should stick for this visit even
   // while the server round-trip is in flight.
   const [huntOpen, setHuntOpen] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("preferences") === "1") setHuntOpen(true);
+  }, []);
   // How big Ollie can be here. A fixed size is right on a laptop and wider than
   // a phone, so the full size is a CEILING and the viewport decides below it.
   const [vw, setVw] = useState(1280);

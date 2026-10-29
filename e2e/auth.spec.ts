@@ -12,7 +12,21 @@ import { ADMIN, CUSTOMER, PW, TRIAL, signIn, stayPut, trackResponses } from "./h
 test.describe("sign-in and routing", () => {
   test("a paying customer lands in the product", async ({ page }) => {
     await signIn(page, CUSTOMER);
-    await expect(page).toHaveURL(/\/(ask|today|properties)(?:[/?#]|$)/);
+    await expect(page).toHaveURL(/\/today(?:[/?#]|$)/);
+  });
+
+  test("Today opens first, with an explicit Ask Olie tab", async ({ page }) => {
+    await signIn(page, CUSTOMER);
+    await expect(page).toHaveURL(/\/today$/);
+    const tabs = page.getByRole("navigation", { name: "Today and Ask Olie" });
+    await expect(tabs.getByRole("link", { name: /today/i })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("region", { name: "Your daily brief" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Your watchlist" })).toBeVisible();
+    await tabs.getByRole("link", { name: "Ask Olie", exact: true }).click();
+    await expect(page).toHaveURL(/\/ask$/);
+    await expect(tabs.getByRole("link", { name: "Ask Olie", exact: true })).toHaveAttribute("aria-current", "page");
+    await tabs.getByRole("link", { name: /today/i }).click();
+    await expect(page).toHaveURL(/\/today$/);
   });
 
   test("and stays there — nothing may bounce them while they read", async ({ page }) => {
@@ -40,7 +54,7 @@ test.describe("sign-in and routing", () => {
 
   test("email case does not matter", async ({ page }) => {
     await signIn(page, CUSTOMER.toUpperCase());
-    await expect(page).toHaveURL(/\/(ask|today|properties)(?:[/?#]|$)/);
+    await expect(page).toHaveURL(/\/today(?:[/?#]|$)/);
   });
 
   test("a signed-out visitor is sent to sign-in, not shown an error", async ({ page }) => {
@@ -69,4 +83,23 @@ test.describe("sign-in and routing", () => {
       await signIn(page, TRIAL);
       expect(new URL(page.url()).pathname).not.toContain("sign-in");
     });
+});
+
+test('personal brief uses approved preview evidence without asking Olie automatically', async ({page}) => {
+  const token=await (await import('./helpers')).apiToken(CUSTOMER);
+  const response=await page.request.get('/api/properties?search=1%20Test%20Street', {headers:{Authorization:`Bearer ${token}`}});
+  const listing=(await response.json()).rows.find((r:{address:string})=>r.address.startsWith('1 Test Street'));
+  expect(listing).toBeTruthy();
+  await page.route('**/api/preferences', async route=> {
+    if(route.request().method()!=='GET')return route.continue();
+    await route.fulfill({json:{goals:[],suburbs:[listing.suburb],districts:[],min_price:null,max_price:null,min_beds:null,state:'current',set_at:null,reviewed_at:null,review_due_at:null,review_after_days:14}});
+  });
+  const automaticWrites:string[]=[];
+  page.on('request',r=>{if(r.method()==='POST' && (/\/assistant\/ask(?:\?|$)/.test(r.url())||/\/wishlists\/\d+\/seen/.test(r.url())))automaticWrites.push(r.url());});
+  await signIn(page,CUSTOMER);
+  const brief=page.getByRole('region',{name:'Your daily brief'});
+  await expect(brief).toContainText(listing.address);
+  await expect(brief.getByLabel('Recorded asking-price change')).toContainText('Price reduced $50,000');
+  await expect(brief.getByRole('link',{name:/View sales and suburb trends/})).toHaveAttribute('href',`/trends?${new URLSearchParams({suburb:listing.suburb})}`);
+  expect(automaticWrites).toEqual([]);
 });

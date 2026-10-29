@@ -121,6 +121,10 @@ function Inner() {
   // themselves — otherwise a late-arriving options list overwrites their pick.
   const [touched, setTouched] = useState(false);
   useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("suburb")?.trim();
+    if (requested && requested.length <= 120) { setSuburb(requested); setTouched(true); }
+  }, []);
+  useEffect(() => {
     if (touched || !options.length) return;
     const norm = (v: string) => v.trim().toLowerCase();
     if (options.some((o) => norm(o.suburb) === norm(suburb))) return;   // already fine

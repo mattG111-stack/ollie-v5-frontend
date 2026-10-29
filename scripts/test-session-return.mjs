@@ -5,5 +5,5 @@ const result = ts.transpileModule(await readFile("lib/session-return.ts","utf8")
 const {safeReturnPath} = await import(`data:text/javascript;base64,${Buffer.from(result.outputText).toString("base64")}`);
 assert.equal(safeReturnPath("/admin/publish?preview=1#clean-batch"),"/admin/publish?preview=1#clean-batch");
 assert.equal(safeReturnPath("/property/123"),"/property/123");
-for (const input of [null,"https://evil.test","//evil.test","/\\evil.test","/\tevil.test","/sign-in","/forgot-password","/reset-password"]) assert.equal(safeReturnPath(input),"/ask");
+for (const input of [null,"https://evil.test","//evil.test","/\\evil.test","/\tevil.test","/sign-in","/forgot-password","/reset-password"]) assert.equal(safeReturnPath(input),"/today");
 console.log("Session return routes stay local and preserve the intended workflow");
