@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { ADMIN, CUSTOMER, PW, TRIAL, signIn, stayPut, trackResponses } from "./helpers";
 
+test("the home URL sends a complete redirect to sign-in", async ({request}) => {
+  const response = await request.get("/", {maxRedirects:0});
+  expect(response.status()).toBe(307);
+  expect(response.headers().location).toBe("/sign-in");
+});
+
 /**
  * Getting in, staying in, and being sent to the right place when you cannot.
  *
