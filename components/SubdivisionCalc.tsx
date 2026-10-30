@@ -85,6 +85,7 @@ type FieldKey =
   | "section_rate"
   | "market_ratio"
   | "build_rate"
+  | "townhouse_build_rate"
   | "house_resale_pct"
   | "refurb_allowance"
   | "services_per_section"
@@ -113,6 +114,7 @@ const LEFT: Field[] = [
   { key: "buy_price", label: "subcalc.buyPrice" },
   { key: "improvement_value", label: "subcalc.buildingsWorth" },
   { key: "build_rate", label: "subcalc.buildRate", suffix: "/m²" },
+  { key: "townhouse_build_rate", label: "subcalc.townhouseBuildRate", suffix: "/m²" },
   { key: "raw_land_rate", label: "subcalc.rawLandRate", suffix: "/m²" },
   { key: "section_rate", label: "subcalc.sectionRate", suffix: "/m²" },
   { key: "market_ratio", label: "subcalc.councilMarket", pct: true },
@@ -552,10 +554,20 @@ export default function SubdivisionCalc({
           {t("subcalc.adjust")}{touched ? t("subcalc.edited") : ""}
           {busy && <span style={{ color: C.faint }}>{t("subcalc.updating")}</span>}
         </summary>
+        {data.is_terrace && (
+          <p style={{ fontSize: 12.5, color: C.label, lineHeight: 1.5, marginTop: 10 }}>
+            {t("subcalc.townhouseBenchmark")} {" "}
+            <a href="https://www.crestonproperty.co.nz/build-cost-estimate" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Creston</a>
+          </p>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: "0 40px", marginTop: 10 }}>
           {[LEFT, RIGHT].map((col, ci) => (
             <div key={ci}>
-              {col.map((f, i) => (
+              {col.filter((f) => {
+                if (f.key === "build_rate") return !data.is_terrace;
+                if (f.key === "townhouse_build_rate") return data.is_terrace && data.defaults.townhouse_build_rate != null;
+                return true;
+              }).map((f, i) => (
                 <EditRow
                   key={f.key}
                   field={f}
