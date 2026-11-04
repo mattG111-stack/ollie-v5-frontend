@@ -4,5 +4,6 @@ export const BRAND_FILES: readonly string[] = [
   "/brand/olie-logo-inverse.svg",
   "/brand/olie-logo.svg",
   "/brand/olie-mark.svg",
+  "/brand/olie-teal-house.png",
   "/brand/olie-tile.svg"
 ] as const;

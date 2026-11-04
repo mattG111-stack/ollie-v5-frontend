@@ -8,12 +8,12 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/today",
     scope: "/",
     display: "standalone",
-    background_color: "#16181A",
-    theme_color: "#16181A",
+    background_color: "#252728",
+    theme_color: "#252728",
     icons: [
-      { src: "/app-icon?size=192", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/app-icon?size=512", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/app-icon?size=512", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/app-icon?size=192&v=teal-1", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/app-icon?size=512&v=teal-1", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/app-icon?size=512&v=teal-1", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }
