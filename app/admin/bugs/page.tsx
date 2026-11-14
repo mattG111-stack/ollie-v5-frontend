@@ -51,6 +51,7 @@ export default function BugsPage() {
 
 function Inner() {
   const [rows, setRows] = useState<Bug[]>([]);
+  const [learning, setLearning] = useState<{status:string;training_rows:number;validation_rows:number;accuracy:number|null;suggestions:{id:number;suggested_severity:string}[]} | null>(null);
   const [filter, setFilter] = useState<string>("open");
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
@@ -64,6 +65,7 @@ function Inner() {
   const load = useCallback(async () => {
     const q = filter === "all" ? "" : `?status=${encodeURIComponent(filter)}`;
     setRows(await api<Bug[]>(`/api/admin/bugs${q}`));
+    api<any>("/api/admin/bugs/learning").then(setLearning).catch(() => setLearning(null));
   }, [filter]);
 
   useEffect(() => { load().catch(() => setRows([])); }, [load]);
@@ -143,6 +145,14 @@ function Inner() {
         <div>
           <div className="text-[11px] uppercase tracking-widest text-blue font-semibold">ADMIN · BUGS</div>
           <h1 className="font-display text-2xl font-semibold mt-1.5">Bug log</h1>
+        <section aria-label="Learning from verified fixes" style={{padding:16,marginTop:16,border:"1px solid #d9dee4",borderRadius:12}}>
+          <h2>Learning from verified fixes</h2>
+          {!learning ? <p>Learning status unavailable.</p> : <>
+            <p>{learning.training_rows} resolved reports with a recorded fix.</p>
+            <p>{learning.status === "validated" ? `Priority model validated on ${learning.validation_rows} later reports (${Math.round((learning.accuracy ?? 0)*100)}% correct). Suggestions need review.` : learning.status === "validation_failed" ? "The model did not beat the baseline on later reports. No suggestions are applied." : "At least 20 confirmed fixes across two priorities are needed before this model can be evaluated."}</p>
+            {learning.suggestions.map(r => <p key={r.id}>Report #{r.id}: suggested priority {r.suggested_severity}</p>)}
+          </>}
+        </section>
           <p className="text-sm text-muted mt-1">
             {rows.length} shown{filter === "all" ? "" : ` · ${openCount} open`}. Build numbers and
             recent server errors are attached automatically. Rows marked

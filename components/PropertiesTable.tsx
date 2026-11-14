@@ -81,7 +81,8 @@ export default function PropertiesTable({
   // localStorage during render would hydrate "list" then flip to "map".
   const [view, setViewRaw] = useState<ViewMode>(initialView ?? defaultView);
   useEffect(() => {
-    if (initialView || !viewMemoryKey) return;
+    if (initialView) { setViewRaw(initialView); return; }
+    if (!viewMemoryKey) return;
     const saved = typeof window !== "undefined" ? localStorage.getItem(viewMemoryKey) : null;
     if (saved === "map" || saved === "list") setViewRaw(saved);
   }, [initialView, viewMemoryKey]);
