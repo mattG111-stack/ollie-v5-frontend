@@ -9,7 +9,9 @@ test('explicit map deep link updates an existing list view',async({page})=>{
 });
 test('activity tracking keeps authentication on page exit',async({page})=>{
   await signIn(page,CUSTOMER);
-  const result=page.waitForResponse(r=>r.url().includes('/api/activity/page')&&r.request().method()==='POST');
   await page.goto('/properties');
+  await expect(page.getByRole('button',{name:'Map',exact:true})).toBeVisible();
+  const result=page.waitForResponse(r=>r.url().includes('/api/activity/page')&&r.request().method()==='POST');
+  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
   expect((await result).status()).toBe(204);
 });

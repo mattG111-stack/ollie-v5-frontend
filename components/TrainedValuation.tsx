@@ -178,6 +178,7 @@ export default function TrainedValuation() {
   }
 
   const a = st?.active;
+  const latest = st?.history?.[0];
   const beatsEngine = a && a.forward_error != null && a.engine_error != null
     && a.forward_error < a.engine_error;
 
@@ -191,7 +192,7 @@ export default function TrainedValuation() {
         <span className="ml-auto flex items-center gap-2 text-xs font-semibold">
           <span className="inline-block w-2 h-2 rounded-full"
                 style={{ background: st?.enabled ? "#0A8754" : "#C3CAD5" }} />
-          {st?.enabled ? "Pricing with it" : st?.has_model ? "Measuring only" : "Nothing fitted"}
+          {st?.enabled ? "Pricing with it" : st?.has_model ? "Measuring only" : latest ? "Candidate not used" : "Nothing fitted"}
         </span>
       </div>
 
@@ -199,9 +200,14 @@ export default function TrainedValuation() {
 
       {!st?.has_model ? (
         <div className="text-xs text-muted mt-4 leading-relaxed">
-          Nothing fitted yet. The site is pricing from a fixed table that has
-          not changed since it was loaded. Fitting a model changes no price —
-          it measures itself against what is running, and waits.{" "}
+          {latest ? <>
+            <strong>Latest candidate: not used.</strong> {latest.verdict}
+            <div className="mt-2">Median error on held-out sales: model {pct(latest.forward_error)};
+              existing engine {pct(latest.engine_error)}; council figure {pct(latest.raw_cv_error)}.
+              {" "}{latest.n_train?.toLocaleString()} training sales; {latest.n_test?.toLocaleString()} validation sales.</div>
+          </> : "No model has been trained yet."}
+          <div className="mt-2">The existing valuation engine continues pricing listings.
+            Candidates must pass validation before they can be used.</div>{" "}
           {st ? `${st.sold_rows_available.toLocaleString()} sales are available to fit on.` : ""}
           <div className="mt-3">
             <button onClick={train} disabled={busy}
