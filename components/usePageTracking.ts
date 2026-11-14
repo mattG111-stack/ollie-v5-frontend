@@ -20,7 +20,7 @@ import { api, getToken } from "@/lib/api";
  *    an unauthenticated POST would just 401 on every navigation.
  *  - closing the tab still counts. A normal fetch is cancelled when the page
  *    goes away, so the last page of every session — often the interesting one —
- *    would be missing. sendBeacon survives it.
+ *    would be missing. Authenticated keepalive fetch survives it.
  */
 export default function usePageTracking() {
   const pathname = usePathname();
@@ -31,15 +31,11 @@ export default function usePageTracking() {
     const send = (path: string, seconds: number, beacon: boolean) => {
       if (!path || !getToken()) return;
       const body = JSON.stringify({ path, seconds });
-      if (beacon && typeof navigator !== "undefined" && navigator.sendBeacon) {
-        // Blob rather than a bare string: without an explicit JSON type the
-        // browser sends text/plain and FastAPI rejects the body.
-        navigator.sendBeacon("/api/activity/page", new Blob([body], { type: "application/json" }));
-        return;
-      }
+      // Beacon cannot attach bearer authentication. Keepalive fetch survives
+      // navigation and preserves the same authenticated API path.
       api(
         "/api/activity/page",
-        { method: "POST", body, headers: { "Content-Type": "application/json" } },
+        { method: "POST", body, keepalive: beacon, headers: { "Content-Type": "application/json" } },
         { background: true },   // keeps a 401/402 away from the paywall routing
       ).catch(() => {});
     };

@@ -3,6 +3,7 @@ import PriceChangeBadge from "@/components/PriceChangeBadge";
 import ContextQuestions from "@/components/ContextQuestions";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import AppShell, { useIsMobile } from "@/components/AppShell";
@@ -55,7 +56,8 @@ function pvFmt(field: string, v: number | string | null): string {
   return String(v);
 }
 
-export default function PropertyDetailPage({ params }: { params: { id: string } }) {
+export default function PropertyDetailPage() {
+  const params = useParams<{id:string}>();
   return (
     <AppShell>
       <Inner id={params.id} />
