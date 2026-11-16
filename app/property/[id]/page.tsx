@@ -1087,8 +1087,8 @@ function Inner({ id }: { id: string }) {
                 <EstimatesCompare
                   ourValue={p.fair_value}
                   asking={p.asking_price}
-                  sellEstimate={p.expected_sale}
-                  band={p.expected_sale_band}
+                  sellEstimate={null}
+                  band={null}
                 />
               );
             }
@@ -1102,8 +1102,8 @@ function Inner({ id }: { id: string }) {
                   asking={p.asking_price}
                   askingDate={p.listing_date}
                   ourValue={p.fair_value}
-                  expectedSale={p.expected_sale}
-                  expectedBand={p.expected_sale_band}
+                  expectedSale={null}
+                  expectedBand={null}
                 />
               </div>
             );
