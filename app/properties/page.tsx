@@ -99,7 +99,8 @@ function AuditButton() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      // Keep the blob alive until the browser has started saving large files.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (e: any) {
       alert(`Download failed: ${e?.message ?? "unknown"}`);
     } finally {
@@ -143,7 +144,8 @@ function ExportButton() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      // Keep the blob alive until the browser has started saving large files.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (e: any) {
       alert(`Export failed: ${e?.message ?? "unknown"}`);
     } finally {

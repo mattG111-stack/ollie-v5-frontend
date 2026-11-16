@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { ImportBatch, IngestJob, api, apiRaw } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { prepareImportFile } from "@/lib/import-file";
 import TradeMeFill from "@/components/TradeMeFill";
 
 export default function UploadPage() {
@@ -90,11 +91,11 @@ function Inner() {
     setBusy(true);
     setErr(null);
     setActiveJobs([]);
-    const form = new FormData();
-    if (fsFile) form.append("for_sale", fsFile);
-    if (soldFile) form.append("sold", soldFile);
-    if (rentFile) form.append("rent", rentFile);
     try {
+      const form = new FormData();
+      if (fsFile) form.append("for_sale", await prepareImportFile(fsFile));
+      if (soldFile) form.append("sold", await prepareImportFile(soldFile));
+      if (rentFile) form.append("rent", await prepareImportFile(rentFile));
       const jobs = await api<IngestJob[]>("/api/admin/upload", { method: "POST", body: form });
       setActiveJobs(jobs);
       setFsFile(null);
@@ -126,7 +127,7 @@ function Inner() {
     setCheck(null);
     try {
       const form = new FormData();
-      form.append("for_sale", fsFile);
+      form.append("for_sale", await prepareImportFile(fsFile));
       const res = await apiRaw("/api/admin/upload/preflight", { method: "POST", body: form });
       const total = Number(res.headers.get("X-Preflight-Total") || 0);
       const loaded = Number(res.headers.get("X-Preflight-Loaded") || 0);
@@ -140,7 +141,8 @@ function Inner() {
       a.href = url;
       a.download = name;
       a.click();
-      URL.revokeObjectURL(url);
+      // Keep the blob alive until the browser has started saving large files.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (e: any) {
       setErr(e?.detail || e?.message || "Could not check that file");
     } finally {
